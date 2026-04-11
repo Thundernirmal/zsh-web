@@ -1,73 +1,19 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TipsExplorer from '../components/TipsExplorer.tsx';
 import tipsData from '../data/tips.json';
 
 type Tip = { text: string; category: string };
 const tips: Tip[] = tipsData;
-
-// Group tips by category
-const categoryOrder = ['navigation', 'git', 'search', 'utility', 'pipe', 'globbing', 'history', 'fzf', 'nix', 'shell', 'network', 'process'];
-const categoryLabels: Record<string, string> = {
-  navigation: '🧭 Navigation',
-  git: '📦 Git',
-  search: '🔍 Search & Process',
-  utility: '🛠️ Utility',
-  pipe: '🔗 Pipe Aliases',
-  globbing: '✨ Globbing',
-  history: '📜 History',
-  fzf: '⚡ FZF & Zoxide',
-  nix: '❄️ Nix Package Manager',
-  shell: '🐚 Shell Behavior',
-  network: '🌐 Network',
-  process: '⚙️ Process',
-};
-
-const grouped = new Map<string, Tip[]>();
-for (const cat of categoryOrder) {
-  const catTips = tips.filter(t => t.category === cat);
-  if (catTips.length > 0) {
-    grouped.set(cat, catTips);
-  }
-}
 ---
 
-<Layout title="Curated Tips">
+<Layout title="Shell Tips">
 	<header class="page-header animate-in">
 		<h1 class="page-title">Shell Tips</h1>
 		<p class="page-subtitle">
-			{tips.length} curated tips organized by topic — shortcuts, workflows, and hidden features from <span class="accent-text" style="font-weight: 600;">Nirmal's Shell</span> environment.
+			{tips.length} curated tips — shortcuts, workflows, and hidden features from <span class="accent-text page-subtitle-accent">Nirmal's Shell</span>.
 		</p>
 	</header>
 
-	<!-- Category navigation -->
-	<div class="segmented-control animate-in animate-in-2" style="margin-bottom: 2rem; flex-wrap: wrap;">
-		{[...grouped.entries()].map(([cat, catTips]) => (
-			<a href={`#${cat}`} class={`cat-badge cat-${cat}`} style="text-decoration: none; transition: opacity 0.2s;">
-				{categoryLabels[cat]?.split(' ').slice(1).join(' ') || cat}
-				<span style="font-size: 0.65rem; opacity: 0.7; margin-left: 0.25rem;">{catTips.length}</span>
-			</a>
-		))}
-	</div>
-
-	<!-- Tips grouped by category -->
-	<div class="animate-in animate-in-3">
-		{[...grouped.entries()].map(([cat, catTips]) => (
-			<section class="category-section" id={cat} style="scroll-margin-top: 5rem;">
-				<div class="category-header">
-					<span class={`cat-badge cat-${cat}`}>{categoryLabels[cat] || cat}</span>
-					<span class="category-count">{catTips.length} tip{catTips.length !== 1 ? 's' : ''}</span>
-				</div>
-				<div class="geist-list" style="content-visibility: auto;">
-					{catTips.map((tip) => (
-						<div class="geist-list-item tip-item">
-							<span class="tip-arrow" aria-hidden="true">→</span>
-							<div class="tip-content">
-								<p class="tip-text">{tip.text}</p>
-							</div>
-						</div>
-					))}
-				</div>
-			</section>
-		))}
-	</div>
+	<TipsExplorer client:load tips={tips} />
 </Layout>

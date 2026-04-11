@@ -10,6 +10,8 @@ type Command = {
   source?: string;
 };
 
+const VALID_FILTERS = new Set(['all', 'alias', 'global_alias', 'function']);
+
 function getBadgeClass(type: string): string {
   if (type === 'alias') return 'badge badge-alias';
   if (type === 'global_alias') return 'badge badge-global';
@@ -19,10 +21,13 @@ function getBadgeClass(type: string): string {
 
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query || query.length < 2) return text;
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  const parts = text.split(regex);
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const splitRegex = new RegExp(`(${escapedQuery})`, 'gi');
+  const testRegex = new RegExp(`^${escapedQuery}$`, 'i');
+  const parts = text.split(splitRegex);
+
   return parts.map((part, i) =>
-    regex.test(part) ? <mark key={i} className="search-highlight">{part}</mark> : part
+    testRegex.test(part) ? <mark key={i} className="search-highlight">{part}</mark> : part
   );
 }
 
@@ -35,8 +40,16 @@ export default function SearchCommands() {
   useEffect(() => {
     setIsMounted(true);
     const params = new URLSearchParams(window.location.search);
-    if (params.has('q')) setQuery(params.get('q') || '');
-    if (params.has('type')) setFilter(params.get('type') || 'all');
+    const nextQuery = params.get('q');
+    const nextFilter = params.get('type');
+
+    if (nextQuery) {
+      setQuery(nextQuery);
+    }
+
+    if (nextFilter && VALID_FILTERS.has(nextFilter)) {
+      setFilter(nextFilter);
+    }
   }, []);
 
   useEffect(() => {
@@ -77,29 +90,31 @@ export default function SearchCommands() {
   ];
 
   return (
-    <div>
-      {/* Search */}
-      <div className="search-wrapper" style={{ marginBottom: '1.5rem' }}>
-        <input
-          type="search"
-          className="search-input"
-          placeholder="Search commands, aliases, or functions…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search commands"
-          name="search"
-          autoComplete="off"
-        />
-        <span className="search-count" aria-live="polite" aria-atomic="true">
-          {filteredCommands.length} result{filteredCommands.length !== 1 ? 's' : ''}
-        </span>
+    <div className="search-view animate-in animate-in-2">
+      <div className="search-section">
+        <div className="search-wrapper search-wrapper-lg">
+          <input
+            type="search"
+            className="search-field search-field-lg"
+            placeholder="Search commands, aliases, or functions…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search commands"
+            name="command-search"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <span className="search-count" aria-live="polite" aria-atomic="true">
+            {filteredCommands.length} result{filteredCommands.length !== 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="segmented-control" style={{ marginBottom: '1.5rem' }} role="group" aria-label="Filter commands by type">
+      <div className="segmented-control filter-toolbar" role="group" aria-label="Filter commands by type">
         {filterButtons.map(btn => (
           <button
             key={btn.key}
+            type="button"
             className={`segmented-btn ${filter === btn.key ? 'active' : ''}`}
             data-type={btn.key}
             onClick={() => setFilter(btn.key)}
@@ -111,20 +126,22 @@ export default function SearchCommands() {
         ))}
       </div>
 
-      {/* Results — no framer-motion to avoid black gap during exits */}
-      <div className="geist-list">
+      <div className="surface-list">
         {filteredCommands.length === 0 ? (
-          <div className="geist-list-item" style={{ color: 'var(--text-faint)', fontSize: '0.875rem', fontFamily: 'var(--font-mono)' }}>
-            no results for &ldquo;<span style={{ color: 'var(--ctp-mauve)' }}>{query}</span>&rdquo;
-            {' — '}
+          <div className="surface-list-item search-empty-state">
+            No Results for <span className="search-empty-query">&ldquo;{query}&rdquo;</span>
+            <span className="search-empty-separator" aria-hidden="true">—</span>
             <button
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-color)', fontSize: '0.875rem', fontFamily: 'var(--font-mono)', padding: 0 }}
+              type="button"
+              className="text-button"
               onClick={() => { setQuery(''); setFilter('all'); }}
-            >clear</button>
+            >
+              Clear Search
+            </button>
           </div>
         ) : (
           filteredCommands.map((cmd, idx) => (
-            <div key={cmd.name + cmd.type + idx} className="geist-list-item">
+            <div key={cmd.name + cmd.type + idx} className="surface-list-item">
               <div className="command-card-header">
                 <h3 className="command-card-name">{highlightText(cmd.name, query)}</h3>
                 <div className="command-card-meta">

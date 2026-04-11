@@ -38,7 +38,7 @@ const currentPath = Astro.url.pathname;
 					<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`}>Commands</a>
 					<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`}>Tips</a>
 				</nav>
-				<main id="main-content" tabindex="-1">
+				<main id="main-content" tabindex="-1" class="main-layout">
 					<slot />
 				</main>
 			</div>
