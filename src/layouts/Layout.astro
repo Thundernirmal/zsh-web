@@ -24,6 +24,7 @@ const currentPath = Astro.url.pathname;
 		<meta property="og:url" content="https://zsh.nirmalkatariya.com" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 		<title>{title} | Nirmal's Shell</title>
 	</head>
 	<body>
@@ -37,6 +38,9 @@ const currentPath = Astro.url.pathname;
 					<div class="nav-spacer"></div>
 					<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`}>Commands</a>
 					<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`}>Tips</a>
+					<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="nav-link" aria-label="GitHub Repository">
+						GitHub ↗
+					</a>
 				</nav>
 				<main id="main-content" tabindex="-1" class="main-layout">
 					<slot />
@@ -48,7 +52,7 @@ const currentPath = Astro.url.pathname;
 					<p class="footer-text">
 						Built by <a href="https://nirmalkatariya.com">Nirmal Katariya</a>
 						<span class="footer-divider">·</span>
-						<a href="https://github.com/nicholasgasior/dotfiles">Source</a>
+						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer">Source Config</a>
 						<span class="footer-divider">·</span>
 						Powered by Astro & Catppuccin Mocha
 					</p>

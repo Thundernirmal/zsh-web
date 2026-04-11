@@ -93,10 +93,11 @@ export default function SearchCommands() {
     <div className="search-view animate-in animate-in-2">
       <div className="search-section">
         <div className="search-wrapper search-wrapper-lg">
+          <span aria-hidden="true" className="search-icon">⌕</span>
           <input
             type="search"
             className="search-field search-field-lg"
-            placeholder="Search commands, aliases, or functions…"
+            placeholder="Search commands, aliases, options..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search commands"

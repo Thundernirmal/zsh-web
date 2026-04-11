@@ -111,7 +111,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
     <div className="search-view animate-in animate-in-2">
       <div className="search-section">
         <div className="search-wrapper search-wrapper-lg">
-          <span aria-hidden="true" style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', zIndex: 1, pointerEvents: 'none' }}>⌕</span>
+          <span aria-hidden="true" className="search-icon">⌕</span>
           <input
             ref={searchRef}
             type="search"
@@ -123,16 +123,15 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
             name="tips-search"
             autoComplete="off"
             spellCheck={false}
-            style={{ paddingLeft: '3rem' }}
           />
-          <span className="search-count" aria-live="polite" aria-atomic="true" style={{ right: '4.5rem' }}>
+          <span className="search-count" aria-live="polite" aria-atomic="true">
             {filteredTips.length} tip{filteredTips.length !== 1 ? 's' : ''}
           </span>
-          <kbd aria-hidden="true" style={{ position: 'absolute', right: '1.25rem', top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-faint)', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', borderRadius: '3px', padding: '0.1rem 0.35rem', pointerEvents: 'none' }}>/</kbd>
+          <kbd aria-hidden="true" className="search-kbd">/</kbd>
         </div>
       </div>
 
-      <div className="segmented-control filter-toolbar segmented-control-scrollable" role="group" aria-label="Filter tips by category">
+      <div className="segmented-control filter-toolbar" role="group" aria-label="Filter tips by category">
         {filterButtons.map(btn => (
           <button
             key={btn.key}
