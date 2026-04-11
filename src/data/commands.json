@@ -1,0 +1,338 @@
+[
+  {
+    "name": "ls",
+    "command": "lsd",
+    "description": "List directory contents with icons and colors",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "ll",
+    "command": "lsd -lah --group-dirs=first",
+    "description": "Long listing with hidden files and grouped directories",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "la",
+    "command": "lsd -A",
+    "description": "List all files including hidden ones",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "lt",
+    "command": "lsd --tree --depth=3 --group-dirs=first",
+    "description": "Tree view up to 3 levels deep with grouped directories",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "..",
+    "command": "cd ..",
+    "description": "Go up one directory level",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "...",
+    "command": "cd ../..",
+    "description": "Go up two directory levels",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "....",
+    "command": "cd ../../..",
+    "description": "Go up three directory levels",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "-",
+    "command": "cd -",
+    "description": "Return to the previous directory",
+    "type": "alias",
+    "category": "navigation",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "mkdir",
+    "command": "mkdir -p",
+    "description": "Create directories including parent paths automatically",
+    "type": "alias",
+    "category": "safety",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "cp",
+    "command": "cp -iv",
+    "description": "Copy files with interactive confirmation and verbose output",
+    "type": "alias",
+    "category": "safety",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "mv",
+    "command": "mv -iv",
+    "description": "Move files with interactive confirmation and verbose output",
+    "type": "alias",
+    "category": "safety",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "rm",
+    "command": "rm -iv",
+    "description": "Remove files with interactive confirmation and verbose output",
+    "type": "alias",
+    "category": "safety",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "cat",
+    "command": "bat --style=numbers --paging=never",
+    "description": "Display file contents with syntax highlighting and line numbers",
+    "type": "alias",
+    "category": "viewing",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "grep",
+    "command": "grep --color=auto",
+    "description": "Search text with colorized output",
+    "type": "alias",
+    "category": "viewing",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "diff",
+    "command": "diff --color=auto",
+    "description": "Compare files with colorized output",
+    "type": "alias",
+    "category": "viewing",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "ports",
+    "command": "ss -tulnp",
+    "description": "Show all listening ports and their processes",
+    "type": "alias",
+    "category": "network",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "myip",
+    "command": "curl -fsSL https://ifconfig.me/ip && printf \"\\n\"",
+    "description": "Display your public IP address",
+    "type": "alias",
+    "category": "network",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "weather",
+    "command": "curl --http1.1 -fsSL https://wttr.in",
+    "description": "Display a weather forecast in the terminal",
+    "type": "alias",
+    "category": "network",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "glog",
+    "command": "git log --oneline --graph --decorate -20",
+    "description": "Show a compact visual git commit graph",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "gpr",
+    "command": "git pull --rebase",
+    "description": "Pull with rebase for a cleaner linear history",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "gun",
+    "command": "git reset HEAD~1 --soft",
+    "description": "Undo the last commit while keeping changes staged",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "gcount",
+    "command": "git shortlog -sn --no-merges",
+    "description": "Show commit counts per author, sorted by frequency",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh"
+  },
+  {
+    "name": "G",
+    "command": "| grep",
+    "description": "Pipe to grep — use anywhere in a command",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "L",
+    "command": "| less",
+    "description": "Pipe to less — use anywhere in a command",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "W",
+    "command": "| wc -l",
+    "description": "Count lines — use anywhere in a command",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "H",
+    "command": "| head",
+    "description": "Show first lines — use anywhere in a command",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "T",
+    "command": "| tail",
+    "description": "Show last lines — use anywhere in a command",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "NE",
+    "command": "2>/dev/null",
+    "description": "Suppress stderr output",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "NUL",
+    "command": ">/dev/null 2>&1",
+    "description": "Suppress all output (stdout and stderr)",
+    "type": "global_alias",
+    "category": "pipe",
+    "source": "70-globals.zsh"
+  },
+  {
+    "name": "extract",
+    "command": "extract <archive>",
+    "description": "Extract any supported archive format automatically",
+    "type": "function",
+    "category": "utility",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "mkcd",
+    "command": "mkcd <dir>",
+    "description": "Create a directory and cd into it in one step",
+    "type": "function",
+    "category": "navigation",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "ff",
+    "command": "ff <pattern> [path]",
+    "description": "Find files by name recursively — uses fd when available",
+    "type": "function",
+    "category": "search",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "ft",
+    "command": "ft <text> [path]",
+    "description": "Find text in files — uses ripgrep when available, falls back to grep",
+    "type": "function",
+    "category": "search",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "fkill",
+    "command": "fkill [signal]",
+    "description": "Fuzzy-select and kill a running process",
+    "type": "function",
+    "category": "process",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "headers",
+    "command": "headers <url>",
+    "description": "Follow redirects and print HTTP response headers",
+    "type": "function",
+    "category": "network",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "peek",
+    "command": "peek <file>",
+    "description": "Preview a file quickly — uses bat when available",
+    "type": "function",
+    "category": "viewing",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "dusage",
+    "command": "dusage [path] [count]",
+    "description": "Show disk usage summary for the largest items in a directory",
+    "type": "function",
+    "category": "utility",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "bigfiles",
+    "command": "bigfiles [path] [count]",
+    "description": "Find the largest files recursively in a directory tree",
+    "type": "function",
+    "category": "utility",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "croot",
+    "command": "croot",
+    "description": "Jump to the root of the current git repository",
+    "type": "function",
+    "category": "git",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "path",
+    "command": "path",
+    "description": "Print each PATH entry on its own line",
+    "type": "function",
+    "category": "utility",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "fbr",
+    "command": "fbr",
+    "description": "Fuzzy-pick and checkout a git branch from local or remote refs",
+    "type": "function",
+    "category": "git",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "npkg",
+    "command": "npkg <subcommand>",
+    "description": "Nix package manager wrapper — add, remove, find, search, upgrade, and more",
+    "type": "function",
+    "category": "nix",
+    "source": "60-functions.zsh"
+  }
+]

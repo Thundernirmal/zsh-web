@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SearchCommands from '../components/SearchCommands.tsx';
+---
+
+<Layout title="Commands">
+	<header class="page-header animate-in">
+		<h1 class="page-title">Command Reference</h1>
+		<p class="page-subtitle">
+			Search through all aliases, global aliases, and custom functions available in <span class="accent-text" style="font-weight: 600;">Nirmal's Shell</span> environment.
+		</p>
+	</header>
+
+	<SearchCommands client:load />
+</Layout>

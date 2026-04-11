@@ -1,0 +1,41 @@
+---
+/**
+ * TerminalHero.astro
+ * A lightweight CSS-only terminal mockup with staggered fade-in lines
+ * showing signature commands from Nirmal's shell config.
+ */
+---
+
+<div class="terminal animate-in animate-in-3">
+    <div class="terminal-titlebar">
+        <span class="terminal-dot terminal-dot-red"></span>
+        <span class="terminal-dot terminal-dot-yellow"></span>
+        <span class="terminal-dot terminal-dot-green"></span>
+        <span class="terminal-title">~/.config/zsh</span>
+    </div>
+    <div class="terminal-body" aria-label="Terminal demonstration showing example commands" role="img">
+        <div class="typing-line">
+            <span class="terminal-prompt">❯ </span>
+            <span class="terminal-command">tips</span>
+        </div>
+        <div class="typing-line">
+            <span class="terminal-output">💡 Use ft TODO to quickly find TODO comments in your code</span>
+        </div>
+        <div class="typing-line">&nbsp;</div>
+        <div class="typing-line">
+            <span class="terminal-prompt">❯ </span>
+            <span class="terminal-command">ff "*.tsx" src/</span>
+        </div>
+        <div class="typing-line">
+            <span class="terminal-output">src/components/SearchCommands.tsx</span>
+        </div>
+        <div class="typing-line">
+            <span class="terminal-output">src/components/TipRoulette.tsx</span>
+        </div>
+        <div class="typing-line">&nbsp;</div>
+        <div class="typing-line">
+            <span class="terminal-prompt">❯ </span>
+            <span class="terminal-command">glog</span>
+        </div>
+    </div>
+</div>

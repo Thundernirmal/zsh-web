@@ -1,0 +1,59 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment." />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#1e1e2e" />
+		<meta property="og:title" content={`${title} | Nirmal's Shell`} />
+		<meta property="og:description" content="A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment." />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content="https://zsh.nirmalkatariya.com" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<title>{title} | Nirmal's Shell</title>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-link">Skip to main content</a>
+		<div class="page-wrapper">
+			<div class="container">
+				<nav class="nav" aria-label="Main navigation">
+					<a href="/" class="nav-brand">
+						<span class="brand-accent">~</span> Nirmal's Shell
+					</a>
+					<div class="nav-spacer"></div>
+					<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`}>Commands</a>
+					<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`}>Tips</a>
+				</nav>
+				<main id="main-content" tabindex="-1">
+					<slot />
+				</main>
+			</div>
+
+			<footer class="footer">
+				<div class="footer-content">
+					<p class="footer-text">
+						Built by <a href="https://nirmalkatariya.com">Nirmal Katariya</a>
+						<span class="footer-divider">·</span>
+						<a href="https://github.com/nicholasgasior/dotfiles">Source</a>
+						<span class="footer-divider">·</span>
+						Powered by Astro & Catppuccin Mocha
+					</p>
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
