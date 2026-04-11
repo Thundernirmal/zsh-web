@@ -110,7 +110,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
   return (
     <div className="search-view animate-in animate-in-2">
       <div className="search-section">
-        <div className="search-wrapper search-wrapper-lg">
+        <div className="search-wrapper search-wrapper-with-shortcut">
           <span aria-hidden="true" className="search-icon">⌕</span>
           <input
             ref={searchRef}
@@ -124,10 +124,12 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
             autoComplete="off"
             spellCheck={false}
           />
-          <span className="search-count" aria-live="polite" aria-atomic="true">
-            {filteredTips.length} tip{filteredTips.length !== 1 ? 's' : ''}
-          </span>
-          <kbd aria-hidden="true" className="search-kbd">/</kbd>
+          <div className="search-meta">
+            <span className="search-count" aria-live="polite" aria-atomic="true">
+              {filteredTips.length} tip{filteredTips.length !== 1 ? 's' : ''}
+            </span>
+            <kbd aria-hidden="true" className="search-kbd">/</kbd>
+          </div>
         </div>
       </div>
 
@@ -141,9 +143,8 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
             onClick={() => setFilter(btn.key)}
             aria-pressed={filter === btn.key}
             disabled={btn.count === 0}
-            style={{ opacity: btn.count === 0 ? 0.4 : 1 }}
           >
-            <span aria-hidden="true" style={{ marginRight: '0.2rem', opacity: 0.7 }}>{btn.icon}</span>
+            <span aria-hidden="true" className="tip-filter-icon">{btn.icon}</span>
             {btn.label}
             <span className="seg-count">{btn.count}</span>
           </button>
@@ -164,14 +165,14 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
             </button>
           </div>
         ) : (
-          filteredTips.map((tip, idx) => (
-            <div key={idx} className="surface-list-item">
-              <div className="command-card-header" style={{ alignItems: 'flex-start' }}>
-                <p className="command-card-name" style={{ flex: 1, whiteSpace: 'normal', lineHeight: 1.5, color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: 0, fontWeight: 500 }}>
-                  <span aria-hidden="true" style={{ color: 'var(--accent-color)', marginRight: '0.5rem', fontFamily: 'var(--font-mono)' }}>→</span>
+          filteredTips.map((tip) => (
+            <div key={`${tip.category}:${tip.text}`} className="surface-list-item tip-list-item">
+              <div className="tip-card">
+                <p className="tip-card-text">
+                  <span aria-hidden="true" className="tip-card-arrow">→</span>
                   {highlightText(tip.text, query)}
                 </p>
-                <div className="command-card-meta" style={{ marginTop: '0.2rem' }}>
+                <div className="tip-card-meta">
                   <span className="badge badge-category" data-category={tip.category}>
                     {CATEGORY_META[tip.category]?.label || tip.category}
                   </span>
@@ -184,4 +185,3 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
     </div>
   );
 }
-

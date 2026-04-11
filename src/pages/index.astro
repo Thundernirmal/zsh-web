@@ -10,7 +10,7 @@ import tipsData from '../data/tips.json';
 		<h1 class="page-title"><span class="gradient-text">Nirmal's</span> Shell</h1>
 		<p class="page-subtitle">
 			A living guide to aliases, functions, tips, and workflows — extracted directly from 
-			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" style="text-decoration: underline; text-underline-offset: 4px; color: var(--text-main);">
+			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="page-subtitle-link">
 				github.com/Thundernirmal/zsh
 			</a>
 		</p>
@@ -22,9 +22,9 @@ import tipsData from '../data/tips.json';
 
 	<div class="panel-grid panel-grid-2 animate-in animate-in-4">
 		<!-- Left Pane: Command Reference -->
-		<section class="panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 2.5rem 1.5rem;">
+		<section class="panel panel-center panel-roomy">
 			<h2 class="panel-title panel-title-lg">Command Library</h2>
-			<p class="panel-copy" style="margin-bottom: 2rem;">
+			<p class="panel-copy panel-copy-spaced">
 				Search and explore the complete library of custom commands, aliases, and workflows configuring this environment.
 			</p>
 			<div class="panel-actions">
@@ -33,12 +33,12 @@ import tipsData from '../data/tips.json';
 		</section>
 
 		<!-- Right Pane: Interactive Tips -->
-		<section class="panel" style="display: flex; flex-direction: column; padding: 1.5rem;">
-			<div class="panel-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
-				<h2 class="panel-title panel-title-md" style="margin: 0;">Shell Tips</h2>
-				<a href="/tips" class="text-button" style="text-decoration: none; font-size: 0.8rem;">View All {tipsData.length} →</a>
+		<section class="panel panel-stack">
+			<div class="panel-header panel-header-split">
+				<h2 class="panel-title panel-title-md">Shell Tips</h2>
+				<a href="/tips" class="text-button text-button-sm">View All {tipsData.length} →</a>
 			</div>
-			<div style="flex: 1; display: flex; flex-direction: column;">
+			<div class="panel-fill">
 				<TipRoulette client:load />
 			</div>
 		</section>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import tipsData from '../data/tips.json';
 
@@ -84,7 +84,7 @@ export default function TipRoulette() {
         {announcedTip}
       </div>
 
-      <div className="roulette-display" style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', padding: '1.5rem' }}>
+      <div className="roulette-display">
         <AnimatePresence mode="wait">
           <motion.p
             key={currentTip}
