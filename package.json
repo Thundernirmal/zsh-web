@@ -6,7 +6,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "sync": "node scripts/extract.mjs",
+    "sync": "node scripts/extract.mjs --required",
     "dev": "node scripts/extract.mjs && astro dev",
     "build": "node scripts/extract.mjs && astro build",
     "preview": "astro preview",

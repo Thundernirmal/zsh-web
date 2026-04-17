@@ -8,6 +8,8 @@ const TIPS_SOURCE = '80-tips.zsh';
 const ALIASES_SOURCE = '20-aliases.zsh';
 const GLOBALS_SOURCE = '70-globals.zsh';
 const FUNCTIONS_SOURCE = '60-functions.zsh';
+const SOURCE_FILES = [ALIASES_SOURCE, FUNCTIONS_SOURCE, GLOBALS_SOURCE, TIPS_SOURCE];
+const REQUIRE_SOURCES = process.argv.includes('--required');
 
 const KNOWN_ALIAS_METADATA = {
   ls: {
@@ -223,6 +225,32 @@ function ensureDataDir() {
   }
 }
 
+function sourcePath(fileName) {
+  return path.join(ZSH_DIR, fileName);
+}
+
+function getMissingSourceFiles() {
+  return SOURCE_FILES.filter((fileName) => !fs.existsSync(sourcePath(fileName)));
+}
+
+function ensureSourceFilesAvailable() {
+  const missingFiles = getMissingSourceFiles();
+
+  if (missingFiles.length === 0) {
+    return true;
+  }
+
+  const missingPaths = missingFiles.map((fileName) => sourcePath(fileName)).join(', ');
+  const message = `Zsh source files not found: ${missingPaths}`;
+
+  if (REQUIRE_SOURCES) {
+    throw new Error(message);
+  }
+
+  console.warn(`[extract] ${message}. Using committed src/data/*.json as-is.`);
+  return false;
+}
+
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
     return [];
@@ -427,7 +455,7 @@ function mergeCommands(existingCommands, extractedCommands) {
 }
 
 function extractTips() {
-  const content = fs.readFileSync(path.join(ZSH_DIR, TIPS_SOURCE), 'utf-8');
+  const content = fs.readFileSync(sourcePath(TIPS_SOURCE), 'utf-8');
   const tipStrings = [];
   let inTipPool = false;
 
@@ -470,7 +498,7 @@ function extractTips() {
 }
 
 function extractAliases() {
-  const content = fs.readFileSync(path.join(ZSH_DIR, ALIASES_SOURCE), 'utf-8');
+  const content = fs.readFileSync(sourcePath(ALIASES_SOURCE), 'utf-8');
   const aliases = [];
   let currentSection = '';
 
@@ -504,7 +532,7 @@ function extractAliases() {
 }
 
 function extractGlobals() {
-  const content = fs.readFileSync(path.join(ZSH_DIR, GLOBALS_SOURCE), 'utf-8');
+  const content = fs.readFileSync(sourcePath(GLOBALS_SOURCE), 'utf-8');
   const globals = [];
 
   for (const rawLine of content.split('\n')) {
@@ -532,7 +560,7 @@ function extractGlobals() {
 }
 
 function extractFunctions() {
-  const content = fs.readFileSync(path.join(ZSH_DIR, FUNCTIONS_SOURCE), 'utf-8');
+  const content = fs.readFileSync(sourcePath(FUNCTIONS_SOURCE), 'utf-8');
   const funcs = [];
   let currentComment = '';
 
@@ -576,6 +604,11 @@ function extractFunctions() {
 
 function main() {
   ensureDataDir();
+
+  if (!ensureSourceFilesAvailable()) {
+    return;
+  }
+
   extractTips();
 
   const extractedCommands = [
