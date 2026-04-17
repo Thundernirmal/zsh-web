@@ -177,6 +177,11 @@ const KNOWN_FUNCTION_METADATA = {
     command: 'bigfiles [path] [count]',
     description: 'Find the largest files recursively in a directory tree',
   },
+  fanprofile: {
+    category: 'utility',
+    command: 'fanprofile',
+    description: 'Show the current laptop performance profile',
+  },
   croot: {
     category: 'git',
     command: 'croot',
@@ -401,14 +406,12 @@ function mergeCommands(existingCommands, extractedCommands) {
       continue;
     }
 
-    const preserveMetadata = existing.type === extracted.type;
-
     mergedCommands.push({
       ...existing,
       ...extracted,
       command: extracted.command ?? existing.command,
-      description: preserveMetadata ? existing.description ?? extracted.description : extracted.description,
-      category: preserveMetadata ? existing.category ?? extracted.category : extracted.category,
+      description: extracted.description ?? existing.description,
+      category: extracted.category ?? existing.category,
       source: extracted.source,
       type: extracted.type,
     });

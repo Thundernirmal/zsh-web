@@ -1,18 +1,26 @@
 # Nirmal's Shell
 
-A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment. 
+A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment.
 
 Hosted at [zsh.nirmalkatariya.com](https://zsh.nirmalkatariya.com).
 
 ## Overview
 
-This project automatically generates a searchable, web-accessible documentation site directly from a set of structured Zsh configuration files. It uses a custom Node.js extractor to parse shell scripts and feeds them into a fast, statically-built Astro application styled with the Catppuccin Mocha dark theme.
+This project builds a searchable Astro site directly from the portable Zsh config in `~/.config/zsh`. The extractor reads the live shell sources and regenerates the command and tip datasets used by the site, so the docs stay aligned with the actual setup instead of a hand-maintained copy.
+
+The current config covers:
+
+- aliases and global aliases
+- navigation helpers such as `zoxide`, `ff`, `mkcd`, and `croot`
+- search and process helpers such as `ft`, `fkill`, and `fbr`
+- utility functions such as `dusage`, `bigfiles`, `peek`, and `fanprofile`
+- the `npkg` Nix wrapper and dependency-aware tips
 
 ## Architecture
 
 - **Framework:** Astro + React islands
 - **Styling:** Vanilla CSS + Catppuccin Mocha theme tokens
-- **Data Source:** Extracted at build-time from `~/.config/zsh/*.zsh`
+- **Data Source:** Extracted from `~/.config/zsh/20-aliases.zsh`, `60-functions.zsh`, `70-globals.zsh`, and `80-tips.zsh`
 - **Deployment:** Cloudflare Pages (Static Export)
 
 ## Local Development
@@ -22,9 +30,9 @@ This project automatically generates a searchable, web-accessible documentation 
    npm install
    ```
 
-2. Extract latest shell data (requires `~/.config/zsh/` to exist locally):
+2. Sync the generated docs data from the live shell config:
    ```bash
-   node scripts/extract.mjs
+   npm run sync
    ```
 
 3. Start the development server:
@@ -32,11 +40,13 @@ This project automatically generates a searchable, web-accessible documentation 
    npm run dev
    ```
 
+`npm run dev` and `npm run build` both run the extractor first, so a normal dev session or production build starts from the latest `~/.config/zsh` contents.
+
 ## Deployment
 
-This site is optimized for Cloudflare Pages. 
+This site is optimized for Cloudflare Pages.
 
-- **Build Command:** `npm run build` (Ensure `scripts/extract.mjs` runs before or as part of the build if dynamic extraction is needed in CI)
+- **Build Command:** `npm run build`
 - **Output Directory:** `dist`
 
-*Note: In a CI/CD environment, you may need to commit `src/data/*.json` if the raw `~/.config/zsh/` files are not available in the build container.*
+If the deployment environment cannot read `~/.config/zsh`, commit the generated `src/data/*.json` files or provide the shell config inside the build environment.

@@ -138,7 +138,7 @@
   {
     "name": "weather",
     "command": "curl --http1.1 -fsSL https://wttr.in",
-    "description": "Display a weather forecast in the terminal",
+    "description": "Show the current weather forecast",
     "type": "alias",
     "category": "network",
     "source": "20-aliases.zsh"
@@ -146,7 +146,7 @@
   {
     "name": "glog",
     "command": "git log --oneline --graph --decorate -20",
-    "description": "Show a compact visual git commit graph",
+    "description": "Show a compact git history graph",
     "type": "alias",
     "category": "git",
     "source": "20-aliases.zsh"
@@ -154,7 +154,7 @@
   {
     "name": "gpr",
     "command": "git pull --rebase",
-    "description": "Pull with rebase for a cleaner linear history",
+    "description": "Pull with rebase for a cleaner git history",
     "type": "alias",
     "category": "git",
     "source": "20-aliases.zsh"
@@ -170,7 +170,7 @@
   {
     "name": "gcount",
     "command": "git shortlog -sn --no-merges",
-    "description": "Show commit counts per author, sorted by frequency",
+    "description": "Count commits per author",
     "type": "alias",
     "category": "git",
     "source": "20-aliases.zsh"
@@ -333,6 +333,14 @@
     "description": "Nix package manager wrapper — add, remove, find, search, upgrade, and more",
     "type": "function",
     "category": "nix",
+    "source": "60-functions.zsh"
+  },
+  {
+    "name": "fanprofile",
+    "command": "fanprofile",
+    "description": "Show the current laptop performance profile",
+    "type": "function",
+    "category": "utility",
     "source": "60-functions.zsh"
   }
 ]
