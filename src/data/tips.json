@@ -65,6 +65,6 @@
   { "text": "Run upkg managers --only=npm,flatpak to confirm selected execution order before upgrading", "category": "packages" },
   { "text": "On Arch-family systems, upkg treats empty repo and AUR outdated checks as up to date instead of surfacing a false failure", "category": "packages" },
   { "text": "Run upkg plan or upkg --dry-run to preview upgrades without changing packages", "category": "packages" },
-  { "text": "Use upkg --only flatpak,npm to limit checks to selected managers", "category": "packages" },
+  { "text": "Use upkg --only=flatpak,npm to limit checks to selected managers", "category": "packages" },
   { "text": "Run upkg upgrade --sudo to opt into system package upgrades explicitly", "category": "packages" }
 ]
