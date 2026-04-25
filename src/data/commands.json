@@ -336,6 +336,14 @@
     "source": "60-functions.zsh"
   },
   {
+    "name": "fanprofile",
+    "command": "fanprofile",
+    "description": "Show the current laptop performance profile",
+    "type": "function",
+    "category": "utility",
+    "source": "60-functions.zsh"
+  },
+  {
     "name": "upkg",
     "command": "upkg [command]",
     "description": "Unified package update/check wrapper across supported managers",
