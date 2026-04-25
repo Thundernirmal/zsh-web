@@ -838,6 +838,7 @@ code {
 .typing-line:nth-child(6) { animation-delay: 0.9s; }
 .typing-line:nth-child(7) { animation-delay: 1.05s; }
 .typing-line:nth-child(8) { animation-delay: 1.2s; }
+.typing-line:nth-child(9) { animation-delay: 1.35s; }
 
 /* ========== Command Entry (Geist Entity Row style) ========== */
 .command-card-header {
