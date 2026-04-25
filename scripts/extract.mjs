@@ -179,11 +179,6 @@ const KNOWN_FUNCTION_METADATA = {
     command: 'bigfiles [path] [count]',
     description: 'Find the largest files recursively in a directory tree',
   },
-  fanprofile: {
-    category: 'utility',
-    command: 'fanprofile',
-    description: 'Show the current laptop performance profile',
-  },
   croot: {
     category: 'git',
     command: 'croot',
