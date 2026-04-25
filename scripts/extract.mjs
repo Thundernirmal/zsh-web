@@ -204,6 +204,11 @@ const KNOWN_FUNCTION_METADATA = {
     command: 'npkg <subcommand>',
     description: 'Nix package manager wrapper — add, remove, find, search, upgrade, and more',
   },
+  upkg: {
+    category: 'packages',
+    command: 'upkg [command]',
+    description: 'Unified package update/check wrapper across supported managers',
+  },
 };
 
 const TIP_CATEGORY_RULES = [
@@ -212,6 +217,7 @@ const TIP_CATEGORY_RULES = [
   { category: 'history', pattern: /\bhistory\b|hist_ignore_space|ctrl\+r history/ },
   { category: 'fzf', pattern: /zoxide|ctrl\+r|ctrl\+t|alt\+c|interactive zoxide|fuzzy search your command history/ },
   { category: 'nix', pattern: /\bnpkg\b|\bnix\b|\bnixpkgs\b/ },
+  { category: 'packages', pattern: /\bupkg\b|package managers|outdated packages|arch-family|aur updates?|flatpak|\bnpm\b/ },
   { category: 'network', pattern: /\bports\b|\bmyip\b|\bweather\b|\bheaders\b|https|http/ },
   { category: 'git', pattern: /\bgit\b|\bglog\b|\bgpr\b|\bgun\b|\bgcount\b|\bcroot\b|\bfbr\b|\bgs\b|\bgd\b|\bgaa?\b|\bgco\b|\bgb\b/ },
   { category: 'navigation', pattern: /auto_cd|directory|pushd|popd|dirs -v|previous directory|\bcd\b|\bll\b|\blt\b|go up/ },

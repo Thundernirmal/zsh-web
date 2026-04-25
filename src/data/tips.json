@@ -59,5 +59,11 @@
   { "text": "Run npkg find nvim to seed the nix package picker with an initial query", "category": "nix" },
   { "text": "npkg find shows description, version, and homepage in the preview pane", "category": "nix" },
   { "text": "Run npkg remove with no args to fuzzy-select installed Nix packages to uninstall", "category": "nix" },
-  { "text": "Run fanprofile to see the current laptop performance/fan profile", "category": "utility" }
+  { "text": "Run upkg to list outdated packages across detected package managers", "category": "packages" },
+  { "text": "Run upkg managers to see active backends and alternates like pacman via --only", "category": "packages" },
+  { "text": "Run upkg managers --only=npm,flatpak to confirm selected execution order before upgrading", "category": "packages" },
+  { "text": "On Arch-family systems, upkg treats empty repo and AUR outdated checks as up to date instead of surfacing a false failure", "category": "packages" },
+  { "text": "Run upkg plan or upkg --dry-run to preview upgrades without changing packages", "category": "packages" },
+  { "text": "Use upkg --only flatpak,npm to limit checks to selected managers", "category": "packages" },
+  { "text": "Run upkg upgrade --sudo to opt into system package upgrades explicitly", "category": "packages" }
 ]

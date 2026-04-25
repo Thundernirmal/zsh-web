@@ -7,6 +7,7 @@ const CATEGORY_META: Record<string, { label: string; icon: string }> = {
   git:        { label: 'Git',              icon: '⎇' },
   search:     { label: 'Search & Process', icon: '⌖' },
   utility:    { label: 'Utility',          icon: '⚙' },
+  packages:   { label: 'Package Updates',  icon: '+' },
   pipe:       { label: 'Pipe Aliases',     icon: '|' },
   globbing:   { label: 'Globbing',         icon: '*' },
   history:    { label: 'History',          icon: '↺' },
@@ -17,7 +18,7 @@ const CATEGORY_META: Record<string, { label: string; icon: string }> = {
   process:    { label: 'Process',          icon: '◎' },
 };
 
-const CATEGORY_ORDER = ['navigation', 'git', 'search', 'utility', 'pipe', 'globbing', 'history', 'fzf', 'nix', 'shell', 'network', 'process'];
+const CATEGORY_ORDER = ['navigation', 'git', 'search', 'utility', 'packages', 'pipe', 'globbing', 'history', 'fzf', 'nix', 'shell', 'network', 'process'];
 
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query || query.length < 2) return text;
