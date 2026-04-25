@@ -13,8 +13,8 @@ The current config covers:
 - aliases and global aliases
 - navigation helpers such as `zoxide`, `ff`, `mkcd`, and `croot`
 - search and process helpers such as `ft`, `fkill`, and `fbr`
-- utility functions such as `dusage`, `bigfiles`, `peek`, and `fanprofile`
-- the `npkg` Nix wrapper and dependency-aware tips
+- utility functions such as `dusage`, `bigfiles`, and `peek`
+- network helpers such as `headers`, plus the `upkg` package update wrapper, the `npkg` Nix wrapper, and dependency-aware tips
 
 ## Architecture
 

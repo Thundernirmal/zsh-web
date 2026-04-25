@@ -552,6 +552,7 @@ a:hover {
 .segmented-btn[data-category="git"] { --category-accent: var(--ctp-peach); }
 .segmented-btn[data-category="search"] { --category-accent: var(--ctp-green); }
 .segmented-btn[data-category="utility"] { --category-accent: var(--ctp-teal); }
+.segmented-btn[data-category="packages"] { --category-accent: var(--ctp-flamingo); }
 .segmented-btn[data-category="pipe"] { --category-accent: var(--ctp-pink); }
 .segmented-btn[data-category="globbing"] { --category-accent: var(--ctp-yellow); }
 .segmented-btn[data-category="history"] { --category-accent: var(--ctp-lavender); }
@@ -756,6 +757,7 @@ code {
 .badge-category[data-category="git"] { --category-accent: var(--ctp-peach); }
 .badge-category[data-category="search"] { --category-accent: var(--ctp-green); }
 .badge-category[data-category="utility"] { --category-accent: var(--ctp-teal); }
+.badge-category[data-category="packages"] { --category-accent: var(--ctp-flamingo); }
 .badge-category[data-category="pipe"] { --category-accent: var(--ctp-pink); }
 .badge-category[data-category="globbing"] { --category-accent: var(--ctp-yellow); }
 .badge-category[data-category="history"] { --category-accent: var(--ctp-lavender); }
@@ -836,6 +838,7 @@ code {
 .typing-line:nth-child(6) { animation-delay: 0.9s; }
 .typing-line:nth-child(7) { animation-delay: 1.05s; }
 .typing-line:nth-child(8) { animation-delay: 1.2s; }
+.typing-line:nth-child(9) { animation-delay: 1.35s; }
 
 /* ========== Command Entry (Geist Entity Row style) ========== */
 .command-card-header {

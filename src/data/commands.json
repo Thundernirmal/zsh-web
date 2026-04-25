@@ -342,5 +342,13 @@
     "type": "function",
     "category": "utility",
     "source": "60-functions.zsh"
+  },
+  {
+    "name": "upkg",
+    "command": "upkg [command]",
+    "description": "Unified package update/check wrapper across supported managers",
+    "type": "function",
+    "category": "packages",
+    "source": "60-functions.zsh"
   }
 ]
