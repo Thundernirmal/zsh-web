@@ -464,22 +464,42 @@ function inferFunctionDependencies(body) {
   ];
   const optionalRegex = /(?:if|elif)\s+command -v ([A-Za-z0-9._+-]+)\b/g;
   const ignored = new Set(['command', 'git', 'curl', 'ss', 'find', 'grep', 'diff']);
-  const isInsideCaseBlock = (index) => {
-    const before = body.slice(0, index);
-    const caseStarts = (before.match(/^\s*case\b.*\bin\b/gm) ?? []).length;
-    const caseEnds = (before.match(/^\s*esac\b/gm) ?? []).length;
-    return caseStarts > caseEnds;
-  };
+  const lines = body.split('\n');
+  const caseStack = [];
+  const caseRanges = [];
+  let offset = 0;
+
+  for (const line of lines) {
+    if (/^\s*case\b.*\bin\b/.test(line)) {
+      caseStack.push(offset);
+    } else if (/^\s*esac\b/.test(line)) {
+      const start = caseStack.pop();
+      if (start !== undefined) {
+        caseRanges.push({ start, end: offset + line.length });
+      }
+    }
+    offset += line.length + 1;
+  }
+
+  while (caseStack.length > 0) {
+    const start = caseStack.pop();
+    caseRanges.push({ start, end: body.length });
+  }
+
+  const isInsideCaseStatement = (index) =>
+    caseRanges.some((range) => index >= range.start && index <= range.end);
 
   for (const regex of requiredRegexes) {
     let match = regex.exec(body);
 
     while (match) {
       const dependency = match[1];
-      if (!ignored.has(dependency) && isInsideCaseBlock(match.index)) {
-        optional.push(dependency);
-      } else if (!ignored.has(dependency)) {
-        requires.push(dependency);
+      if (!ignored.has(dependency)) {
+        if (isInsideCaseStatement(match.index)) {
+          optional.push(dependency);
+        } else {
+          requires.push(dependency);
+        }
       }
       match = regex.exec(body);
     }

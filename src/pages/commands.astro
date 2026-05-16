@@ -19,17 +19,25 @@ type Command = {
 
 const commands: Command[] = commandsData;
 const functionCount = commands.filter((command) => command.type === 'function').length;
-const hasExtractedDetails = (command: Command) =>
-	(command.features?.length ?? 0) > 0 ||
-	(command.examples?.length ?? 0) > 0 ||
-	(command.notes?.length ?? 0) > 0 ||
-	Boolean(command.usage) ||
-	Boolean(command.availability) ||
-	(command.requires?.length ?? 0) > 0 ||
-	(command.optional?.length ?? 0) > 0 ||
-	Boolean(command.interactive) ||
-	Boolean(command.plainMode) ||
-	Boolean(command.richOutput);
+const hasItems = (items?: string[]) => (items?.length ?? 0) > 0;
+const hasExtractedDetails = (command: Command) => {
+	const listFields = [
+		command.features,
+		command.examples,
+		command.notes,
+		command.requires,
+		command.optional,
+	];
+	const flagFields = [
+		command.usage,
+		command.availability,
+		command.interactive,
+		command.plainMode,
+		command.richOutput,
+	];
+
+	return listFields.some((items) => hasItems(items)) || flagFields.some(Boolean);
+};
 const documentedCount = commands.filter((command) =>
 	hasExtractedDetails(command),
 ).length;
