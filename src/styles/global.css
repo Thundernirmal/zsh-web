@@ -851,6 +851,8 @@ code {
 .badge-category[data-category="shell"] { --category-accent: var(--ctp-red); }
 .badge-category[data-category="network"] { --category-accent: var(--ctp-sapphire); }
 .badge-category[data-category="process"] { --category-accent: var(--ctp-maroon); }
+.badge-category[data-category="safety"] { --category-accent: var(--ctp-red); }
+.badge-category[data-category="viewing"] { --category-accent: var(--ctp-lavender); }
 
 .badge-subtle {
   background: rgba(186, 194, 222, 0.08);

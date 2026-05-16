@@ -14,6 +14,7 @@ type Command = {
   features?: string[];
   notes?: string[];
   requires?: string[];
+  optional?: string[];
   interactive?: boolean;
   plainMode?: boolean;
   richOutput?: boolean;
@@ -54,7 +55,13 @@ function renderListSection(title: string, items: string[] | undefined, query: st
     return null;
   }
 
-  const visibleItems = items.slice(0, 4);
+  const normalizedQuery = query.trim().toLowerCase();
+  const matchingItems = normalizedQuery.length >= 2
+    ? items.filter((item) => item.toLowerCase().includes(normalizedQuery))
+    : [];
+  const visibleItems = matchingItems.length > 0
+    ? Array.from(new Set([...matchingItems, ...items])).slice(0, 4)
+    : items.slice(0, 4);
   const remainingCount = items.length - visibleItems.length;
 
   return (
@@ -88,6 +95,7 @@ function getSearchableText(command: Command): string {
     ...(command.features ?? []),
     ...(command.notes ?? []),
     ...(command.requires ?? []),
+    ...(command.optional ?? []),
   ]
     .filter(Boolean)
     .join('\n')
@@ -248,7 +256,7 @@ export default function SearchCommands() {
                 </p>
               )}
 
-              {(cmd.interactive || cmd.plainMode || cmd.richOutput || (cmd.requires && cmd.requires.length > 0)) && (
+              {(cmd.interactive || cmd.plainMode || cmd.richOutput || (cmd.requires && cmd.requires.length > 0) || (cmd.optional && cmd.optional.length > 0)) && (
                 <div className="command-card-tags">
                   {cmd.interactive && <span className="badge badge-subtle">Interactive</span>}
                   {cmd.plainMode && <span className="badge badge-subtle">Plain Mode</span>}
@@ -256,6 +264,11 @@ export default function SearchCommands() {
                   {(cmd.requires ?? []).map((requirement) => (
                     <span key={`${cmd.name}:${requirement}`} className="badge badge-subtle">
                       Requires {formatLabel(requirement)}
+                    </span>
+                  ))}
+                  {(cmd.optional ?? []).map((dependency) => (
+                    <span key={`${cmd.name}:optional:${dependency}`} className="badge badge-subtle">
+                      Uses {formatLabel(dependency)} if available
                     </span>
                   ))}
                 </div>

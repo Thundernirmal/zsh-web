@@ -240,6 +240,12 @@ const TIP_CATEGORY_RULES = [
   { category: 'shell', pattern: /spell-correction|completion|case-insensitive|shell/ },
 ];
 
+const KNOWN_TIP_CATEGORIES = {
+  'Run gpr to pull with rebase for a cleaner history': 'git',
+  'Run dusage [path] [count] to summarize any directory with a custom limit': 'utility',
+  'Combine globals: git log G fix W counts commits mentioning fix': 'pipe',
+};
+
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -449,21 +455,42 @@ function inferTipSource(condition, text) {
   return 'core';
 }
 
-function inferFunctionRequirements(body) {
-  const dependencies = [];
-  const regex = /command -v ([A-Za-z0-9._+-]+)/g;
+function inferFunctionDependencies(body) {
+  const requires = [];
+  const optional = [];
+  const requiredRegexes = [
+    /if\s+!\s+command -v ([A-Za-z0-9._+-]+)\b/g,
+    /command -v ([A-Za-z0-9._+-]+)[^\n]*\|\|[^\n]*(?:required|return 1)/g,
+  ];
+  const optionalRegex = /(?:if|elif)\s+command -v ([A-Za-z0-9._+-]+)\b/g;
   const ignored = new Set(['command', 'git', 'curl', 'ss', 'find', 'grep', 'diff']);
-  let match = regex.exec(body);
+
+  for (const regex of requiredRegexes) {
+    let match = regex.exec(body);
+
+    while (match) {
+      const dependency = match[1];
+      if (!ignored.has(dependency)) {
+        requires.push(dependency);
+      }
+      match = regex.exec(body);
+    }
+  }
+
+  let match = optionalRegex.exec(body);
 
   while (match) {
     const dependency = match[1];
-    if (!ignored.has(dependency)) {
-      dependencies.push(dependency);
+    if (!ignored.has(dependency) && !requires.includes(dependency)) {
+      optional.push(dependency);
     }
-    match = regex.exec(body);
+    match = optionalRegex.exec(body);
   }
 
-  return uniqueList(dependencies);
+  return {
+    requires: uniqueList(requires),
+    optional: uniqueList(optional),
+  };
 }
 
 function extractFunctionDefinitions(content) {
@@ -545,13 +572,15 @@ function buildFunctionDocIndex(content) {
 
 function extractFunctionDocumentation(name, definition, docIndex) {
   const metadata = KNOWN_FUNCTION_METADATA[name] ?? {};
+  const dependencies = inferFunctionDependencies(definition.body);
   const docs = {
     usage: extractUsageLine(definition.body) ?? metadata.command,
     availability: describeCondition(definition.condition),
     examples: [],
     features: [],
     notes: [],
-    requires: inferFunctionRequirements(definition.body),
+    requires: dependencies.requires,
+    optional: dependencies.optional,
     interactive: definition.body.includes('requires an interactive terminal'),
     plainMode: definition.body.includes('_ui_plain_mode'),
     richOutput: definition.body.includes('_ui_title_line'),
@@ -582,6 +611,7 @@ function extractFunctionDocumentation(name, definition, docIndex) {
     features: maybeList(docs.features),
     notes: maybeList(docs.notes),
     requires: maybeList(docs.requires),
+    optional: maybeList(docs.optional),
     interactive: docs.interactive || undefined,
     plainMode: docs.plainMode || undefined,
     richOutput: docs.richOutput || undefined,
@@ -589,6 +619,10 @@ function extractFunctionDocumentation(name, definition, docIndex) {
 }
 
 function inferTipCategory(text) {
+  if (KNOWN_TIP_CATEGORIES[text]) {
+    return KNOWN_TIP_CATEGORIES[text];
+  }
+
   const lower = text.toLowerCase();
 
   for (const rule of TIP_CATEGORY_RULES) {
@@ -701,7 +735,7 @@ function mergeTips(existingTips, extractedTips) {
     mergedTips.push({
       ...existing,
       ...extracted,
-      category: extracted.category ?? existing.category,
+      category: KNOWN_TIP_CATEGORIES[existing.text] ?? existing.category ?? extracted.category,
     });
   }
 

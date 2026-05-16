@@ -262,7 +262,7 @@
     "category": "search",
     "source": "60-functions.zsh",
     "usage": "ff <pattern> [path]",
-    "requires": [
+    "optional": [
       "fd",
       "fdfind"
     ]
@@ -275,7 +275,7 @@
     "category": "search",
     "source": "60-functions.zsh",
     "usage": "ft <pattern> [path]",
-    "requires": [
+    "optional": [
       "rg"
     ]
   },
@@ -309,7 +309,7 @@
     "category": "viewing",
     "source": "60-functions.zsh",
     "usage": "peek <file>",
-    "requires": [
+    "optional": [
       "bat"
     ]
   },

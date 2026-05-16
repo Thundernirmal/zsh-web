@@ -43,7 +43,7 @@
   },
   {
     "text": "Run gpr to pull with rebase for a cleaner history",
-    "category": "history",
+    "category": "git",
     "source": "core",
     "availability": "Always available"
   },
@@ -85,7 +85,7 @@
   },
   {
     "text": "Run dusage [path] [count] to summarize any directory with a custom limit",
-    "category": "navigation",
+    "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
@@ -169,7 +169,7 @@
   },
   {
     "text": "Combine globals: git log G fix W counts commits mentioning fix",
-    "category": "globbing",
+    "category": "pipe",
     "source": "git",
     "availability": "Always available"
   },
