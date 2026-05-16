@@ -1,15 +1,46 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SearchCommands from '../components/SearchCommands.tsx';
+import commandsData from '../data/commands.json';
+
+type Command = {
+	type: string;
+	features?: string[];
+	examples?: string[];
+	notes?: string[];
+};
+
+const commands: Command[] = commandsData;
+const functionCount = commands.filter((command) => command.type === 'function').length;
+const documentedCount = commands.filter((command) =>
+	(command.features?.length ?? 0) > 0 ||
+	(command.examples?.length ?? 0) > 0 ||
+	(command.notes?.length ?? 0) > 0,
+).length;
 ---
 
 <Layout title="Commands">
 	<header class="page-header animate-in">
 		<h1 class="page-title">Command Reference</h1>
 		<p class="page-subtitle">
-			Search through all aliases, global aliases, and custom functions available in <span class="accent-text page-subtitle-accent">Nirmal's Shell</span> environment.
+			{commands.length} live entries synced from <span class="accent-text page-subtitle-accent">Nirmal's Shell</span>, with usage docs and feature notes extracted directly from the zsh sources.
 		</p>
 	</header>
+
+	<div class="stats-grid stats-grid-3 animate-in animate-in-2">
+		<section class="panel stat-card">
+			<p class="stat-value">{commands.length}</p>
+			<p class="stat-label">total commands</p>
+		</section>
+		<section class="panel stat-card">
+			<p class="stat-value">{functionCount}</p>
+			<p class="stat-label">custom functions</p>
+		</section>
+		<section class="panel stat-card">
+			<p class="stat-value">{documentedCount}</p>
+			<p class="stat-label">entries with extracted details</p>
+		</section>
+	</div>
 
 	<SearchCommands client:load />
 </Layout>

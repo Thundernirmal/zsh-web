@@ -2,7 +2,31 @@
 import Layout from '../layouts/Layout.astro';
 import TerminalHero from '../components/TerminalHero.astro';
 import TipRoulette from '../components/TipRoulette.tsx';
+import commandsData from '../data/commands.json';
 import tipsData from '../data/tips.json';
+
+type Command = {
+	name: string;
+	category?: string;
+	examples?: string[];
+	features?: string[];
+	notes?: string[];
+};
+
+type Tip = {
+	text: string;
+	source?: string;
+	availability?: string;
+};
+
+const commands: Command[] = commandsData;
+const tips: Tip[] = tipsData;
+const categoryCount = new Set(commands.map((command) => command.category).filter(Boolean)).size;
+const featuredTip = tips.find((tip) => tip.source === 'upkg')?.text ?? tips[0]?.text ?? 'Run tips again for another hint';
+const upkgExample = commands.find((command) => command.name === 'upkg')?.examples?.[0] ?? 'upkg search ripgrep';
+const npkgExample = commands.find((command) => command.name === 'npkg')?.examples?.[1] ?? 'npkg find nvim';
+const latestInstall = 'curl -fsSL https://zsh.nirmalkatariya.com/install.sh | sh';
+const guideUrl = 'https://github.com/Thundernirmal/zsh/blob/master/GUIDE.md#installation';
 ---
 
 <Layout title="Home">
@@ -16,8 +40,27 @@ import tipsData from '../data/tips.json';
 		</p>
 	</header>
 
+	<section class="panel install-panel animate-in animate-in-2">
+		<div class="panel-header panel-header-split install-panel-header-simple">
+			<div>
+				<h2 class="panel-title panel-title-md">Install</h2>
+				<p class="panel-copy">
+					Use the recommended installer to bootstrap the shared shell config on a new machine.
+				</p>
+			</div>
+			<a href={guideUrl} target="_blank" rel="noopener noreferrer" class="text-button text-button-sm">GUIDE.md ↗</a>
+		</div>
+
+		<div class="install-inline-row">
+			<code class="install-inline-code" id="install-command">{latestInstall}</code>
+			<button type="button" class="segmented-btn install-copy-button" data-copy-text={latestInstall} aria-describedby="install-command">
+				Copy
+			</button>
+		</div>
+	</section>
+
 	<div>
-		<TerminalHero />
+		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
 	</div>
 
 	<div class="panel-grid panel-grid-2 animate-in animate-in-4">
@@ -25,7 +68,7 @@ import tipsData from '../data/tips.json';
 		<section class="panel panel-center panel-roomy">
 			<h2 class="panel-title panel-title-lg">Command Library</h2>
 			<p class="panel-copy panel-copy-spaced">
-				Search and explore the complete library of custom commands, aliases, and workflows configuring this environment.
+				Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the live shell sources.
 			</p>
 			<div class="panel-actions">
 				<a href="/commands" class="btn btn-lg">Browse Commands</a>
@@ -36,11 +79,38 @@ import tipsData from '../data/tips.json';
 		<section class="panel panel-stack">
 			<div class="panel-header panel-header-split">
 				<h2 class="panel-title panel-title-md">Shell Tips</h2>
-				<a href="/tips" class="text-button text-button-sm">View All {tipsData.length} →</a>
+				<a href="/tips" class="text-button text-button-sm">View All {tips.length} →</a>
 			</div>
+			<p class="panel-copy panel-copy-spaced">
+				Review always-on shortcuts and conditional features side by side, with availability notes carried through from the zsh config.
+			</p>
 			<div class="panel-fill">
 				<TipRoulette client:load />
 			</div>
 		</section>
 	</div>
 </Layout>
+
+<script is:inline>
+	const copyButton = document.querySelector('.install-copy-button');
+
+	if (copyButton instanceof HTMLButtonElement) {
+		const defaultLabel = copyButton.textContent?.trim() || 'Copy';
+
+		copyButton.addEventListener('click', async () => {
+			const copyText = copyButton.dataset.copyText;
+			if (!copyText) return;
+
+			try {
+				await navigator.clipboard.writeText(copyText);
+				copyButton.textContent = 'Copied';
+			} catch {
+				copyButton.textContent = 'Failed';
+			}
+
+			window.setTimeout(() => {
+				copyButton.textContent = defaultLabel;
+			}, 1400);
+		});
+	}
+</script>

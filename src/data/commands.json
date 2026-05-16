@@ -121,19 +121,25 @@
   },
   {
     "name": "ports",
-    "command": "ss -tulnp",
-    "description": "Show all listening ports and their processes",
-    "type": "alias",
+    "command": "ports",
+    "description": "Show listening ports and owning processes",
+    "type": "function",
     "category": "network",
-    "source": "20-aliases.zsh"
+    "source": "60-functions.zsh",
+    "usage": "ports",
+    "plainMode": true,
+    "richOutput": true
   },
   {
     "name": "myip",
-    "command": "curl -fsSL https://ifconfig.me/ip && printf \"\\n\"",
-    "description": "Display your public IP address",
-    "type": "alias",
+    "command": "myip",
+    "description": "Show public IP address over HTTPS",
+    "type": "function",
     "category": "network",
-    "source": "20-aliases.zsh"
+    "source": "60-functions.zsh",
+    "usage": "myip",
+    "plainMode": true,
+    "richOutput": true
   },
   {
     "name": "weather",
@@ -169,7 +175,7 @@
   },
   {
     "name": "gcount",
-    "command": "git shortlog -sn --no-merges",
+    "command": "gitcount",
     "description": "Count commits per author",
     "type": "alias",
     "category": "git",
@@ -237,15 +243,16 @@
     "description": "Extract any supported archive format automatically",
     "type": "function",
     "category": "utility",
-    "source": "60-functions.zsh"
-  },
-  {
-    "name": "mkcd",
-    "command": "mkcd <dir>",
-    "description": "Create a directory and cd into it in one step",
-    "type": "function",
-    "category": "navigation",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "extract <file>",
+    "requires": [
+      "bunzip2",
+      "unrar",
+      "gunzip",
+      "unzip",
+      "uncompress",
+      "7z"
+    ]
   },
   {
     "name": "ff",
@@ -253,7 +260,12 @@
     "description": "Find files by name recursively — uses fd when available",
     "type": "function",
     "category": "search",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "ff <pattern> [path]",
+    "requires": [
+      "fd",
+      "fdfind"
+    ]
   },
   {
     "name": "ft",
@@ -261,7 +273,11 @@
     "description": "Find text in files — uses ripgrep when available, falls back to grep",
     "type": "function",
     "category": "search",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "ft <pattern> [path]",
+    "requires": [
+      "rg"
+    ]
   },
   {
     "name": "fkill",
@@ -269,7 +285,12 @@
     "description": "Fuzzy-select and kill a running process",
     "type": "function",
     "category": "process",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "fkill [signal]",
+    "requires": [
+      "fzf"
+    ],
+    "interactive": true
   },
   {
     "name": "headers",
@@ -277,7 +298,8 @@
     "description": "Follow redirects and print HTTP response headers",
     "type": "function",
     "category": "network",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "headers <url>"
   },
   {
     "name": "peek",
@@ -285,7 +307,11 @@
     "description": "Preview a file quickly — uses bat when available",
     "type": "function",
     "category": "viewing",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "peek <file>",
+    "requires": [
+      "bat"
+    ]
   },
   {
     "name": "dusage",
@@ -293,7 +319,10 @@
     "description": "Show disk usage summary for the largest items in a directory",
     "type": "function",
     "category": "utility",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "dusage [path] [count]",
+    "plainMode": true,
+    "richOutput": true
   },
   {
     "name": "bigfiles",
@@ -301,7 +330,10 @@
     "description": "Find the largest files recursively in a directory tree",
     "type": "function",
     "category": "utility",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "bigfiles [path] [count]",
+    "plainMode": true,
+    "richOutput": true
   },
   {
     "name": "croot",
@@ -309,7 +341,8 @@
     "description": "Jump to the root of the current git repository",
     "type": "function",
     "category": "git",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "croot"
   },
   {
     "name": "path",
@@ -317,7 +350,10 @@
     "description": "Print each PATH entry on its own line",
     "type": "function",
     "category": "utility",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "path",
+    "plainMode": true,
+    "richOutput": true
   },
   {
     "name": "fbr",
@@ -325,7 +361,12 @@
     "description": "Fuzzy-pick and checkout a git branch from local or remote refs",
     "type": "function",
     "category": "git",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "fbr",
+    "requires": [
+      "fzf"
+    ],
+    "interactive": true
   },
   {
     "name": "npkg",
@@ -333,7 +374,36 @@
     "description": "Nix package manager wrapper — add, remove, find, search, upgrade, and more",
     "type": "function",
     "category": "nix",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "npkg <command> [args]",
+    "availability": "Available when nix is installed",
+    "examples": [
+      "npkg add bat",
+      "npkg find nvim",
+      "npkg remove",
+      "npkg outdated",
+      "npkg refresh",
+      "npkg upgrade"
+    ],
+    "features": [
+      "add [pkg ...]        Add package(s); with no args opens an fzf picker",
+      "install [pkg ...]    Alias for add",
+      "find [query]         Fuzzy-pick nixpkgs attribute names and add selections",
+      "search <query>       Run a plain nixpkgs search with descriptions",
+      "list                 List packages in the current profile",
+      "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
+      "outdated             Show available package upgrades before running upgrade",
+      "refresh              Rebuild the cached nixpkgs attribute index",
+      "upgrade [pkg ...]    Upgrade all packages or only the named ones",
+      "help                 Show this help text"
+    ],
+    "notes": [
+      "Bare install names are expanded to nixpkgs#<name>",
+      "npkg find searches a cached list of nixpkgs attribute names",
+      "npkg refresh and outdated need jq",
+      "Interactive add/find/remove needs jq and fzf",
+      "Advanced nix flags can be passed through by calling nix directly"
+    ]
   },
   {
     "name": "fanprofile",
@@ -341,7 +411,10 @@
     "description": "Show the current laptop performance profile",
     "type": "function",
     "category": "utility",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "fanprofile",
+    "plainMode": true,
+    "richOutput": true
   },
   {
     "name": "upkg",
@@ -349,6 +422,65 @@
     "description": "Unified package update/check wrapper across supported managers",
     "type": "function",
     "category": "packages",
-    "source": "60-functions.zsh"
+    "source": "60-functions.zsh",
+    "usage": "upkg [command] [args] [--only <list>] [--skip <list>] [--sudo] [--dry-run]",
+    "examples": [
+      "upkg                                  # check for outdated packages",
+      "upkg search ripgrep                  # compare package search matches",
+      "upkg --only brew,npm                 # check selected managers",
+      "upkg plan                            # preview upgrades",
+      "upkg upgrade --dry-run --only npm    # preview selected upgrades",
+      "upkg upgrade --sudo --only apt       # run a privileged backend",
+      "upkg managers --only npm,flatpak     # inspect selected order"
+    ],
+    "features": [
+      "outdated            Show outdated packages across detected managers",
+      "check               Alias for outdated",
+      "list                Alias for outdated",
+      "search <query>      Search package names across detected managers",
+      "upgrade             Run upgrades across selected managers",
+      "up                  Alias for upgrade",
+      "update              Alias for upgrade",
+      "plan                Preview available upgrades without changing packages",
+      "managers            Show detected managers and alternates",
+      "help                Show this help text"
+    ],
+    "notes": [
+      "Flag: --only <list>       Comma-separated manager IDs to include",
+      "Flag: --skip <list>       Comma-separated manager IDs to exclude",
+      "Flag: --sudo              Allow privileged upgrade backends to run",
+      "Flag: --dry-run           Preview upgrades instead of running them",
+      "Manager: apt, dnf, pacman, paru, brew, flatpak, nix, npm",
+      "upkg with no command defaults to outdated",
+      "search prints one compact table with a manager column",
+      "plan and --dry-run use the read-only outdated checks",
+      "upgrades never inject sudo automatically",
+      "paru upgrades require explicit --sudo opt-in but still run unprefixed",
+      "brew upgrades run unprefixed and stay in Homebrew user space",
+      "npm upgrades stay user-space only; upkg will not recommend sudo npm"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "name": "gitcount",
+    "command": "gitcount",
+    "description": "Show contributor counts for the current repo history",
+    "type": "function",
+    "category": "git",
+    "source": "60-functions.zsh",
+    "usage": "gitcount",
+    "notes": [
+      "Alias gcount points to gitcount for compatibility"
+    ]
+  },
+  {
+    "name": "mkcd",
+    "command": "mkcd <dir>",
+    "description": "Create a directory and cd into it in one step",
+    "type": "function",
+    "category": "navigation",
+    "source": "60-functions.zsh",
+    "usage": "mkcd <dir>"
   }
 ]

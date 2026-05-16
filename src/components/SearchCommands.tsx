@@ -4,13 +4,31 @@ import commandsData from '../data/commands.json';
 type Command = {
   name: string;
   command?: string;
+  usage?: string;
   description?: string;
   type: string;
   category?: string;
   source?: string;
+  availability?: string;
+  examples?: string[];
+  features?: string[];
+  notes?: string[];
+  requires?: string[];
+  interactive?: boolean;
+  plainMode?: boolean;
+  richOutput?: boolean;
 };
 
 const VALID_FILTERS = new Set(['all', 'alias', 'global_alias', 'function']);
+
+function formatLabel(value: string): string {
+  return value
+    .replace(/_/g, ' ')
+    .split(/[-\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
 function getBadgeClass(type: string): string {
   if (type === 'alias') return 'badge badge-alias';
@@ -29,6 +47,51 @@ function highlightText(text: string, query: string): React.ReactNode {
   return parts.map((part, i) =>
     testRegex.test(part) ? <mark key={i} className="search-highlight">{part}</mark> : part
   );
+}
+
+function renderListSection(title: string, items: string[] | undefined, query: string): React.ReactNode {
+  if (!items || items.length === 0) {
+    return null;
+  }
+
+  const visibleItems = items.slice(0, 4);
+  const remainingCount = items.length - visibleItems.length;
+
+  return (
+    <section className="command-card-section">
+      <h4 className="command-card-section-title">{title}</h4>
+      <ul className="command-card-list">
+        {visibleItems.map((item) => (
+          <li key={`${title}:${item}`} className="command-card-list-item">
+            {highlightText(item, query)}
+          </li>
+        ))}
+      </ul>
+      {remainingCount > 0 && (
+        <p className="command-card-more">+{remainingCount} more</p>
+      )}
+    </section>
+  );
+}
+
+function getSearchableText(command: Command): string {
+  return [
+    command.name,
+    command.command,
+    command.usage,
+    command.description,
+    command.type,
+    command.category,
+    command.source,
+    command.availability,
+    ...(command.examples ?? []),
+    ...(command.features ?? []),
+    ...(command.notes ?? []),
+    ...(command.requires ?? []),
+  ]
+    .filter(Boolean)
+    .join('\n')
+    .toLowerCase();
 }
 
 export default function SearchCommands() {
@@ -64,10 +127,7 @@ export default function SearchCommands() {
 
   const matchesQuery = (cmd: Command) => {
     const q = query.toLowerCase();
-    return !query ||
-      cmd.name.toLowerCase().includes(q) ||
-      (cmd.description && cmd.description.toLowerCase().includes(q)) ||
-      (cmd.command && cmd.command.toLowerCase().includes(q));
+    return !query || getSearchableText(cmd).includes(q);
   };
 
   const filteredCommands = commands.filter(cmd =>
@@ -148,12 +208,17 @@ export default function SearchCommands() {
               <div className="command-card-header">
                 <h3 className="command-card-name">{highlightText(cmd.name, query)}</h3>
                 <div className="command-card-meta">
-                  {cmd.source && (
-                    <span className="command-card-source">{cmd.source}</span>
+                  {cmd.category && (
+                    <span className="badge badge-category" data-category={cmd.category}>
+                      {formatLabel(cmd.category)}
+                    </span>
                   )}
                   <span className={getBadgeClass(cmd.type)}>
                     {cmd.type.replace('_', ' ')}
                   </span>
+                  {cmd.source && (
+                    <span className="command-card-source">{cmd.source}</span>
+                  )}
                 </div>
               </div>
 
@@ -164,8 +229,43 @@ export default function SearchCommands() {
               )}
 
               {cmd.command && (
-                <code className="command-card-code">{highlightText(cmd.command, query)}</code>
+                <div className="command-card-line">
+                  <span className="command-card-label">Command</span>
+                  <code className="command-card-code">{highlightText(cmd.command, query)}</code>
+                </div>
               )}
+
+              {cmd.usage && cmd.usage !== cmd.command && (
+                <div className="command-card-line">
+                  <span className="command-card-label">Usage</span>
+                  <code className="command-card-code">{highlightText(cmd.usage, query)}</code>
+                </div>
+              )}
+
+              {cmd.availability && (
+                <p className="command-card-note">
+                  {highlightText(cmd.availability, query)}
+                </p>
+              )}
+
+              {(cmd.interactive || cmd.plainMode || cmd.richOutput || (cmd.requires && cmd.requires.length > 0)) && (
+                <div className="command-card-tags">
+                  {cmd.interactive && <span className="badge badge-subtle">Interactive</span>}
+                  {cmd.plainMode && <span className="badge badge-subtle">Plain Mode</span>}
+                  {cmd.richOutput && <span className="badge badge-subtle">Rich Output</span>}
+                  {(cmd.requires ?? []).map((requirement) => (
+                    <span key={`${cmd.name}:${requirement}`} className="badge badge-subtle">
+                      Requires {formatLabel(requirement)}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="command-card-grid">
+                {renderListSection('Features', cmd.features, query)}
+                {renderListSection('Examples', cmd.examples, query)}
+                {renderListSection('Notes', cmd.notes, query)}
+              </div>
             </div>
           ))
         )}
