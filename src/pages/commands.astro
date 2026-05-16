@@ -5,17 +5,33 @@ import commandsData from '../data/commands.json';
 
 type Command = {
 	type: string;
+	usage?: string;
+	availability?: string;
 	features?: string[];
 	examples?: string[];
 	notes?: string[];
+	requires?: string[];
+	optional?: string[];
+	interactive?: boolean;
+	plainMode?: boolean;
+	richOutput?: boolean;
 };
 
 const commands: Command[] = commandsData;
 const functionCount = commands.filter((command) => command.type === 'function').length;
-const documentedCount = commands.filter((command) =>
+const hasExtractedDetails = (command: Command) =>
 	(command.features?.length ?? 0) > 0 ||
 	(command.examples?.length ?? 0) > 0 ||
-	(command.notes?.length ?? 0) > 0,
+	(command.notes?.length ?? 0) > 0 ||
+	Boolean(command.usage) ||
+	Boolean(command.availability) ||
+	(command.requires?.length ?? 0) > 0 ||
+	(command.optional?.length ?? 0) > 0 ||
+	Boolean(command.interactive) ||
+	Boolean(command.plainMode) ||
+	Boolean(command.richOutput);
+const documentedCount = commands.filter((command) =>
+	hasExtractedDetails(command),
 ).length;
 ---
 

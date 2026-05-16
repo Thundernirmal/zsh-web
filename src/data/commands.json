@@ -245,7 +245,7 @@
     "category": "utility",
     "source": "60-functions.zsh",
     "usage": "extract <file>",
-    "requires": [
+    "optional": [
       "bunzip2",
       "unrar",
       "gunzip",

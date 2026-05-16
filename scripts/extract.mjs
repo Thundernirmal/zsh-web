@@ -464,13 +464,21 @@ function inferFunctionDependencies(body) {
   ];
   const optionalRegex = /(?:if|elif)\s+command -v ([A-Za-z0-9._+-]+)\b/g;
   const ignored = new Set(['command', 'git', 'curl', 'ss', 'find', 'grep', 'diff']);
+  const isInsideCaseBlock = (index) => {
+    const before = body.slice(0, index);
+    const caseStarts = (before.match(/^\s*case\b.*\bin\b/gm) ?? []).length;
+    const caseEnds = (before.match(/^\s*esac\b/gm) ?? []).length;
+    return caseStarts > caseEnds;
+  };
 
   for (const regex of requiredRegexes) {
     let match = regex.exec(body);
 
     while (match) {
       const dependency = match[1];
-      if (!ignored.has(dependency)) {
+      if (!ignored.has(dependency) && isInsideCaseBlock(match.index)) {
+        optional.push(dependency);
+      } else if (!ignored.has(dependency)) {
         requires.push(dependency);
       }
       match = regex.exec(body);

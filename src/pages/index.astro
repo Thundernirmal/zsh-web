@@ -23,7 +23,8 @@ const commands: Command[] = commandsData;
 const tips: Tip[] = tipsData;
 const categoryCount = new Set(commands.map((command) => command.category).filter(Boolean)).size;
 const featuredTip = tips.find((tip) => tip.source === 'upkg')?.text ?? tips[0]?.text ?? 'Run tips again for another hint';
-const upkgExample = commands.find((command) => command.name === 'upkg')?.examples?.[0] ?? 'upkg search ripgrep';
+const upkgExamples = commands.find((command) => command.name === 'upkg')?.examples ?? [];
+const upkgExample = upkgExamples.find((example) => example.includes('search')) ?? upkgExamples[0] ?? 'upkg search ripgrep';
 const npkgExample = commands.find((command) => command.name === 'npkg')?.examples?.[1] ?? 'npkg find nvim';
 const latestInstall = 'curl -fsSL https://zsh.nirmalkatariya.com/install.sh | sh';
 const guideUrl = 'https://github.com/Thundernirmal/zsh/blob/master/GUIDE.md#installation';
@@ -89,28 +90,27 @@ const guideUrl = 'https://github.com/Thundernirmal/zsh/blob/master/GUIDE.md#inst
 			</div>
 		</section>
 	</div>
+	<script is:inline>
+		const copyButton = document.querySelector('.install-copy-button');
+
+		if (copyButton instanceof HTMLButtonElement) {
+			const defaultLabel = copyButton.textContent?.trim() || 'Copy';
+
+			copyButton.addEventListener('click', async () => {
+				const copyText = copyButton.dataset.copyText;
+				if (!copyText) return;
+
+				try {
+					await navigator.clipboard.writeText(copyText);
+					copyButton.textContent = 'Copied';
+				} catch {
+					copyButton.textContent = 'Failed';
+				}
+
+				window.setTimeout(() => {
+					copyButton.textContent = defaultLabel;
+				}, 1400);
+			});
+		}
+	</script>
 </Layout>
-
-<script is:inline>
-	const copyButton = document.querySelector('.install-copy-button');
-
-	if (copyButton instanceof HTMLButtonElement) {
-		const defaultLabel = copyButton.textContent?.trim() || 'Copy';
-
-		copyButton.addEventListener('click', async () => {
-			const copyText = copyButton.dataset.copyText;
-			if (!copyText) return;
-
-			try {
-				await navigator.clipboard.writeText(copyText);
-				copyButton.textContent = 'Copied';
-			} catch {
-				copyButton.textContent = 'Failed';
-			}
-
-			window.setTimeout(() => {
-				copyButton.textContent = defaultLabel;
-			}, 1400);
-		});
-	}
-</script>
