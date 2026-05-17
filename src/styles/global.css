@@ -435,52 +435,6 @@ a:hover {
   font-family: var(--font-mono);
 }
 
-.install-panel {
-  gap: 1rem;
-}
-
-.install-panel-header-simple {
-  margin-bottom: 0;
-}
-
-.install-inline-row {
-  display: flex;
-  align-items: stretch;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.install-inline-code {
-  display: flex;
-  flex: 1 1 28rem;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: 0.7rem 0.9rem;
-  color: var(--ctp-peach);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
-.install-copy-button {
-  flex: 0 0 auto;
-  min-width: 5.25rem;
-  justify-content: center;
-}
-
-@media (max-width: 719px) {
-  .install-inline-row {
-    align-items: stretch;
-  }
-
-  .install-inline-code,
-  .install-copy-button {
-    width: 100%;
-  }
-}
-
 @media (min-width: 720px) {
   .panel-grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
