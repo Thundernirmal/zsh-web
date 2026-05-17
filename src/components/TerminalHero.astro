@@ -1,9 +1,11 @@
 ---
-/**
- * TerminalHero.astro
- * A lightweight CSS-only terminal mockup with staggered fade-in lines
- * showing signature commands from Nirmal's shell config.
- */
+interface Props {
+    featuredTip: string;
+    upkgExample: string;
+    npkgExample: string;
+}
+
+const { featuredTip, upkgExample, npkgExample } = Astro.props;
 ---
 
 <div class="terminal animate-in animate-in-3">
@@ -19,26 +21,26 @@
             <span class="terminal-command">tips</span>
         </div>
         <div class="typing-line">
-            <span class="terminal-output">tip: Run dusage [path] [count] to summarize any directory with a custom limit</span>
+            <span class="terminal-output">tip: {featuredTip}</span>
         </div>
         <div class="typing-line">&nbsp;</div>
         <div class="typing-line">
             <span class="terminal-prompt">❯ </span>
-            <span class="terminal-command">upkg managers</span>
+            <span class="terminal-command">{upkgExample}</span>
         </div>
         <div class="typing-line">
-            <span class="terminal-output">Detected managers:</span>
+            <span class="terminal-output">manager   package    summary</span>
         </div>
         <div class="typing-line">
-            <span class="terminal-output">  - flatpak</span>
+            <span class="terminal-output">brew      ripgrep    Search package names across detected managers</span>
         </div>
         <div class="typing-line">&nbsp;</div>
         <div class="typing-line">
             <span class="terminal-prompt">❯ </span>
-            <span class="terminal-command">npkg outdated</span>
+            <span class="terminal-command">{npkgExample}</span>
         </div>
         <div class="typing-line">
-            <span class="terminal-output">bat 0.25.0 → 0.26.0</span>
+            <span class="terminal-output">Interactive picker ready with preview metadata</span>
         </div>
     </div>
 </div>

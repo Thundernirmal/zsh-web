@@ -199,6 +199,21 @@ const KNOWN_FUNCTION_METADATA = {
     command: 'fbr',
     description: 'Fuzzy-pick and checkout a git branch from local or remote refs',
   },
+  gitcount: {
+    category: 'git',
+    command: 'gitcount',
+    description: 'Show contributor counts for the current repo history',
+  },
+  ports: {
+    category: 'network',
+    command: 'ports',
+    description: 'Show listening ports and owning processes',
+  },
+  myip: {
+    category: 'network',
+    command: 'myip',
+    description: 'Show public IP address over HTTPS',
+  },
   npkg: {
     category: 'nix',
     command: 'npkg <subcommand>',
@@ -224,6 +239,12 @@ const TIP_CATEGORY_RULES = [
   { category: 'search', pattern: /\bff\b|\bft\b|\bfkill\b|todo|search text|find files/ },
   { category: 'shell', pattern: /spell-correction|completion|case-insensitive|shell/ },
 ];
+
+const KNOWN_TIP_CATEGORIES = {
+  'Run gpr to pull with rebase for a cleaner history': 'git',
+  'Run dusage [path] [count] to summarize any directory with a custom limit': 'utility',
+  'Combine globals: git log G fix W counts commits mentioning fix': 'pipe',
+};
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -266,15 +287,6 @@ function readJsonArray(filePath) {
 }
 
 function writeJson(filePath, data) {
-  if (path.basename(filePath) === 'tips.json') {
-    const lines = data.map(
-      (tip) => `  { "text": ${JSON.stringify(tip.text)}, "category": ${JSON.stringify(tip.category)} }`,
-    );
-
-    fs.writeFileSync(filePath, `[\n${lines.join(',\n')}\n]`);
-    return;
-  }
-
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
@@ -302,7 +314,343 @@ function toSentenceCase(text) {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
+function trimList(values) {
+  return values.filter(Boolean).map((value) => value.trim()).filter(Boolean);
+}
+
+function uniqueList(values) {
+  return Array.from(new Set(trimList(values)));
+}
+
+function maybeList(values) {
+  const items = uniqueList(values);
+  return items.length > 0 ? items : undefined;
+}
+
+function cleanDocItem(text) {
+  const trimmed = text.trim();
+  if (trimmed.startsWith('--')) {
+    return trimmed;
+  }
+
+  return trimmed.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim();
+}
+
+function parsePrintedSections(body) {
+  const sections = new Map();
+  let currentSection = null;
+
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.trim();
+    const match = line.match(/^print\s+(['"])(.*)\1$/);
+
+    if (!match) {
+      continue;
+    }
+
+    const text = match[2];
+
+    if (!text.trim()) {
+      currentSection = null;
+      continue;
+    }
+
+    if (/^[A-Z][A-Za-z /-]+:$/.test(text)) {
+      currentSection = text.slice(0, -1).toLowerCase();
+      if (!sections.has(currentSection)) {
+        sections.set(currentSection, []);
+      }
+      continue;
+    }
+
+    if (!currentSection || !sections.has(currentSection)) {
+      continue;
+    }
+
+    sections.get(currentSection).push(cleanDocItem(text));
+  }
+
+  return sections;
+}
+
+function extractUsageLine(body) {
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.trim();
+    const match = line.match(/^(?:echo|print(?:\s+-u\d+)?(?:\s+-r\s+--)?|print)\s+(['"])Usage:\s*(.+?)\1$/);
+
+    if (match) {
+      return match[2].trim();
+    }
+  }
+
+  return undefined;
+}
+
+function describeCondition(condition) {
+  if (!condition) {
+    return undefined;
+  }
+
+  if (isPackageManagerCondition(condition)) {
+    return 'Available when at least one supported package manager is installed';
+  }
+
+  if (condition.includes('command -v nix') && condition.includes('command -v jq') && condition.includes('command -v fzf')) {
+    return 'Available when nix, jq, and fzf are installed';
+  }
+
+  if (condition.includes('command -v nix') && condition.includes('command -v jq')) {
+    return 'Available when nix and jq are installed';
+  }
+
+  if (condition.includes('command -v nix')) {
+    return 'Available when nix is installed';
+  }
+
+  if (condition.includes('command -v zoxide')) {
+    return 'Available when zoxide is installed';
+  }
+
+  if (condition.includes('command -v fzf') && condition.includes('interactive')) {
+    return 'Available when fzf is installed in an interactive shell';
+  }
+
+  if (condition.includes('alias gs') && condition.includes('alias gco')) {
+    return 'Available when the OMZ git plugin aliases are loaded';
+  }
+
+  if (condition.includes('alias lt')) {
+    return 'Available when the lt alias is available';
+  }
+
+  return toSentenceCase(condition.replace(/^if\s+/, '').replace(/;?\s*then$/, ''));
+}
+
+function isPackageManagerCondition(condition) {
+  return condition.includes('command -v paru') ||
+    condition.includes('command -v pacman') ||
+    condition.includes('command -v apt') ||
+    condition.includes('command -v dnf') ||
+    condition.includes('command -v brew') ||
+    condition.includes('command -v flatpak') ||
+    condition.includes('command -v npm');
+}
+
+function inferTipSource(condition, text) {
+  const lowerText = text.toLowerCase();
+
+  if (!condition) {
+    if (lowerText.includes('git')) return 'git';
+    if (lowerText.includes('global alias')) return 'globals';
+    return 'core';
+  }
+
+  if (condition.includes('command -v zoxide')) return 'zoxide';
+  if (condition.includes('command -v fzf') && condition.includes('interactive')) return 'fzf';
+  if (isPackageManagerCondition(condition)) return 'upkg';
+  if (condition.includes('command -v nix')) return 'npkg';
+  if (condition.includes('alias gs') && condition.includes('alias gco')) return 'git-plugin';
+  if (condition.includes('alias lt')) return 'navigation';
+
+  return 'core';
+}
+
+function inferFunctionDependencies(body) {
+  const requires = [];
+  const optional = [];
+  const requiredRegexes = [
+    /if\s+!\s+command -v ([A-Za-z0-9._+-]+)\b/g,
+    /command -v ([A-Za-z0-9._+-]+)[^\n]*\|\|[^\n]*(?:required|return 1)/g,
+  ];
+  const optionalRegex = /(?:if|elif)\s+command -v ([A-Za-z0-9._+-]+)\b/g;
+  const ignored = new Set(['command', 'git', 'curl', 'ss', 'find', 'grep', 'diff']);
+  const lines = body.split('\n');
+  const caseStack = [];
+  const caseRanges = [];
+  let offset = 0;
+
+  for (const line of lines) {
+    if (/^\s*case\b.*\bin\b/.test(line)) {
+      caseStack.push(offset);
+    } else if (/^\s*esac\b/.test(line)) {
+      const start = caseStack.pop();
+      if (start !== undefined) {
+        caseRanges.push({ start, end: offset + line.length });
+      }
+    }
+    offset += line.length + 1;
+  }
+
+  while (caseStack.length > 0) {
+    const start = caseStack.pop();
+    caseRanges.push({ start, end: body.length });
+  }
+
+  const isInsideCaseStatement = (index) =>
+    caseRanges.some((range) => index >= range.start && index <= range.end);
+
+  for (const regex of requiredRegexes) {
+    let match = regex.exec(body);
+
+    while (match) {
+      const dependency = match[1];
+      if (!ignored.has(dependency)) {
+        if (isInsideCaseStatement(match.index)) {
+          optional.push(dependency);
+        } else {
+          requires.push(dependency);
+        }
+      }
+      match = regex.exec(body);
+    }
+  }
+
+  let match = optionalRegex.exec(body);
+
+  while (match) {
+    const dependency = match[1];
+    if (!ignored.has(dependency) && !requires.includes(dependency)) {
+      optional.push(dependency);
+    }
+    match = optionalRegex.exec(body);
+  }
+
+  return {
+    requires: uniqueList(requires),
+    optional: uniqueList(optional),
+  };
+}
+
+function extractFunctionDefinitions(content) {
+  const lines = content.split('\n');
+  const definitions = [];
+  const conditionStack = [];
+  let pendingComments = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('#')) {
+      pendingComments.push(trimmed.replace(/^#\s*/, ''));
+      continue;
+    }
+
+    if (trimmed.startsWith('if ')) {
+      conditionStack.push(trimmed);
+      continue;
+    }
+
+    if (trimmed === 'fi') {
+      conditionStack.pop();
+      pendingComments = [];
+      continue;
+    }
+
+    const match = trimmed.match(/^(?:function\s+)?([A-Za-z0-9_-]+)(?:\(\))?\s*\{(.*)$/);
+
+    if (!match) {
+      if (trimmed !== '') {
+        pendingComments = [];
+      }
+      continue;
+    }
+
+    const name = match[1];
+    const inlineBody = match[2].trim();
+    let depth = (line.match(/\{/g) ?? []).length - (line.match(/\}/g) ?? []).length;
+    const bodyLines = [];
+    let cursor = index + 1;
+
+    if (inlineBody) {
+      const body = inlineBody.endsWith('}') ? inlineBody.slice(0, -1).trim() : inlineBody;
+      if (body) {
+        bodyLines.push(body);
+      }
+    }
+
+    while (cursor < lines.length && depth > 0) {
+      const bodyLine = lines[cursor];
+      depth += (bodyLine.match(/\{/g) ?? []).length - (bodyLine.match(/\}/g) ?? []).length;
+
+      if (depth > 0) {
+        bodyLines.push(bodyLine);
+      }
+
+      cursor += 1;
+    }
+
+    definitions.push({
+      name,
+      body: bodyLines.join('\n'),
+      comment: pendingComments.join(' '),
+      condition: conditionStack[conditionStack.length - 1] ?? '',
+    });
+
+    pendingComments = [];
+    index = cursor - 1;
+  }
+
+  return definitions;
+}
+
+function buildFunctionDocIndex(content) {
+  return new Map(extractFunctionDefinitions(content).map((definition) => [definition.name, definition]));
+}
+
+function extractFunctionDocumentation(name, definition, docIndex) {
+  const metadata = KNOWN_FUNCTION_METADATA[name] ?? {};
+  const dependencies = inferFunctionDependencies(definition.body);
+  const docs = {
+    usage: extractUsageLine(definition.body) ?? metadata.command,
+    availability: describeCondition(definition.condition),
+    examples: [],
+    features: [],
+    notes: [],
+    requires: dependencies.requires,
+    optional: dependencies.optional,
+    interactive: definition.body.includes('requires an interactive terminal'),
+    plainMode: definition.body.includes('_ui_plain_mode'),
+    richOutput: definition.body.includes('_ui_title_line'),
+  };
+
+  const helperName = name === 'upkg' ? '_upkg_usage' : name === 'npkg' ? '_npkg_usage' : null;
+
+  if (helperName && docIndex.has(helperName)) {
+    const helperSections = parsePrintedSections(docIndex.get(helperName).body);
+    docs.usage = extractUsageLine(docIndex.get(helperName).body) ?? docs.usage;
+    docs.features = helperSections.get('commands') ?? [];
+    docs.examples = helperSections.get('examples') ?? [];
+    docs.notes = [
+      ...(helperSections.get('flags') ?? []).map((entry) => `Flag: ${entry}`),
+      ...(helperSections.get('supported manager ids') ?? []).map((entry) => `Manager: ${entry}`),
+      ...(helperSections.get('notes') ?? []),
+    ];
+  }
+
+  if (name === 'gitcount') {
+    docs.notes.push('Alias gcount points to gitcount for compatibility');
+  }
+
+  return {
+    usage: docs.usage,
+    availability: docs.availability,
+    examples: maybeList(docs.examples),
+    features: maybeList(docs.features),
+    notes: maybeList(docs.notes),
+    requires: maybeList(docs.requires),
+    optional: maybeList(docs.optional),
+    interactive: docs.interactive || undefined,
+    plainMode: docs.plainMode || undefined,
+    richOutput: docs.richOutput || undefined,
+  };
+}
+
 function inferTipCategory(text) {
+  if (KNOWN_TIP_CATEGORIES[text]) {
+    return KNOWN_TIP_CATEGORIES[text];
+  }
+
   const lower = text.toLowerCase();
 
   for (const rule of TIP_CATEGORY_RULES) {
@@ -375,8 +723,8 @@ function inferFunctionCategory(name, comment) {
 
   if (lower.includes('nix')) return 'nix';
   if (lower.includes('git')) return 'git';
-  if (lower.includes('kill') || lower.includes('process')) return 'process';
   if (lower.includes('http') || lower.includes('url') || lower.includes('network') || lower.includes('port') || lower.includes('ip')) return 'network';
+  if (lower.includes('kill') || lower.includes('process')) return 'process';
   if (lower.includes('preview') || lower.includes('view') || lower.includes('file')) return 'viewing';
   if (lower.includes('search') || lower.includes('find') || lower.includes('grep')) return 'search';
   if (lower.includes('directory') || lower.includes('cd') || lower.includes('path') || lower.includes('navigation')) return 'navigation';
@@ -415,7 +763,7 @@ function mergeTips(existingTips, extractedTips) {
     mergedTips.push({
       ...existing,
       ...extracted,
-      category: existing.category ?? extracted.category,
+      category: KNOWN_TIP_CATEGORIES[existing.text] ?? existing.category ?? extracted.category,
     });
   }
 
@@ -462,11 +810,22 @@ function mergeCommands(existingCommands, extractedCommands) {
 
 function extractTips() {
   const content = fs.readFileSync(sourcePath(TIPS_SOURCE), 'utf-8');
-  const tipStrings = [];
+  const tipRecords = [];
   let inTipPool = false;
+  const conditionStack = [];
 
   for (const rawLine of content.split('\n')) {
     const line = rawLine.trim();
+
+    if (line.startsWith('if ')) {
+      conditionStack.push(line);
+      continue;
+    }
+
+    if (line === 'fi') {
+      conditionStack.pop();
+      continue;
+    }
 
     if (line.startsWith('_zsh_tip_pool=(') || line.startsWith('_zsh_tip_pool+=(')) {
       inTipPool = true;
@@ -484,15 +843,20 @@ function extractTips() {
 
     const match = line.match(/^"(.+)"$/);
     if (match) {
-      tipStrings.push(match[1]);
+      const text = match[1];
+      const condition = conditionStack[conditionStack.length - 1] ?? '';
+
+      tipRecords.push({
+        text,
+        category: inferTipCategory(text),
+        source: inferTipSource(condition, text),
+        availability: describeCondition(condition) ?? 'Always available',
+      });
     }
   }
 
   const extractedTips = dedupeBy(
-    tipStrings.map((text) => ({
-      text,
-      category: inferTipCategory(text),
-    })),
+    tipRecords,
     (tip) => tip.text,
   );
 
@@ -567,42 +931,26 @@ function extractGlobals() {
 
 function extractFunctions() {
   const content = fs.readFileSync(sourcePath(FUNCTIONS_SOURCE), 'utf-8');
+  const docIndex = buildFunctionDocIndex(content);
   const funcs = [];
-  let currentComment = '';
+  const definitions = extractFunctionDefinitions(content);
 
-  for (const rawLine of content.split('\n')) {
-    const line = rawLine.trim();
+  for (const definition of definitions) {
+    const { name, comment } = definition;
 
-    if (line.startsWith('#')) {
-      currentComment = line.replace(/^#\s*/, '');
+    if (name.startsWith('_')) {
       continue;
     }
 
-    const match = line.match(/^([a-zA-Z0-9_-]+)\(\)\s*\{/);
-    if (match) {
-      const name = match[1];
-
-      if (name.startsWith('_')) {
-        currentComment = '';
-        continue;
-      }
-
-      funcs.push({
-        name,
-        command: inferFunctionCommand(name),
-        description: describeFunction(name, currentComment),
-        type: 'function',
-        category: inferFunctionCategory(name, currentComment),
-        source: FUNCTIONS_SOURCE,
-      });
-
-      currentComment = '';
-      continue;
-    }
-
-    if (line !== '') {
-      currentComment = '';
-    }
+    funcs.push({
+      name,
+      command: inferFunctionCommand(name),
+      description: describeFunction(name, comment),
+      type: 'function',
+      category: inferFunctionCategory(name, comment),
+      source: FUNCTIONS_SOURCE,
+      ...extractFunctionDocumentation(name, definition, docIndex),
+    });
   }
 
   return dedupeBy(funcs, (func) => func.name);

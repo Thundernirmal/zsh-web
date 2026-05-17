@@ -396,6 +396,45 @@ a:hover {
   grid-template-columns: 1fr;
 }
 
+.stats-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.stats-grid-3,
+.stats-grid-4 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .stats-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stats-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.stat-card {
+  gap: 0.35rem;
+  min-height: 100%;
+}
+
+.stat-value {
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2vw, 2rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+}
+
 @media (min-width: 720px) {
   .panel-grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -766,6 +805,14 @@ code {
 .badge-category[data-category="shell"] { --category-accent: var(--ctp-red); }
 .badge-category[data-category="network"] { --category-accent: var(--ctp-sapphire); }
 .badge-category[data-category="process"] { --category-accent: var(--ctp-maroon); }
+.badge-category[data-category="safety"] { --category-accent: var(--ctp-red); }
+.badge-category[data-category="viewing"] { --category-accent: var(--ctp-lavender); }
+
+.badge-subtle {
+  background: rgba(186, 194, 222, 0.08);
+  color: var(--text-muted);
+  border-color: rgba(186, 194, 222, 0.15);
+}
 
 /* ========== Terminal Mockup ========== */
 .terminal {
@@ -894,6 +941,78 @@ code {
   overflow-y: hidden;
 }
 
+.command-card-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.command-card-label {
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 4.5rem;
+  padding-top: 0.15rem;
+}
+
+.command-card-note {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  margin: 0.15rem 0 0.65rem;
+}
+
+.command-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.2rem 0 0.85rem;
+}
+
+.command-card-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.command-card-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.command-card-section-title {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.command-card-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.command-card-list-item {
+  line-height: 1.5;
+}
+
+.command-card-more {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
 .command-card-source {
   font-size: 0.7rem;
   color: var(--text-faint);
@@ -921,14 +1040,28 @@ code {
   min-width: 0;
 }
 
-.tip-card-text {
+.tip-card-body {
+  display: flex;
   flex: 1 1 18rem;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.tip-card-text {
   margin: 0;
   color: var(--text-main);
   font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+
+.tip-card-detail {
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
 }
 
 .tip-card-arrow {
@@ -983,6 +1116,29 @@ code {
   font-weight: 500;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+
+.roulette-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  height: 4.5rem;
+  overflow: hidden;
+}
+
+.roulette-meta-text {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+.roulette-placeholder {
+  opacity: 0.2;
+  pointer-events: none;
+  user-select: none;
 }
 
 .roulette-button {

@@ -3,17 +3,34 @@ import Layout from '../layouts/Layout.astro';
 import TipsExplorer from '../components/TipsExplorer.tsx';
 import tipsData from '../data/tips.json';
 
-type Tip = { text: string; category: string };
+type Tip = { text: string; category: string; source?: string; availability?: string };
 const tips: Tip[] = tipsData;
+const conditionalCount = tips.filter((tip) => tip.availability && tip.availability !== 'Always available').length;
+const sourceCount = new Set(tips.map((tip) => tip.source).filter(Boolean)).size;
 ---
 
 <Layout title="Shell Tips">
 	<header class="page-header animate-in">
 		<h1 class="page-title">Shell Tips</h1>
 		<p class="page-subtitle">
-			{tips.length} curated tips — shortcuts, workflows, and hidden features from <span class="accent-text page-subtitle-accent">Nirmal's Shell</span>.
+			{tips.length} curated tips — shortcuts, workflows, and hidden features from <span class="accent-text page-subtitle-accent">Nirmal's Shell</span>, including when conditional tools and integrations show up.
 		</p>
 	</header>
+
+	<div class="stats-grid stats-grid-3 animate-in animate-in-2">
+		<section class="panel stat-card">
+			<p class="stat-value">{tips.length}</p>
+			<p class="stat-label">tip records</p>
+		</section>
+		<section class="panel stat-card">
+			<p class="stat-value">{conditionalCount}</p>
+			<p class="stat-label">conditional tips</p>
+		</section>
+		<section class="panel stat-card">
+			<p class="stat-value">{sourceCount}</p>
+			<p class="stat-label">tip sources</p>
+		</section>
+	</div>
 
 	<TipsExplorer client:load tips={tips} />
 </Layout>

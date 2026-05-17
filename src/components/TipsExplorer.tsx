@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-type Tip = { text: string; category: string };
+type Tip = {
+  text: string;
+  category: string;
+  source?: string;
+  availability?: string;
+};
 
 const CATEGORY_META: Record<string, { label: string; icon: string }> = {
   navigation: { label: 'Navigation',       icon: '⌕' },
@@ -19,6 +24,14 @@ const CATEGORY_META: Record<string, { label: string; icon: string }> = {
 };
 
 const CATEGORY_ORDER = ['navigation', 'git', 'search', 'utility', 'packages', 'pipe', 'globbing', 'history', 'fzf', 'nix', 'shell', 'network', 'process'];
+
+function formatLabel(value: string): string {
+  return value
+    .split(/[-\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query || query.length < 2) return text;
@@ -83,7 +96,12 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
   const matchesQuery = useCallback((tip: Tip) => {
     if (!query) return true;
     const q = query.toLowerCase();
-    return tip.text.toLowerCase().includes(q) || tip.category.toLowerCase().includes(q);
+    return (
+      tip.text.toLowerCase().includes(q) ||
+      tip.category.toLowerCase().includes(q) ||
+      (tip.source?.toLowerCase().includes(q) ?? false) ||
+      (tip.availability?.toLowerCase().includes(q) ?? false)
+    );
   }, [query]);
 
   const filteredTips = tips.filter(tip => 
@@ -169,14 +187,24 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
           filteredTips.map((tip) => (
             <div key={`${tip.category}:${tip.text}`} className="surface-list-item tip-list-item">
               <div className="tip-card">
-                <p className="tip-card-text">
-                  <span aria-hidden="true" className="tip-card-arrow">→</span>
-                  {highlightText(tip.text, query)}
-                </p>
+                <div className="tip-card-body">
+                  <p className="tip-card-text">
+                    <span aria-hidden="true" className="tip-card-arrow">→</span>
+                    {highlightText(tip.text, query)}
+                  </p>
+                  {tip.availability && (
+                    <p className="tip-card-detail">
+                      {highlightText(tip.availability, query)}
+                    </p>
+                  )}
+                </div>
                 <div className="tip-card-meta">
                   <span className="badge badge-category" data-category={tip.category}>
                     {CATEGORY_META[tip.category]?.label || tip.category}
                   </span>
+                  {tip.source && (
+                    <span className="badge badge-subtle">{formatLabel(tip.source)}</span>
+                  )}
                 </div>
               </div>
             </div>
