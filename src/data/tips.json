@@ -312,12 +312,6 @@
     "availability": "Always available"
   },
   {
-    "text": "Run upkg to list outdated packages across detected package managers",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
     "text": "Run upkg managers to see active backends and alternates like pacman via --only",
     "category": "packages",
     "source": "upkg",
@@ -342,12 +336,6 @@
     "availability": "Available when at least one supported package manager is installed"
   },
   {
-    "text": "Use upkg --only=flatpak,npm to limit checks to selected managers",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
     "text": "Run upkg upgrade --sudo to opt into system package upgrades explicitly",
     "category": "packages",
     "source": "upkg",
@@ -357,30 +345,6 @@
     "text": "Run gitcount to see contributor counts for the current repo; gcount still works as a shortcut",
     "category": "git",
     "source": "git",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use ff <pattern> [path] to find files by name; it falls back from fd/fdfind to find",
-    "category": "search",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use ft <pattern> [path] to search text; it falls back from ripgrep to grep",
-    "category": "search",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run curl -fsSL https://zsh.nirmalkatariya.com/install.sh | sh on a new machine to install the latest release",
-    "category": "network",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run path to inspect each PATH entry with rich output in capable terminals",
-    "category": "utility",
-    "source": "core",
     "availability": "Always available"
   },
   {
@@ -421,6 +385,36 @@
   },
   {
     "text": "Pipe upkg managers when you want plain active-manager IDs without extra status tags",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "Use ff <pattern> [path] to find files by name; it falls back from fd/fdfind to find",
+    "category": "search",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Use ft <pattern> [path] to search text; it falls back from ripgrep to grep",
+    "category": "search",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run path to inspect each PATH entry with rich output in capable terminals",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run upkg to list outdated packages across detected package managers",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "Use upkg --only=flatpak,npm to limit checks to selected managers",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when at least one supported package manager is installed"

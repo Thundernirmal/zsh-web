@@ -109,19 +109,26 @@ export default function TipRoulette() {
         </AnimatePresence>
       </div>
 
-      {currentTip && (
-        <div className="roulette-meta">
-          <span className="badge badge-category" data-category={currentTip.category}>
-            {formatLabel(currentTip.category)}
-          </span>
-          {currentTip.source && (
-            <span className="badge badge-subtle">{formatLabel(currentTip.source)}</span>
-          )}
-          {currentTip.availability && (
-            <span className="roulette-meta-text">{currentTip.availability}</span>
-          )}
-        </div>
-      )}
+      <div className="roulette-meta">
+        {currentTip ? (
+          <>
+            <span className="badge badge-category" data-category={currentTip.category}>
+              {formatLabel(currentTip.category)}
+            </span>
+            {currentTip.source && (
+              <span className="badge badge-subtle">{formatLabel(currentTip.source)}</span>
+            )}
+            {currentTip.availability && (
+              <span className="roulette-meta-text">{currentTip.availability}</span>
+            )}
+          </>
+        ) : (
+          <>
+            <span className="badge badge-category roulette-placeholder" aria-hidden="true">category</span>
+            <span className="badge badge-subtle roulette-placeholder" aria-hidden="true">source</span>
+          </>
+        )}
+      </div>
 
       <button
         className="btn roulette-button"

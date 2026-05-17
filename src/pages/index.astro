@@ -41,25 +41,6 @@ const guideUrl = 'https://github.com/Thundernirmal/zsh/blob/master/GUIDE.md#inst
 		</p>
 	</header>
 
-	<section class="panel install-panel animate-in animate-in-2">
-		<div class="panel-header panel-header-split install-panel-header-simple">
-			<div>
-				<h2 class="panel-title panel-title-md">Install</h2>
-				<p class="panel-copy">
-					Use the recommended installer to bootstrap the shared shell config on a new machine.
-				</p>
-			</div>
-			<a href={guideUrl} target="_blank" rel="noopener noreferrer" class="text-button text-button-sm">GUIDE.md ↗</a>
-		</div>
-
-		<div class="install-inline-row">
-			<code class="install-inline-code" id="install-command">{latestInstall}</code>
-			<button type="button" class="segmented-btn install-copy-button" data-copy-text={latestInstall} aria-describedby="install-command">
-				Copy
-			</button>
-		</div>
-	</section>
-
 	<div>
 		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
 	</div>

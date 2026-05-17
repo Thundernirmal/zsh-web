@@ -1170,6 +1170,8 @@ code {
   justify-content: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  height: 4.5rem;
+  overflow: hidden;
 }
 
 .roulette-meta-text {
@@ -1177,6 +1179,12 @@ code {
   font-size: 0.75rem;
   font-family: var(--font-mono);
   text-align: center;
+}
+
+.roulette-placeholder {
+  opacity: 0.2;
+  pointer-events: none;
+  user-select: none;
 }
 
 .roulette-button {
