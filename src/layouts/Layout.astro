@@ -34,13 +34,13 @@ const currentPath = Astro.url.pathname;
 		<div class="page-wrapper">
 			<div class="container">
 				<nav class="nav" aria-label="Main navigation">
-					<a href="/" class="nav-brand">
+					<a href="/" class="nav-brand" data-astro-prefetch="load">
 						<span class="brand-accent">~</span> Nirmal's Shell
 					</a>
 					<div class="nav-spacer"></div>
 					<div class="nav-links">
-						<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`}>Commands</a>
-						<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`}>Tips</a>
+						<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`} data-astro-prefetch="load">Commands</a>
+						<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`} data-astro-prefetch="load">Tips</a>
 						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="nav-link" aria-label="GitHub Repository">
 							GitHub ↗
 						</a>
