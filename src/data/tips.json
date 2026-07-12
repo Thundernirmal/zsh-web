@@ -96,18 +96,6 @@
     "availability": "Always available"
   },
   {
-    "text": "Run fkill to fuzzy select and kill a process",
-    "category": "search",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run fkill 15 to send SIGTERM and select multiple processes",
-    "category": "search",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
     "text": "Run ports to see all listening ports and their processes",
     "category": "network",
     "source": "core",
@@ -418,5 +406,17 @@
     "category": "packages",
     "source": "upkg",
     "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "Run fkill to fuzzy select processes and send SIGTERM for a graceful shutdown",
+    "category": "search",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run fkill 9 only when a process must be force-killed with SIGKILL",
+    "category": "search",
+    "source": "core",
+    "availability": "Always available"
   }
 ]

@@ -481,6 +481,6 @@
     "type": "function",
     "category": "navigation",
     "source": "60-functions.zsh",
-    "usage": "mkcd <dir>"
+    "usage": "mkcd <directory>"
   }
 ]
