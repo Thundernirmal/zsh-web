@@ -325,8 +325,9 @@ a:hover {
   flex-wrap: wrap;
   background: rgba(30, 30, 46, 0.92);
   border-bottom: 1px solid var(--border-subtle);
-  backdrop-filter: blur(12px);
+  /* Keep the standard property last so production CSS minification preserves it. */
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 @media (min-width: 768px) {
@@ -669,8 +670,9 @@ code {
   padding: 0.75rem 0;
   margin: -0.75rem 0 0.75rem;
   background: rgba(30, 30, 46, 0.92);
-  backdrop-filter: blur(12px);
+  /* Keep the standard property last so production CSS minification preserves it. */
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 .filter-toolbar {
