@@ -418,5 +418,65 @@
     "category": "search",
     "source": "core",
     "availability": "Always available"
+  },
+  {
+    "text": "Custom commands complete only the argument types they accept, such as archives, directories, counts, URLs, and signals",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run zhelp to search available commands and queue an editable example without executing it",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Press Tab after npkg to browse its commands; cached package attributes are offered without running Nix",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix is installed"
+  },
+  {
+    "text": "Nix cleanup uses nix-collect-garbage; the dependency checker reports when a Nix install is missing it",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix is installed"
+  },
+  {
+    "text": "Run upkg clean --dry-run to preview unused-package and stale-cache cleanup without changing manager state",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "Run upkg clean to let each selected package manager conservatively remove data it classifies as unused or stale",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "In rich terminals, every upkg command path—including help and upgrades—uses the shared dashboard theme",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "Press Tab after upkg or --only= to browse commands, flags, and supported manager IDs",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "npm cleanup lists npx cache keys and removes only those explicit entries without --force",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "Run upkg clean --sudo to authorize cleanup for selected system package managers",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when at least one supported package manager is installed"
   }
 ]
