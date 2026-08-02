@@ -431,6 +431,8 @@
       "upkg plan                            # preview upgrades",
       "upkg upgrade --dry-run --only npm    # preview selected upgrades",
       "upkg upgrade --sudo --only apt       # run a privileged backend",
+      "upkg clean --dry-run --only brew,npm # preview manager-owned cleanup",
+      "upkg clean --sudo --only apt         # remove unused APT data",
       "upkg managers --only npm,flatpak     # inspect selected order"
     ],
     "features": [
@@ -442,18 +444,21 @@
       "up                  Alias for upgrade",
       "update              Alias for upgrade",
       "plan                Preview available upgrades without changing packages",
+      "clean               Remove unused packages and stale manager-owned caches",
       "managers            Show detected managers and alternates",
       "help                Show this help text"
     ],
     "notes": [
       "Flag: --only <list>       Comma-separated manager IDs to include",
       "Flag: --skip <list>       Comma-separated manager IDs to exclude",
-      "Flag: --sudo              Allow privileged upgrade backends to run",
-      "Flag: --dry-run           Preview upgrades instead of running them",
+      "Flag: --sudo              Authorize privileged upgrade and cleanup backends",
+      "Flag: --dry-run           Preview upgrades or cleanup without changing packages",
       "Manager: apt, dnf, pacman, paru, brew, flatpak, nix, npm",
       "upkg with no command defaults to outdated",
       "search prints one compact table with a manager column",
-      "plan and --dry-run use the read-only outdated checks",
+      "plan and upgrade --dry-run use the read-only outdated checks",
+      "clean is mutating; use clean --dry-run for a read-only preview",
+      "cleanup uses conservative manager commands and never deletes app data or user config directly",
       "upgrades never inject sudo automatically",
       "paru upgrades require explicit --sudo opt-in but still run unprefixed",
       "brew upgrades run unprefixed and stay in Homebrew user space",

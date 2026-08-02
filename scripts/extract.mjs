@@ -395,23 +395,23 @@ function describeCondition(condition) {
     return 'Available when at least one supported package manager is installed';
   }
 
-  if (condition.includes('command -v nix') && condition.includes('command -v jq') && condition.includes('command -v fzf')) {
+  if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq') && conditionHasCommand(condition, 'fzf')) {
     return 'Available when nix, jq, and fzf are installed';
   }
 
-  if (condition.includes('command -v nix') && condition.includes('command -v jq')) {
+  if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq')) {
     return 'Available when nix and jq are installed';
   }
 
-  if (condition.includes('command -v nix')) {
+  if (conditionHasCommand(condition, 'nix')) {
     return 'Available when nix is installed';
   }
 
-  if (condition.includes('command -v zoxide')) {
+  if (conditionHasCommand(condition, 'zoxide')) {
     return 'Available when zoxide is installed';
   }
 
-  if (condition.includes('command -v fzf') && condition.includes('interactive')) {
+  if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) {
     return 'Available when fzf is installed in an interactive shell';
   }
 
@@ -426,14 +426,14 @@ function describeCondition(condition) {
   return toSentenceCase(condition.replace(/^if\s+/, '').replace(/;?\s*then$/, ''));
 }
 
+function conditionHasCommand(condition, command) {
+  return condition.includes(`command -v ${command}`) ||
+    condition.includes(`$+commands[${command}]`);
+}
+
 function isPackageManagerCondition(condition) {
-  return condition.includes('command -v paru') ||
-    condition.includes('command -v pacman') ||
-    condition.includes('command -v apt') ||
-    condition.includes('command -v dnf') ||
-    condition.includes('command -v brew') ||
-    condition.includes('command -v flatpak') ||
-    condition.includes('command -v npm');
+  return ['paru', 'pacman', 'apt', 'dnf', 'brew', 'flatpak', 'npm']
+    .some((manager) => conditionHasCommand(condition, manager));
 }
 
 function inferTipSource(condition, text) {
@@ -445,10 +445,10 @@ function inferTipSource(condition, text) {
     return 'core';
   }
 
-  if (condition.includes('command -v zoxide')) return 'zoxide';
-  if (condition.includes('command -v fzf') && condition.includes('interactive')) return 'fzf';
+  if (conditionHasCommand(condition, 'zoxide')) return 'zoxide';
+  if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) return 'fzf';
   if (isPackageManagerCondition(condition)) return 'upkg';
-  if (condition.includes('command -v nix')) return 'npkg';
+  if (conditionHasCommand(condition, 'nix')) return 'npkg';
   if (condition.includes('alias gs') && condition.includes('alias gco')) return 'git-plugin';
   if (condition.includes('alias lt')) return 'navigation';
 
