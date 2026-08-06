@@ -6,23 +6,36 @@ interface Props {
 }
 
 const { featuredTip, upkgExample, npkgExample } = Astro.props;
+import { Grid2X2Icon, MenuIcon, SquarePlusIcon, XIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 ---
 
 <figure class="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
     <figcaption class="sr-only">Terminal demonstration showing example shell commands and their output.</figcaption>
-    <Card className="gap-0 py-0 [--card-spacing:--spacing(3)]">
-        <CardHeader className="grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded-none border-b bg-muted/50 px-4 py-3">
-            <span class="flex gap-2" aria-hidden="true">
-                <span class="size-2.5 rounded-full bg-destructive"></span>
-                <span class="size-2.5 rounded-full bg-category-globbing"></span>
-                <span class="size-2.5 rounded-full bg-category-search"></span>
+    <Card className="gap-0 py-0 shadow-xl shadow-background/40 [--card-spacing:--spacing(3)]">
+        <CardHeader className="grid h-10 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-none border-b bg-terminal-toolbar px-2.5 py-1.5">
+            <span class="flex justify-self-start" aria-hidden="true">
+                <span class="flex size-7 items-center justify-center rounded-lg bg-background/30 ring-1 ring-foreground/10">
+                    <SquarePlusIcon className="size-3.5" />
+                </span>
             </span>
-            <span class="text-center font-mono text-xs text-muted-foreground">~/.config/zsh</span>
-            <span class="w-12" aria-hidden="true"></span>
+            <span class="truncate text-center text-sm font-semibold text-foreground">
+                nirmal@Tiger: ~ <span class="hidden sm:inline">— zsh</span>
+            </span>
+            <span class="flex items-center justify-self-end gap-1" aria-hidden="true">
+                <span class="hidden size-7 items-center justify-center rounded-lg sm:flex">
+                    <Grid2X2Icon className="size-3.5" />
+                </span>
+                <span class="flex size-7 items-center justify-center rounded-lg">
+                    <MenuIcon className="size-3.5" />
+                </span>
+                <span class="flex size-7 items-center justify-center rounded-full bg-background/30">
+                    <XIcon className="size-3.5" />
+                </span>
+            </span>
         </CardHeader>
-        <CardContent className="overflow-hidden bg-background/70 p-0">
-            <pre class="overflow-x-auto whitespace-pre-wrap break-words p-5 text-xs leading-6 sm:text-sm"><code><span class="block"><span class="text-primary">❯ </span><span class="text-category-search">tips</span></span><span class="block text-muted-foreground">tip: {featuredTip}</span><span class="block" aria-hidden="true">&nbsp;</span><span class="block"><span class="text-primary">❯ </span><span class="text-category-search">{upkgExample}</span></span><span class="block text-muted-foreground">manager   package    summary</span><span class="block text-muted-foreground">brew      ripgrep    Search package names across detected managers</span><span class="block" aria-hidden="true">&nbsp;</span><span class="block"><span class="text-primary">❯ </span><span class="text-category-search">{npkgExample}</span></span><span class="block text-muted-foreground">Interactive picker ready with preview metadata</span></code></pre>
+        <CardContent className="overflow-hidden bg-terminal-background p-0">
+            <pre class="overflow-x-auto whitespace-pre-wrap break-words p-4 text-xs leading-6 sm:p-6 sm:text-sm"><code><span class="block"><span class="text-category-navigation">nirmal@Tiger</span><span class="text-muted-foreground">:</span><span class="text-category-nix">~</span><span class="text-category-search">%</span> <span class="text-foreground">tips</span></span><span class="block"><span class="text-primary">tip:</span> <span class="text-muted-foreground">{featuredTip}</span></span><span class="block h-3" aria-hidden="true"></span><span class="block"><span class="text-category-navigation">nirmal@Tiger</span><span class="text-muted-foreground">:</span><span class="text-category-nix">~</span><span class="text-category-search">%</span> <span class="text-foreground">{upkgExample}</span></span><span class="block text-muted-foreground">manager   package    summary</span><span class="block"><span class="text-category-git">dnf</span>       <span class="text-category-search">ripgrep</span>    <span class="text-muted-foreground">Search package names across detected managers</span></span><span class="block h-3" aria-hidden="true"></span><span class="block"><span class="text-category-navigation">nirmal@Tiger</span><span class="text-muted-foreground">:</span><span class="text-category-nix">~</span><span class="text-category-search">%</span> <span class="text-foreground">{npkgExample}</span></span><span class="block text-muted-foreground">Interactive picker ready with preview metadata</span><span class="block"><span class="text-category-navigation">nirmal@Tiger</span><span class="text-muted-foreground">:</span><span class="text-category-nix">~</span><span class="text-category-search">%</span> <span class="inline-block h-[1.1em] w-2 translate-y-0.5 bg-foreground motion-safe:animate-pulse" aria-hidden="true"></span></span></code></pre>
         </CardContent>
     </Card>
 </figure>
