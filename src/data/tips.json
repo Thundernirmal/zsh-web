@@ -218,20 +218,20 @@
   {
     "text": "Press Ctrl+R to fuzzy search your command history",
     "category": "history",
-    "source": "core",
-    "availability": "[[ ${_FZF_STATE:-blocked} == ready ]] && [[ -o interactive ]] && [[ -z ${ZSH_EXECUTION_STRING:-} ]]"
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "text": "Press Ctrl+T to fuzzy insert a file path at your cursor",
     "category": "fzf",
-    "source": "core",
-    "availability": "[[ ${_FZF_STATE:-blocked} == ready ]] && [[ -o interactive ]] && [[ -z ${ZSH_EXECUTION_STRING:-} ]]"
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "text": "Press Alt+C to fuzzy cd into a directory",
     "category": "fzf",
-    "source": "core",
-    "availability": "[[ ${_FZF_STATE:-blocked} == ready ]] && [[ -o interactive ]] && [[ -z ${ZSH_EXECUTION_STRING:-} ]]"
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "text": "Run npkg add bat for a short nix profile add command",
@@ -255,25 +255,25 @@
     "text": "Run npkg install with no args to fuzzy-pick nixpkgs attribute names",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run npkg find nvim to seed the nix package picker with an initial query",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "npkg find shows description, version, and homepage in the preview pane",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run npkg remove with no args to fuzzy-select installed Nix packages to uninstall",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run fanprofile to see the current laptop performance/fan profile",
@@ -321,7 +321,7 @@
     "text": "npkg pickers move the preview below the list on narrow terminals so names stay readable",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run upkg search ripgrep to compare matches from detected managers in one compact table",

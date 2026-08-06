@@ -395,8 +395,10 @@ function describeCondition(condition) {
     return 'Available when at least one supported package manager is installed';
   }
 
-  if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq') && conditionHasCommand(condition, 'fzf')) {
-    return 'Available when nix, jq, and fzf are installed';
+  if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq') && conditionRequiresFzf(condition)) {
+    return conditionHasFzfReadyState(condition)
+      ? 'Available when nix and jq are installed and fzf is ready'
+      : 'Available when nix, jq, and fzf are installed';
   }
 
   if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq')) {
@@ -409,6 +411,14 @@ function describeCondition(condition) {
 
   if (conditionHasCommand(condition, 'zoxide')) {
     return 'Available when zoxide is installed';
+  }
+
+  if (conditionHasFzfReadyState(condition) && condition.includes('interactive')) {
+    return 'Available when fzf is ready in an interactive shell';
+  }
+
+  if (conditionHasFzfReadyState(condition)) {
+    return 'Available when fzf is ready';
   }
 
   if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) {
@@ -431,6 +441,14 @@ function conditionHasCommand(condition, command) {
     condition.includes(`$+commands[${command}]`);
 }
 
+function conditionHasFzfReadyState(condition) {
+  return condition.includes('_FZF_STATE') && /==\s*ready/.test(condition);
+}
+
+function conditionRequiresFzf(condition) {
+  return conditionHasCommand(condition, 'fzf') || conditionHasFzfReadyState(condition);
+}
+
 function isPackageManagerCondition(condition) {
   return ['paru', 'pacman', 'apt', 'dnf', 'brew', 'flatpak', 'npm']
     .some((manager) => conditionHasCommand(condition, manager));
@@ -446,9 +464,9 @@ function inferTipSource(condition, text) {
   }
 
   if (conditionHasCommand(condition, 'zoxide')) return 'zoxide';
-  if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) return 'fzf';
   if (isPackageManagerCondition(condition)) return 'upkg';
   if (conditionHasCommand(condition, 'nix')) return 'npkg';
+  if (conditionRequiresFzf(condition)) return 'fzf';
   if (condition.includes('alias gs') && condition.includes('alias gco')) return 'git-plugin';
   if (condition.includes('alias lt')) return 'navigation';
 
