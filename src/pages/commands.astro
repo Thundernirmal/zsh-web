@@ -52,11 +52,13 @@ const documentedCount = commands.filter((command) =>
 		</p>
 	</PageHeader>
 
-	<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
-		<StatCard value={commands.length} label="total commands" />
-		<StatCard value={functionCount} label="custom functions" />
-		<StatCard value={documentedCount} label="entries with extracted details" />
-	</div>
+	<div class="grid gap-4">
+		<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
+			<StatCard value={commands.length} label="total commands" />
+			<StatCard value={functionCount} label="custom functions" />
+			<StatCard value={documentedCount} label="entries with extracted details" />
+		</div>
 
-	<SearchCommands client:load />
+		<SearchCommands client:load />
+	</div>
 </Layout>

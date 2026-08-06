@@ -18,11 +18,13 @@ const sourceCount = new Set(tips.map((tip) => tip.source).filter(Boolean)).size;
 		</p>
 	</PageHeader>
 
-	<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
-		<StatCard value={tips.length} label="tip records" />
-		<StatCard value={conditionalCount} label="conditional tips" />
-		<StatCard value={sourceCount} label="tip sources" />
-	</div>
+	<div class="grid gap-4">
+		<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
+			<StatCard value={tips.length} label="tip records" />
+			<StatCard value={conditionalCount} label="conditional tips" />
+			<StatCard value={sourceCount} label="tip sources" />
+		</div>
 
-	<TipsExplorer client:load tips={tips} />
+		<TipsExplorer client:load tips={tips} />
+	</div>
 </Layout>

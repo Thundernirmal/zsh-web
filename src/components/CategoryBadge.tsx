@@ -1,5 +1,44 @@
+import {
+  ActivityIcon,
+  AsteriskIcon,
+  CompassIcon,
+  EyeIcon,
+  GitBranchIcon,
+  HistoryIcon,
+  ListFilterIcon,
+  PackageIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+  SnowflakeIcon,
+  TagIcon,
+  TerminalIcon,
+  WifiIcon,
+  WorkflowIcon,
+  WrenchIcon,
+  type LucideIcon,
+} from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+
+const categoryIcons: Record<string, LucideIcon> = {
+  all: TagIcon,
+  navigation: CompassIcon,
+  git: GitBranchIcon,
+  search: SearchIcon,
+  utility: WrenchIcon,
+  packages: PackageIcon,
+  pipe: WorkflowIcon,
+  globbing: AsteriskIcon,
+  history: HistoryIcon,
+  fzf: ListFilterIcon,
+  nix: SnowflakeIcon,
+  shell: TerminalIcon,
+  network: WifiIcon,
+  process: ActivityIcon,
+  safety: ShieldCheckIcon,
+  viewing: EyeIcon,
+}
 
 const categoryStyles: Record<string, string> = {
   navigation: "border-category-navigation/30 bg-category-navigation/10 text-category-navigation",
@@ -46,6 +85,20 @@ function formatLabel(value: string) {
     .join(" ")
 }
 
+export function CategoryIcon({
+  category,
+  className,
+  "data-icon": dataIcon,
+}: {
+  category: string
+  className?: string
+  "data-icon"?: "inline-start" | "inline-end"
+}) {
+  const Icon = categoryIcons[category] ?? TagIcon
+
+  return <Icon className={className} data-icon={dataIcon} aria-hidden="true" />
+}
+
 export function CategoryBadge({
   category,
   label,
@@ -61,6 +114,7 @@ export function CategoryBadge({
       data-category={category}
       className={cn(categoryStyles[category], className)}
     >
+      <CategoryIcon category={category} data-icon="inline-start" />
       {label ?? categoryLabels[category] ?? formatLabel(category)}
     </Badge>
   )

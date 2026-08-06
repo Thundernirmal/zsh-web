@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
 
-import { CategoryBadge, categoryLabels } from "@/components/CategoryBadge"
+import { CategoryBadge, CategoryIcon, categoryLabels } from "@/components/CategoryBadge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -170,8 +170,8 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
 
   return (
     <section className="grid min-w-0 gap-4 motion-safe:animate-in motion-safe:fade-in" aria-label="Tips search and results">
-      <div className="grid items-end gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="grid min-w-0 gap-1.5">
+      <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="min-w-0">
           <label htmlFor="tips-search" className="sr-only">Search tips</label>
           <InputGroup className="h-9">
             <InputGroupAddon align="inline-start">
@@ -197,15 +197,16 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
           </InputGroup>
         </div>
 
-        <div className="grid gap-1.5">
-          <label id="tip-category-label" className="text-sm font-medium text-muted-foreground">Category</label>
+        <div className="min-w-0">
+          <label id="tip-category-label" className="sr-only">Category</label>
           <Select
             name="tip-category"
             value={filter}
             onValueChange={(value) => value && setFilter(value)}
             items={selectItems}
           >
-            <SelectTrigger className="h-9 w-full sm:w-64" aria-labelledby="tip-category-label">
+            <SelectTrigger className="w-full data-[size=default]:h-9" aria-labelledby="tip-category-label">
+              <CategoryIcon category={filter} className="text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="end">
@@ -217,6 +218,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
                     value={item.value}
                     disabled={counts[item.value] === 0 && filter !== item.value}
                   >
+                    <CategoryIcon category={item.value} className="text-muted-foreground" />
                     <span className="flex-1">{item.label}</span>
                   </SelectItem>
                 ))}
