@@ -1,221 +1,273 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
+
+import { CategoryBadge, categoryLabels } from "@/components/CategoryBadge"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup } from "@/components/ui/item"
+import { Kbd } from "@/components/ui/kbd"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 type Tip = {
-  text: string;
-  category: string;
-  source?: string;
-  availability?: string;
-};
+  text: string
+  category: string
+  source?: string
+  availability?: string
+}
 
-const CATEGORY_META: Record<string, { label: string; icon: string }> = {
-  navigation: { label: 'Navigation',       icon: '⌕' },
-  git:        { label: 'Git',              icon: '⎇' },
-  search:     { label: 'Search & Process', icon: '⌖' },
-  utility:    { label: 'Utility',          icon: '⚙' },
-  packages:   { label: 'Package Updates',  icon: '+' },
-  pipe:       { label: 'Pipe Aliases',     icon: '|' },
-  globbing:   { label: 'Globbing',         icon: '*' },
-  history:    { label: 'History',          icon: '↺' },
-  fzf:        { label: 'FZF & Zoxide',     icon: '⚡' },
-  nix:        { label: 'Nix',              icon: '❄' },
-  shell:      { label: 'Shell Behavior',   icon: '$' },
-  network:    { label: 'Network',          icon: '⌁' },
-  process:    { label: 'Process',          icon: '◎' },
-};
+const categoryOrder = [
+  "navigation",
+  "git",
+  "search",
+  "utility",
+  "packages",
+  "pipe",
+  "globbing",
+  "history",
+  "fzf",
+  "nix",
+  "shell",
+  "network",
+  "process",
+]
 
-const CATEGORY_ORDER = ['navigation', 'git', 'search', 'utility', 'packages', 'pipe', 'globbing', 'history', 'fzf', 'nix', 'shell', 'network', 'process'];
-
-function formatLabel(value: string): string {
+function formatLabel(value: string) {
   return value
+    .replace(/_/g, " ")
     .split(/[-\s]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+    .join(" ")
 }
 
-function highlightText(text: string, query: string): React.ReactNode {
-  if (!query || query.length < 2) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const splitRegex = new RegExp(`(${escaped})`, 'gi');
-  const testRegex = new RegExp(`^${escaped}$`, 'i');
+function highlightText(text: string, query: string): ReactNode {
+  const normalized = query.trim()
+  if (normalized.length < 2) return text
 
-  return text.split(splitRegex).map((part, i) =>
-    testRegex.test(part) ? <mark key={i} className="search-highlight">{part}</mark> : part
-  );
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const splitRegex = new RegExp(`(${escaped})`, "gi")
+  const exactRegex = new RegExp(`^${escaped}$`, "i")
+
+  return text.split(splitRegex).map((part, index) =>
+    exactRegex.test(part) ? (
+      <mark key={`${part}:${index}`} className="rounded-sm bg-primary/20 px-0.5 text-foreground">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  )
 }
 
 export default function TipsExplorer({ tips }: { tips: Tip[] }) {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState('all');
-  const [isMounted, setIsMounted] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("")
+  const [filter, setFilter] = useState("all")
+  const [isMounted, setIsMounted] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  const availableCategories = useMemo(
+    () => categoryOrder.filter((category) => tips.some((tip) => tip.category === category)),
+    [tips],
+  )
 
   useEffect(() => {
-    setIsMounted(true);
-    const params = new URLSearchParams(window.location.search);
-    const nextQuery = params.get('q');
-    const nextFilter = params.get('cat');
+    const params = new URLSearchParams(window.location.search)
+    const nextQuery = params.get("q")
+    const nextFilter = params.get("cat")
 
-    if (nextQuery) {
-      setQuery(nextQuery);
-    }
-
-    if (nextFilter && CATEGORY_ORDER.includes(nextFilter)) {
-      setFilter(nextFilter);
-    }
-  }, []);
+    if (nextQuery) setQuery(nextQuery)
+    if (nextFilter && availableCategories.includes(nextFilter)) setFilter(nextFilter)
+    setIsMounted(true)
+  }, [availableCategories])
 
   useEffect(() => {
-    if (!isMounted) return;
-    const url = new URL(window.location.href);
-    if (query) url.searchParams.set('q', query);
-    else url.searchParams.delete('q');
-    if (filter !== 'all') url.searchParams.set('cat', filter);
-    else url.searchParams.delete('cat');
-    window.history.replaceState({}, '', url);
-  }, [query, filter, isMounted]);
+    if (!isMounted) return
+    const url = new URL(window.location.href)
 
-  // Keyboard shortcut: / to focus search
+    if (query) url.searchParams.set("q", query)
+    else url.searchParams.delete("q")
+    if (filter !== "all") url.searchParams.set("cat", filter)
+    else url.searchParams.delete("cat")
+
+    window.history.replaceState({}, "", url)
+  }, [filter, isMounted, query])
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const activeElement = document.activeElement;
-      const isEditableTarget =
-        activeElement instanceof HTMLElement &&
-        (activeElement.isContentEditable ||
-          ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName));
+    const handler = (event: KeyboardEvent) => {
+      const target = document.activeElement
+      const isEditable =
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
 
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !isEditableTarget) {
-        e.preventDefault();
-        searchRef.current?.focus();
+      if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !isEditable) {
+        event.preventDefault()
+        searchRef.current?.focus()
       }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
+    }
 
-  const matchesQuery = useCallback((tip: Tip) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      tip.text.toLowerCase().includes(q) ||
-      tip.category.toLowerCase().includes(q) ||
-      (tip.source?.toLowerCase().includes(q) ?? false) ||
-      (tip.availability?.toLowerCase().includes(q) ?? false)
-    );
-  }, [query]);
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
 
-  const filteredTips = tips.filter(tip => 
-    matchesQuery(tip) && (filter === 'all' || tip.category === filter)
-  );
+  const matchesQuery = useCallback(
+    (tip: Tip) => {
+      const normalized = query.trim().toLowerCase()
+      if (!normalized) return true
+      return [tip.text, tip.category, tip.source, tip.availability]
+        .filter(Boolean)
+        .some((value) => value?.toLowerCase().includes(normalized))
+    },
+    [query],
+  )
 
-  const counts = {
-    all: tips.filter(matchesQuery).length,
-    ...CATEGORY_ORDER.reduce((acc, cat) => {
-      acc[cat] = tips.filter(t => t.category === cat && matchesQuery(t)).length;
-      return acc;
-    }, {} as Record<string, number>),
-  };
+  const filteredTips = useMemo(
+    () => tips.filter((tip) => matchesQuery(tip) && (filter === "all" || tip.category === filter)),
+    [filter, matchesQuery, tips],
+  )
 
-  const filterButtons = [
-    { key: 'all', label: 'All', icon: '≡', count: counts.all },
-    ...CATEGORY_ORDER.filter(cat => tips.some(t => t.category === cat)).map(cat => ({
-      key: cat,
-      label: CATEGORY_META[cat]?.label || cat,
-      icon: CATEGORY_META[cat]?.icon || '',
-      count: counts[cat as keyof typeof counts],
-    }))
-  ];
+  const counts = useMemo(() => {
+    const categoryCounts: Record<string, number> = { all: tips.filter(matchesQuery).length }
+    for (const category of availableCategories) {
+      categoryCounts[category] = tips.filter((tip) => tip.category === category && matchesQuery(tip)).length
+    }
+    return categoryCounts
+  }, [availableCategories, matchesQuery, tips])
+
+  const selectItems = [
+    { value: "all", label: `All Categories (${counts.all})` },
+    ...availableCategories.map((category) => ({
+      value: category,
+      label: `${categoryLabels[category] ?? formatLabel(category)} (${counts[category]})`,
+    })),
+  ]
+
+  const clearSearch = () => {
+    setQuery("")
+    setFilter("all")
+    searchRef.current?.focus()
+  }
 
   return (
-    <div className="search-view animate-in animate-in-2">
-      <div className="search-section">
-        <div className="search-wrapper search-wrapper-with-shortcut">
-          <span aria-hidden="true" className="search-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-4-4" />
-            </svg>
-          </span>
-          <input
-            ref={searchRef}
-            type="search"
-            className="search-field search-field-lg"
-            placeholder="Search through tips, categories, and workflows…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search tips"
-            name="tips-search"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <div className="search-meta">
-            <span className="search-count" aria-live="polite" aria-atomic="true">
-              {filteredTips.length} tip{filteredTips.length !== 1 ? 's' : ''}
-            </span>
-            <kbd aria-hidden="true" className="search-kbd">/</kbd>
-          </div>
+    <section className="grid min-w-0 gap-4 motion-safe:animate-in motion-safe:fade-in" aria-label="Tips search and results">
+      <div className="grid items-end gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="grid min-w-0 gap-1.5">
+          <label htmlFor="tips-search" className="sr-only">Search tips</label>
+          <InputGroup className="h-9">
+            <InputGroupAddon align="inline-start">
+              <SearchIcon aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupInput
+              ref={searchRef}
+              id="tips-search"
+              name="tips-search"
+              type="search"
+              placeholder="Search tips, categories, workflows…"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <InputGroupAddon align="inline-end" className="gap-2">
+              <span className="text-sm tabular-nums" aria-live="polite" aria-atomic="true">
+                {filteredTips.length} tip{filteredTips.length === 1 ? "" : "s"}
+              </span>
+              <Kbd className="hidden sm:inline-flex" aria-hidden="true">/</Kbd>
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
+
+        <div className="grid gap-1.5">
+          <label id="tip-category-label" className="text-sm font-medium text-muted-foreground">Category</label>
+          <Select
+            name="tip-category"
+            value={filter}
+            onValueChange={(value) => value && setFilter(value)}
+            items={selectItems}
+          >
+            <SelectTrigger className="h-9 w-full sm:w-64" aria-labelledby="tip-category-label">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectGroup>
+                <SelectLabel>Tip Categories</SelectLabel>
+                {selectItems.map((item) => (
+                  <SelectItem
+                    key={item.value}
+                    value={item.value}
+                    disabled={counts[item.value] === 0 && filter !== item.value}
+                  >
+                    <span className="flex-1">{item.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div className="segmented-control filter-toolbar" role="group" aria-label="Filter tips by category">
-        {filterButtons.map(btn => (
-          <button
-            key={btn.key}
-            type="button"
-            className={`segmented-btn ${filter === btn.key ? 'active' : ''}`}
-            data-category={btn.key !== 'all' ? btn.key : undefined}
-            onClick={() => setFilter(btn.key)}
-            aria-pressed={filter === btn.key}
-            disabled={btn.count === 0}
-          >
-            <span aria-hidden="true" className="tip-filter-icon">{btn.icon}</span>
-            {btn.label}
-            <span className="seg-count">{btn.count}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="surface-list">
-        {filteredTips.length === 0 ? (
-          <div className="surface-list-item search-empty-state">
-            No Tips found for <span className="search-empty-query">&ldquo;{query}&rdquo;</span>
-            <span className="search-empty-separator" aria-hidden="true">—</span>
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => { setQuery(''); setFilter('all'); }}
-            >
+      {filteredTips.length === 0 ? (
+        <Empty className="min-h-52 gap-3 border p-5">
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><SearchXIcon aria-hidden="true" /></EmptyMedia>
+            <EmptyTitle><h2>No Tips Found</h2></EmptyTitle>
+            <EmptyDescription>
+              No tips match {query ? <>&ldquo;{query}&rdquo;</> : "the selected category"}. Clear the search and category to see every tip.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button type="button" variant="outline" onClick={clearSearch}>
+              <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
               Clear Search
-            </button>
-          </div>
-        ) : (
-          filteredTips.map((tip) => (
-            <div key={`${tip.category}:${tip.text}`} className="surface-list-item tip-list-item">
-              <div className="tip-card">
-                <div className="tip-card-body">
-                  <p className="tip-card-text">
-                    <span aria-hidden="true" className="tip-card-arrow">→</span>
-                    {highlightText(tip.text, query)}
-                  </p>
-                  {tip.availability && (
-                    <p className="tip-card-detail">
-                      {highlightText(tip.availability, query)}
-                    </p>
-                  )}
-                </div>
-                <div className="tip-card-meta">
-                  <span className="badge badge-category" data-category={tip.category}>
-                    {CATEGORY_META[tip.category]?.label || tip.category}
-                  </span>
-                  {tip.source && (
-                    <span className="badge badge-subtle">{formatLabel(tip.source)}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+            </Button>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        <ItemGroup className="gap-2">
+          {filteredTips.map((tip) => (
+            <Item
+              key={`${tip.category}:${tip.text}`}
+              role="listitem"
+              variant="outline"
+              size="xs"
+              className="tip-virtual-item min-w-0 items-start bg-card"
+            >
+              <ItemContent className="min-w-0 gap-1">
+                <ItemDescription className="line-clamp-none text-pretty">
+                  {highlightText(tip.text, query)}
+                </ItemDescription>
+                {tip.availability && (
+                  <p className="text-sm leading-5 text-muted-foreground">{highlightText(tip.availability, query)}</p>
+                )}
+              </ItemContent>
+              <ItemActions className="basis-full flex-wrap justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
+                <CategoryBadge category={tip.category} />
+                {tip.source && <Badge variant="metadata">{formatLabel(tip.source)}</Badge>}
+              </ItemActions>
+            </Item>
+          ))}
+        </ItemGroup>
+      )}
+    </section>
+  )
 }

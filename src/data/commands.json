@@ -287,9 +287,6 @@
     "category": "process",
     "source": "60-functions.zsh",
     "usage": "fkill [signal]",
-    "requires": [
-      "fzf"
-    ],
     "interactive": true
   },
   {
@@ -363,9 +360,6 @@
     "category": "git",
     "source": "60-functions.zsh",
     "usage": "fbr",
-    "requires": [
-      "fzf"
-    ],
     "interactive": true
   },
   {
@@ -392,7 +386,7 @@
       "search <query>       Run a plain nixpkgs search with descriptions",
       "list                 List packages in the current profile",
       "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
-      "outdated             Show available package upgrades before running upgrade",
+      "outdated             Compare installed and evaluated Nix output identities",
       "refresh              Rebuild the cached nixpkgs attribute index",
       "upgrade [pkg ...]    Upgrade all packages or only the named ones",
       "help                 Show this help text"
@@ -401,7 +395,7 @@
       "Bare install names are expanded to nixpkgs#<name>",
       "npkg find searches a cached list of nixpkgs attribute names",
       "npkg refresh and outdated need jq",
-      "Interactive add/find/remove needs jq and fzf",
+      "Interactive add/find/remove needs jq and fzf 0.52.0+",
       "Advanced nix flags can be passed through by calling nix directly"
     ]
   },

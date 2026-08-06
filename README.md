@@ -19,7 +19,9 @@ The current config covers:
 ## Architecture
 
 - **Framework:** Astro + React islands
-- **Styling:** Vanilla CSS + Catppuccin Mocha theme tokens
+- **UI:** shadcn/ui Base UI primitives with Nova styling
+- **Styling:** Tailwind CSS v4 + semantic Catppuccin Mocha theme tokens
+- **Language:** TypeScript 6
 - **Data Source:** Extracted from `~/.config/zsh/20-aliases.zsh`, `60-functions.zsh`, `70-globals.zsh`, and `80-tips.zsh`
 - **Deployment:** Cloudflare Pages (Static Export)
 

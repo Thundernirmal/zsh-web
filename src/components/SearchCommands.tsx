@@ -1,87 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import commandsData from '../data/commands.json';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
+
+import commandsData from "@/data/commands.json"
+import { CategoryBadge } from "@/components/CategoryBadge"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
+import { Kbd } from "@/components/ui/kbd"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 type Command = {
-  name: string;
-  command?: string;
-  usage?: string;
-  description?: string;
-  type: string;
-  category?: string;
-  source?: string;
-  availability?: string;
-  examples?: string[];
-  features?: string[];
-  notes?: string[];
-  requires?: string[];
-  optional?: string[];
-  interactive?: boolean;
-  plainMode?: boolean;
-  richOutput?: boolean;
-};
+  name: string
+  command?: string
+  usage?: string
+  description?: string
+  type: string
+  category?: string
+  source?: string
+  availability?: string
+  examples?: string[]
+  features?: string[]
+  notes?: string[]
+  requires?: string[]
+  optional?: string[]
+  interactive?: boolean
+  plainMode?: boolean
+  richOutput?: boolean
+}
 
-const VALID_FILTERS = new Set(['all', 'alias', 'global_alias', 'function']);
+type Filter = "all" | "alias" | "global_alias" | "function"
 
-function formatLabel(value: string): string {
+const commands = commandsData as Command[]
+const validFilters = new Set<Filter>(["all", "alias", "global_alias", "function"])
+
+function formatLabel(value: string) {
   return value
-    .replace(/_/g, ' ')
+    .replace(/_/g, " ")
     .split(/[-\s]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+    .join(" ")
 }
 
-function getBadgeClass(type: string): string {
-  if (type === 'alias') return 'badge badge-alias';
-  if (type === 'global_alias') return 'badge badge-global';
-  if (type === 'function') return 'badge badge-function';
-  return 'badge';
+function commandId(command: Command) {
+  return `${command.type}:${command.name}`
 }
 
-function highlightText(text: string, query: string): React.ReactNode {
-  if (!query || query.length < 2) return text;
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const splitRegex = new RegExp(`(${escapedQuery})`, 'gi');
-  const testRegex = new RegExp(`^${escapedQuery}$`, 'i');
-  const parts = text.split(splitRegex);
-
-  return parts.map((part, i) =>
-    testRegex.test(part) ? <mark key={i} className="search-highlight">{part}</mark> : part
-  );
+function typeVariant(type: string): "alias" | "global" | "function" | "metadata" {
+  if (type === "alias") return "alias"
+  if (type === "global_alias") return "global"
+  if (type === "function") return "function"
+  return "metadata"
 }
 
-function renderListSection(title: string, items: string[] | undefined, query: string): React.ReactNode {
-  if (!items || items.length === 0) {
-    return null;
-  }
+function highlightText(text: string, query: string): ReactNode {
+  const normalized = query.trim()
+  if (normalized.length < 2) return text
 
-  const normalizedQuery = query.trim().toLowerCase();
-  const matchingItems = normalizedQuery.length >= 2
-    ? items.filter((item) => item.toLowerCase().includes(normalizedQuery))
-    : [];
-  const visibleItems = matchingItems.length > 0
-    ? Array.from(new Set([...matchingItems, ...items])).slice(0, 4)
-    : items.slice(0, 4);
-  const remainingCount = items.length - visibleItems.length;
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const splitRegex = new RegExp(`(${escaped})`, "gi")
+  const exactRegex = new RegExp(`^${escaped}$`, "i")
 
-  return (
-    <section className="command-card-section">
-      <h4 className="command-card-section-title">{title}</h4>
-      <ul className="command-card-list">
-        {visibleItems.map((item) => (
-          <li key={`${title}:${item}`} className="command-card-list-item">
-            {highlightText(item, query)}
-          </li>
-        ))}
-      </ul>
-      {remainingCount > 0 && (
-        <p className="command-card-more">+{remainingCount} more</p>
-      )}
-    </section>
-  );
+  return text.split(splitRegex).map((part, index) =>
+    exactRegex.test(part) ? (
+      <mark key={`${part}:${index}`} className="rounded-sm bg-primary/20 px-0.5 text-foreground">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  )
 }
 
-function getSearchableText(command: Command): string {
+function searchableText(command: Command) {
   return [
     command.name,
     command.command,
@@ -98,196 +107,283 @@ function getSearchableText(command: Command): string {
     ...(command.optional ?? []),
   ]
     .filter(Boolean)
-    .join('\n')
-    .toLowerCase();
+    .join("\n")
+    .toLowerCase()
+}
+
+function matchingDetailSections(command: Command, query: string) {
+  const normalized = query.trim().toLowerCase()
+  if (normalized.length < 2) return []
+
+  const summary = [command.name, command.description, command.type, command.category, command.source]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+
+  if (summary.includes(normalized)) return []
+
+  const fields: Array<[string, Array<string | undefined>]> = [
+    ["Command", [command.command]],
+    ["Usage", [command.usage]],
+    ["Availability", [command.availability]],
+    ["Requirements", command.requires ?? []],
+    ["Integrations", command.optional ?? []],
+    ["Examples", command.examples ?? []],
+    ["Features", command.features ?? []],
+    ["Notes", command.notes ?? []],
+  ]
+
+  return fields
+    .filter(([, values]) => values.some((value) => value?.toLowerCase().includes(normalized)))
+    .map(([label]) => label)
+}
+
+function DetailList({ title, items, query }: { title: string; items?: string[]; query: string }) {
+  if (!items?.length) return null
+
+  return (
+    <section className="grid min-w-0 gap-1.5">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h4>
+      <ul className="grid gap-1.5 pl-4 text-base leading-6 marker:text-primary">
+        {items.map((item) => (
+          <li key={`${title}:${item}`}>{highlightText(item, query)}</li>
+        ))}
+      </ul>
+    </section>
+  )
 }
 
 export default function SearchCommands() {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState('all');
-  const [isMounted, setIsMounted] = useState(false);
-  const commands: Command[] = commandsData;
+  const [query, setQuery] = useState("")
+  const [filter, setFilter] = useState<Filter>("all")
+  const [expanded, setExpanded] = useState<string[]>([])
+  const [isMounted, setIsMounted] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setIsMounted(true);
-    const params = new URLSearchParams(window.location.search);
-    const nextQuery = params.get('q');
-    const nextFilter = params.get('type');
+    const params = new URLSearchParams(window.location.search)
+    const nextQuery = params.get("q")
+    const nextFilter = params.get("type") as Filter | null
+    const nextCommand = params.get("command")
 
-    if (nextQuery) {
-      setQuery(nextQuery);
+    if (nextQuery) setQuery(nextQuery)
+    if (nextFilter && validFilters.has(nextFilter)) setFilter(nextFilter)
+    if (nextCommand && commands.some((command) => commandId(command) === nextCommand)) {
+      setExpanded([nextCommand])
     }
-
-    if (nextFilter && VALID_FILTERS.has(nextFilter)) {
-      setFilter(nextFilter);
-    }
-  }, []);
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
-    if (!isMounted) return;
-    const url = new URL(window.location.href);
-    if (query) url.searchParams.set('q', query);
-    else url.searchParams.delete('q');
-    if (filter !== 'all') url.searchParams.set('type', filter);
-    else url.searchParams.delete('type');
-    window.history.replaceState({}, '', url);
-  }, [query, filter, isMounted]);
+    if (!isMounted) return
+    const url = new URL(window.location.href)
 
-  const matchesQuery = (cmd: Command) => {
-    const q = query.toLowerCase();
-    return !query || getSearchableText(cmd).includes(q);
-  };
+    if (query) url.searchParams.set("q", query)
+    else url.searchParams.delete("q")
+    if (filter !== "all") url.searchParams.set("type", filter)
+    else url.searchParams.delete("type")
+    if (expanded[0]) url.searchParams.set("command", expanded[0])
+    else url.searchParams.delete("command")
 
-  const filteredCommands = commands.filter(cmd =>
-    matchesQuery(cmd) && (filter === 'all' || cmd.type === filter)
-  );
+    window.history.replaceState({}, "", url)
+  }, [expanded, filter, isMounted, query])
 
-  // Counts always reflect current search query
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      const target = document.activeElement
+      const isEditable =
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+
+      if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !isEditable) {
+        event.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
+
+  const normalizedQuery = query.trim().toLowerCase()
+  const matchesQuery = (command: Command) =>
+    normalizedQuery.length === 0 || searchableText(command).includes(normalizedQuery)
+
+  const filteredCommands = useMemo(
+    () => commands.filter((command) => matchesQuery(command) && (filter === "all" || command.type === filter)),
+    [filter, normalizedQuery],
+  )
+
   const counts = {
     all: commands.filter(matchesQuery).length,
-    alias: commands.filter(c => matchesQuery(c) && c.type === 'alias').length,
-    global_alias: commands.filter(c => matchesQuery(c) && c.type === 'global_alias').length,
-    function: commands.filter(c => matchesQuery(c) && c.type === 'function').length,
-  };
+    alias: commands.filter((command) => matchesQuery(command) && command.type === "alias").length,
+    global_alias: commands.filter((command) => matchesQuery(command) && command.type === "global_alias").length,
+    function: commands.filter((command) => matchesQuery(command) && command.type === "function").length,
+  }
 
-  const filterButtons = [
-    { key: 'all', label: 'All', count: counts.all },
-    { key: 'alias', label: 'Aliases', count: counts.alias },
-    { key: 'global_alias', label: 'Globals', count: counts.global_alias },
-    { key: 'function', label: 'Functions', count: counts.function },
-  ];
+  const filters: Array<{ key: Filter; label: string; count: number }> = [
+    { key: "all", label: "All", count: counts.all },
+    { key: "alias", label: "Aliases", count: counts.alias },
+    { key: "global_alias", label: "Globals", count: counts.global_alias },
+    { key: "function", label: "Functions", count: counts.function },
+  ]
+
+  const clearSearch = () => {
+    setQuery("")
+    setFilter("all")
+    setExpanded([])
+    searchRef.current?.focus()
+  }
 
   return (
-    <div className="search-view animate-in animate-in-2">
-      <div className="search-section">
-        <div className="search-wrapper search-wrapper-with-count">
-          <span aria-hidden="true" className="search-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-4-4" />
-            </svg>
-          </span>
-          <input
+    <section className="grid min-w-0 gap-4 motion-safe:animate-in motion-safe:fade-in" aria-label="Command search and results">
+      <div className="grid gap-2.5">
+        <label htmlFor="command-search" className="sr-only">Search commands</label>
+        <InputGroup className="h-9">
+          <InputGroupAddon align="inline-start">
+            <SearchIcon aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            ref={searchRef}
+            id="command-search"
+            name="command-search"
             type="search"
-            className="search-field search-field-lg"
             placeholder="Search commands, aliases, options…"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search commands"
-            name="command-search"
+            onChange={(event) => setQuery(event.target.value)}
             autoComplete="off"
             spellCheck={false}
           />
-          <div className="search-meta">
-            <span className="search-count" aria-live="polite" aria-atomic="true">
-              {filteredCommands.length} result{filteredCommands.length !== 1 ? 's' : ''}
+          <InputGroupAddon align="inline-end" className="gap-2">
+            <span className="text-sm tabular-nums" aria-live="polite" aria-atomic="true">
+              {filteredCommands.length} result{filteredCommands.length === 1 ? "" : "s"}
             </span>
-          </div>
+            <Kbd className="hidden sm:inline-flex" aria-hidden="true">/</Kbd>
+          </InputGroupAddon>
+        </InputGroup>
+
+        <div className="overflow-x-auto pb-1">
+          <ToggleGroup
+            value={[filter]}
+            onValueChange={(values) => {
+              const next = values[0] as Filter | undefined
+              if (next) setFilter(next)
+            }}
+            variant="outline"
+            size="sm"
+            spacing={0}
+            aria-label="Filter commands by type"
+            className="min-w-max"
+          >
+            {filters.map((item) => (
+              <ToggleGroupItem
+                key={item.key}
+                value={item.key}
+                disabled={item.count === 0 && filter !== item.key}
+                aria-label={`${item.label}, ${item.count} results`}
+              >
+                {item.label}
+                <span className="text-xs text-muted-foreground tabular-nums">{item.count}</span>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
       </div>
 
-      <div className="segmented-control filter-toolbar" role="group" aria-label="Filter commands by type">
-        {filterButtons.map(btn => (
-          <button
-            key={btn.key}
-            type="button"
-            className={`segmented-btn ${filter === btn.key ? 'active' : ''}`}
-            data-type={btn.key}
-            onClick={() => setFilter(btn.key)}
-            aria-pressed={filter === btn.key}
-          >
-            {btn.label}
-            <span className="seg-count">{btn.count}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="surface-list">
-        {filteredCommands.length === 0 ? (
-          <div className="surface-list-item search-empty-state">
-            No Results for <span className="search-empty-query">&ldquo;{query}&rdquo;</span>
-            <span className="search-empty-separator" aria-hidden="true">—</span>
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => { setQuery(''); setFilter('all'); }}
-            >
+      {filteredCommands.length === 0 ? (
+        <Empty className="min-h-52 gap-3 border p-5">
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><SearchXIcon aria-hidden="true" /></EmptyMedia>
+            <EmptyTitle><h2>No Commands Found</h2></EmptyTitle>
+            <EmptyDescription>
+              No commands match {query ? <>&ldquo;{query}&rdquo;</> : "the selected filter"}. Clear the search and filters to see every command.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button type="button" variant="outline" onClick={clearSearch}>
+              <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
               Clear Search
-            </button>
-          </div>
-        ) : (
-          filteredCommands.map((cmd, idx) => (
-            <div key={cmd.name + cmd.type + idx} className="surface-list-item">
-              <div className="command-card-header">
-                <h3 className="command-card-name">{highlightText(cmd.name, query)}</h3>
-                <div className="command-card-meta">
-                  {cmd.category && (
-                    <span className="badge badge-category" data-category={cmd.category}>
-                      {formatLabel(cmd.category)}
+            </Button>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        <Accordion
+          value={expanded}
+          onValueChange={setExpanded}
+          hiddenUntilFound
+          className="overflow-hidden rounded-xl border bg-card px-2 sm:px-3"
+        >
+          {filteredCommands.map((command) => {
+            const detailsMatches = matchingDetailSections(command, query)
+
+            return (
+              <AccordionItem key={commandId(command)} value={commandId(command)}>
+                <AccordionTrigger className="gap-2 py-3 hover:no-underline">
+                  <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
+                    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span className="font-mono text-base font-semibold text-foreground">{highlightText(command.name, query)}</span>
+                      <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
+                      {command.category && <CategoryBadge category={command.category} />}
+                      {command.source && <Badge variant="metadata">{formatLabel(command.source)}</Badge>}
+                      {detailsMatches.length > 0 && (
+                        <Badge variant="outline">Match: {detailsMatches.join(", ")}</Badge>
+                      )}
                     </span>
-                  )}
-                  <span className={getBadgeClass(cmd.type)}>
-                    {cmd.type.replace('_', ' ')}
+                    {command.description && (
+                      <span className="text-base font-normal leading-6 text-muted-foreground">
+                        {highlightText(command.description, query)}
+                      </span>
+                    )}
                   </span>
-                  {cmd.source && (
-                    <span className="command-card-source">{cmd.source}</span>
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-4 border-t pt-3 pb-4">
+                  <div className="grid gap-2.5">
+                    {command.command && (
+                      <div className="grid gap-1.5">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Command</h4>
+                        <code className="block max-w-full overflow-x-auto rounded-lg border bg-background px-2.5 py-2 text-base leading-6 text-foreground">
+                          {highlightText(command.command, query)}
+                        </code>
+                      </div>
+                    )}
+                    {command.usage && command.usage !== command.command && (
+                      <div className="grid gap-1.5">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Usage</h4>
+                        <code className="block max-w-full overflow-x-auto rounded-lg border bg-background px-2.5 py-2 text-base leading-6 text-foreground">
+                          {highlightText(command.usage, query)}
+                        </code>
+                      </div>
+                    )}
+                    {command.availability && (
+                      <p className="text-base leading-6 text-muted-foreground">{highlightText(command.availability, query)}</p>
+                    )}
+                  </div>
+
+                  {(command.interactive || command.plainMode || command.richOutput || command.requires?.length || command.optional?.length) && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {command.interactive && <Badge variant="metadata">Interactive</Badge>}
+                      {command.plainMode && <Badge variant="metadata">Plain Mode</Badge>}
+                      {command.richOutput && <Badge variant="metadata">Rich Output</Badge>}
+                      {command.requires?.map((requirement) => (
+                        <Badge key={`${commandId(command)}:requires:${requirement}`} variant="metadata">Requires {formatLabel(requirement)}</Badge>
+                      ))}
+                      {command.optional?.map((dependency) => (
+                        <Badge key={`${commandId(command)}:optional:${dependency}`} variant="metadata">Uses {formatLabel(dependency)} if available</Badge>
+                      ))}
+                    </div>
                   )}
-                </div>
-              </div>
 
-              {cmd.description && (
-                <p className="command-card-desc">
-                  {highlightText(cmd.description, query)}
-                </p>
-              )}
-
-              {cmd.command && (
-                <div className="command-card-line">
-                  <span className="command-card-label">Command</span>
-                  <code className="command-card-code">{highlightText(cmd.command, query)}</code>
-                </div>
-              )}
-
-              {cmd.usage && cmd.usage !== cmd.command && (
-                <div className="command-card-line">
-                  <span className="command-card-label">Usage</span>
-                  <code className="command-card-code">{highlightText(cmd.usage, query)}</code>
-                </div>
-              )}
-
-              {cmd.availability && (
-                <p className="command-card-note">
-                  {highlightText(cmd.availability, query)}
-                </p>
-              )}
-
-              {(cmd.interactive || cmd.plainMode || cmd.richOutput || (cmd.requires && cmd.requires.length > 0) || (cmd.optional && cmd.optional.length > 0)) && (
-                <div className="command-card-tags">
-                  {cmd.interactive && <span className="badge badge-subtle">Interactive</span>}
-                  {cmd.plainMode && <span className="badge badge-subtle">Plain Mode</span>}
-                  {cmd.richOutput && <span className="badge badge-subtle">Rich Output</span>}
-                  {(cmd.requires ?? []).map((requirement) => (
-                    <span key={`${cmd.name}:${requirement}`} className="badge badge-subtle">
-                      Requires {formatLabel(requirement)}
-                    </span>
-                  ))}
-                  {(cmd.optional ?? []).map((dependency) => (
-                    <span key={`${cmd.name}:optional:${dependency}`} className="badge badge-subtle">
-                      Uses {formatLabel(dependency)} if available
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="command-card-grid">
-                {renderListSection('Features', cmd.features, query)}
-                {renderListSection('Examples', cmd.examples, query)}
-                {renderListSection('Notes', cmd.notes, query)}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+                  <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <DetailList title="Examples" items={command.examples} query={query} />
+                    <DetailList title="Features" items={command.features} query={query} />
+                    <DetailList title="Notes" items={command.notes} query={query} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
+      )}
+    </section>
+  )
 }

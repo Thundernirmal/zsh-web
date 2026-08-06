@@ -1,0 +1,17 @@
+---
+import { Card, CardContent } from '@/components/ui/card';
+
+interface Props {
+  value: string | number;
+  label: string;
+}
+
+const { value, label } = Astro.props;
+---
+
+<Card size="sm" className="min-w-0">
+  <CardContent className="grid gap-0.5">
+    <p class="font-heading text-3xl font-semibold leading-none text-primary tabular-nums">{value}</p>
+    <p class="text-base leading-snug text-muted-foreground">{label}</p>
+  </CardContent>
+</Card>

@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TipsExplorer from '../components/TipsExplorer.tsx';
+import PageHeader from '../components/PageHeader.astro';
+import StatCard from '../components/StatCard.astro';
 import tipsData from '../data/tips.json';
 
 type Tip = { text: string; category: string; source?: string; availability?: string };
@@ -10,26 +12,16 @@ const sourceCount = new Set(tips.map((tip) => tip.source).filter(Boolean)).size;
 ---
 
 <Layout title="Shell Tips">
-	<header class="page-header animate-in">
-		<h1 class="page-title">Shell Tips</h1>
-		<p class="page-subtitle">
-			{tips.length} curated tips — shortcuts, workflows, and hidden features from <span class="accent-text page-subtitle-accent">Nirmal's Shell</span>, including when conditional tools and integrations show up.
+	<PageHeader title="Shell Tips">
+		<p>
+			{tips.length} curated tips — shortcuts, workflows, and hidden features from <span class="font-medium text-primary">Nirmal's Shell</span>, including when conditional tools and integrations show up.
 		</p>
-	</header>
+	</PageHeader>
 
-	<div class="stats-grid stats-grid-3 animate-in animate-in-2">
-		<section class="panel stat-card">
-			<p class="stat-value">{tips.length}</p>
-			<p class="stat-label">tip records</p>
-		</section>
-		<section class="panel stat-card">
-			<p class="stat-value">{conditionalCount}</p>
-			<p class="stat-label">conditional tips</p>
-		</section>
-		<section class="panel stat-card">
-			<p class="stat-value">{sourceCount}</p>
-			<p class="stat-label">tip sources</p>
-		</section>
+	<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
+		<StatCard value={tips.length} label="tip records" />
+		<StatCard value={conditionalCount} label="conditional tips" />
+		<StatCard value={sourceCount} label="tip sources" />
 	</div>
 
 	<TipsExplorer client:load tips={tips} />

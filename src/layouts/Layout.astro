@@ -1,5 +1,9 @@
 ---
 import '../styles/global.css';
+import { ExternalLinkIcon, TerminalIcon } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 interface Props {
 	title: string;
@@ -10,7 +14,7 @@ const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content="A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment." />
@@ -31,33 +35,36 @@ const currentPath = Astro.url.pathname;
 	</head>
 	<body>
 		<a href="#main-content" class="skip-link">Skip to main content</a>
-		<div class="page-wrapper">
-			<div class="container">
-				<nav class="nav" aria-label="Main navigation">
-					<a href="/" class="nav-brand" data-astro-prefetch="load">
-						<span class="brand-accent">~</span> Nirmal's Shell
+		<div class="flex min-h-screen w-full flex-col">
+			<header class="sticky top-0 z-20 border-b bg-background/90 backdrop-blur-md">
+				<nav class="mx-auto flex w-full max-w-[1000px] flex-wrap items-center gap-2.5 px-4 py-3 sm:px-6 lg:px-8" aria-label="Main navigation">
+					<a href="/" class="flex w-full min-w-0 items-center gap-2 rounded-md font-heading text-base font-semibold tracking-tight text-foreground outline-none transition-[color,background-color,box-shadow] hover:text-primary focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:w-auto" data-astro-prefetch="load">
+						<TerminalIcon className="size-5 text-primary" aria-hidden="true" />
+						<span><span class="text-primary">~</span> Nirmal's Shell</span>
 					</a>
-					<div class="nav-spacer"></div>
-					<div class="nav-links">
-						<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`} data-astro-prefetch="load">Commands</a>
-						<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`} data-astro-prefetch="load">Tips</a>
-						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="nav-link" aria-label="GitHub Repository">
-							GitHub ↗
+					<div class="flex w-full min-w-0 items-center gap-1 sm:ml-auto sm:w-auto">
+						<a href="/commands" aria-current={currentPath.startsWith('/commands') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/commands') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">Commands</a>
+						<a href="/tips" aria-current={currentPath.startsWith('/tips') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/tips') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">Tips</a>
+						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')}>
+							<ExternalLinkIcon data-icon="inline-start" aria-hidden="true" />
+							GitHub <span class="sr-only">(opens in a new tab)</span>
 						</a>
 					</div>
 				</nav>
-				<main id="main-content" tabindex="-1" class="main-layout">
-					<slot />
-				</main>
-			</div>
+			</header>
 
-			<footer class="footer">
-				<div class="footer-content">
-					<p class="footer-text">
+			<main id="main-content" tabindex="-1" class="mx-auto grid w-full max-w-[1000px] flex-1 content-start gap-6 px-4 py-10 outline-none sm:gap-8 sm:px-6 sm:py-14 lg:px-8">
+				<slot />
+			</main>
+
+			<footer class="mx-auto w-full max-w-[1000px] px-4 pb-6 sm:px-6 lg:px-8">
+				<Separator />
+				<div class="py-5 text-sm leading-6 text-muted-foreground">
+					<p class="flex flex-wrap items-center gap-x-2 gap-y-1">
 						Built by <a href="https://nirmalkatariya.com">Nirmal Katariya</a>
-						<span class="footer-divider">·</span>
+						<span aria-hidden="true">·</span>
 						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer">Source Config</a>
-						<span class="footer-divider">·</span>
+						<span aria-hidden="true">·</span>
 						Powered by Astro & Catppuccin Mocha
 					</p>
 				</div>
