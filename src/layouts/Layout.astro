@@ -11,6 +11,7 @@ interface Props {
 
 const { title } = Astro.props;
 const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
 ---
 
 <!doctype html>
@@ -36,9 +37,34 @@ const currentPath = Astro.url.pathname;
 	<body>
 		<a href="#main-content" class="skip-link">Skip to main content</a>
 		<div class="flex min-h-screen w-full flex-col">
-			<header class="sticky top-0 z-20 border-b bg-background/90 backdrop-blur-md">
-				<nav class="mx-auto flex w-full max-w-[1000px] flex-wrap items-center gap-2.5 px-4 py-3 sm:px-6 lg:px-8" aria-label="Main navigation">
-					<a href="/" class="flex w-full min-w-0 items-center gap-2 rounded-md font-heading text-base font-semibold tracking-tight text-foreground outline-none transition-[color,background-color,box-shadow] hover:text-primary focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:w-auto" data-astro-prefetch="load">
+			<header
+				class:list={[
+					'sticky top-0 z-20 border-b bg-background/90 backdrop-blur-md',
+					isHome && 'transition-[border-color] duration-300 motion-reduce:transition-none sm:has-data-[brand-visible=false]:border-transparent',
+				]}
+			>
+				<nav
+					class:list={[
+						'mx-auto flex w-full max-w-[1000px] flex-wrap items-center gap-2.5 px-4 py-3 sm:px-6 lg:px-8',
+						isHome && 'transition-[gap] duration-300 ease-out motion-reduce:transition-none data-[brand-visible=false]:gap-0',
+					]}
+					aria-label="Main navigation"
+					data-brand-visible={isHome ? 'false' : undefined}
+				>
+					<a
+						href="/"
+						class:list={[
+							'flex min-w-0 items-center gap-2 rounded-md font-heading text-base font-semibold tracking-tight text-foreground outline-none transition-[color,background-color,box-shadow] hover:text-primary focus-visible:ring-[3px] focus-visible:ring-ring/50',
+							isHome
+								? 'max-h-10 max-w-56 shrink-0 overflow-hidden whitespace-nowrap opacity-100 transition-[color,background-color,box-shadow,max-width,max-height,opacity,transform] duration-300 ease-out motion-reduce:transition-none data-[visible=false]:pointer-events-none data-[visible=false]:max-h-0 data-[visible=false]:max-w-0 data-[visible=false]:-translate-y-1 data-[visible=false]:opacity-0'
+								: 'w-full sm:w-auto',
+						]}
+						data-scroll-brand={isHome ? '' : undefined}
+						data-visible={isHome ? 'false' : undefined}
+						aria-hidden={isHome ? 'true' : undefined}
+						tabindex={isHome ? -1 : undefined}
+						data-astro-prefetch="load"
+					>
 						<TerminalIcon className="size-5 text-primary" aria-hidden="true" />
 						<span>Nirmal's Shell</span>
 					</a>
@@ -70,5 +96,37 @@ const currentPath = Astro.url.pathname;
 				</div>
 			</footer>
 		</div>
+
+		<script>
+			const brand = document.querySelector<HTMLElement>('[data-scroll-brand]');
+			const navigation = brand?.closest<HTMLElement>('nav');
+			const homeTitle = document.querySelector<HTMLElement>('#home-page-header h1');
+
+			if (brand && navigation && homeTitle) {
+				const setBrandVisible = (visible: boolean) => {
+					brand.dataset.visible = String(visible);
+					navigation.dataset.brandVisible = String(visible);
+
+					if (visible) {
+						brand.removeAttribute('aria-hidden');
+						brand.removeAttribute('tabindex');
+					} else {
+						brand.setAttribute('aria-hidden', 'true');
+						brand.tabIndex = -1;
+					}
+				};
+
+				const observer = new IntersectionObserver(
+					([entry]) => {
+						if (entry) {
+							setBrandVisible(!entry.isIntersecting && entry.boundingClientRect.bottom <= 64);
+						}
+					},
+					{ rootMargin: '-64px 0px 0px', threshold: 0 },
+				);
+
+				observer.observe(homeTitle);
+			}
+		</script>
 	</body>
 </html>
