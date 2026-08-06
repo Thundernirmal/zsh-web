@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { ExternalLinkIcon, TerminalIcon } from 'lucide-react';
+import { ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -69,8 +69,14 @@ const isHome = currentPath === '/';
 						<span>Nirmal's Shell</span>
 					</a>
 					<div class="flex w-full min-w-0 items-center gap-0.5 rounded-lg border bg-card/60 p-1 shadow-sm sm:ml-auto sm:w-auto">
-						<a href="/commands" aria-current={currentPath.startsWith('/commands') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/commands') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">Commands</a>
-						<a href="/tips" aria-current={currentPath.startsWith('/tips') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/tips') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">Tips</a>
+						<a href="/commands" aria-current={currentPath.startsWith('/commands') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/commands') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">
+							<SquareTerminalIcon data-icon="inline-start" aria-hidden="true" />
+							Commands
+						</a>
+						<a href="/tips" aria-current={currentPath.startsWith('/tips') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/tips') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">
+							<LightbulbIcon data-icon="inline-start" aria-hidden="true" />
+							Tips
+						</a>
 						<Separator orientation="vertical" className="mx-0.5 my-1" />
 						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')}>
 							<ExternalLinkIcon data-icon="inline-start" aria-hidden="true" />

@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import SearchCommands from '../components/SearchCommands.tsx';
 import PageHeader from '../components/PageHeader.astro';
 import StatCard from '../components/StatCard.astro';
+import { BracesIcon, FileCheck2Icon, SquareTerminalIcon } from 'lucide-react';
 import commandsData from '../data/commands.json';
 
 type Command = {
@@ -54,9 +55,9 @@ const documentedCount = commands.filter((command) =>
 
 	<div class="grid gap-4">
 		<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
-			<StatCard value={commands.length} label="total commands" />
-			<StatCard value={functionCount} label="custom functions" />
-			<StatCard value={documentedCount} label="entries with extracted details" />
+			<StatCard value={commands.length} label="total commands" icon={SquareTerminalIcon} />
+			<StatCard value={functionCount} label="custom functions" icon={BracesIcon} />
+			<StatCard value={documentedCount} label="entries with extracted details" icon={FileCheck2Icon} />
 		</div>
 
 		<SearchCommands client:load />
