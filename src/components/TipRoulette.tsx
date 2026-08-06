@@ -96,17 +96,16 @@ export default function TipRoulette() {
       };
 
   return (
-    <div className="grid h-52 content-center gap-3">
+    <div className="grid min-h-52 content-start gap-3">
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcedTip}
       </div>
 
-      <div className="flex h-24 items-center overflow-hidden border-l-2 border-primary py-1 pl-3">
+      <div className="flex min-h-24 items-center border-l-2 border-primary py-2 pl-3">
         <AnimatePresence initial={false} mode="wait">
           <motion.p
             key={currentTip?.text ?? 'Discover shell wisdom — click below!'}
-            className="line-clamp-3 text-pretty text-base leading-7 text-foreground"
-            title={currentTip?.text ?? 'Discover shell wisdom — click below!'}
+            className="text-pretty text-base leading-7 text-foreground"
             {...motionProps}
           >
             {currentTip?.text ?? 'Discover shell wisdom — click below!'}
@@ -114,7 +113,7 @@ export default function TipRoulette() {
         </AnimatePresence>
       </div>
 
-      <div className="flex h-10 flex-wrap content-center items-center gap-1.5 overflow-hidden">
+      <div className="flex min-h-10 flex-wrap content-center items-center gap-x-1.5 gap-y-1">
         {currentTip ? (
           <>
             <CategoryBadge category={currentTip.category} />
@@ -122,7 +121,9 @@ export default function TipRoulette() {
               <Badge variant="metadata">{formatLabel(currentTip.source)}</Badge>
             )}
             {currentTip.availability && (
-              <span className="line-clamp-1 text-xs leading-5 text-muted-foreground">{currentTip.availability}</span>
+              <span className="basis-full text-pretty text-xs leading-5 text-muted-foreground">
+                {currentTip.availability}
+              </span>
             )}
           </>
         ) : (
