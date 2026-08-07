@@ -110,7 +110,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
     if (filter !== "all") url.searchParams.set("cat", filter)
     else url.searchParams.delete("cat")
 
-    window.history.replaceState({}, "", url)
+    window.history.replaceState(window.history.state, "", url)
   }, [filter, isMounted, query])
 
   useEffect(() => {

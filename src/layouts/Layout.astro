@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import { ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -33,6 +34,7 @@ const isHome = currentPath === '/';
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 		<title>{title} | Nirmal's Shell</title>
+		<ClientRouter />
 	</head>
 	<body>
 		<a href="#main-content" class="skip-link">Skip to main content</a>
@@ -105,11 +107,17 @@ const isHome = currentPath === '/';
 		</div>
 
 		<script>
-			const brand = document.querySelector<HTMLElement>('[data-scroll-brand]');
-			const navigation = brand?.closest<HTMLElement>('nav');
-			const homeTitle = document.querySelector<HTMLElement>('#home-page-header h1');
+			let brandObserver: IntersectionObserver | undefined;
 
-			if (brand && navigation && homeTitle) {
+			const setupScrollBrand = () => {
+				brandObserver?.disconnect();
+
+				const brand = document.querySelector<HTMLElement>('[data-scroll-brand]');
+				const navigation = brand?.closest<HTMLElement>('nav');
+				const homeTitle = document.querySelector<HTMLElement>('#home-page-header h1');
+
+				if (!brand || !navigation || !homeTitle) return;
+
 				const setBrandVisible = (visible: boolean) => {
 					brand.dataset.visible = String(visible);
 					navigation.dataset.brandVisible = String(visible);
@@ -123,7 +131,7 @@ const isHome = currentPath === '/';
 					}
 				};
 
-				const observer = new IntersectionObserver(
+				brandObserver = new IntersectionObserver(
 					([entry]) => {
 						if (entry) {
 							setBrandVisible(!entry.isIntersecting && entry.boundingClientRect.bottom <= 64);
@@ -132,8 +140,10 @@ const isHome = currentPath === '/';
 					{ rootMargin: '-64px 0px 0px', threshold: 0 },
 				);
 
-				observer.observe(homeTitle);
-			}
+				brandObserver.observe(homeTitle);
+			};
+
+			document.addEventListener('astro:page-load', setupScrollBrand);
 		</script>
 	</body>
 </html>

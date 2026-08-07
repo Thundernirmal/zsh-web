@@ -185,7 +185,7 @@ export default function SearchCommands() {
     if (expanded[0]) url.searchParams.set("command", expanded[0])
     else url.searchParams.delete("command")
 
-    window.history.replaceState({}, "", url)
+    window.history.replaceState(window.history.state, "", url)
   }, [expanded, filter, isMounted, query])
 
   useEffect(() => {
