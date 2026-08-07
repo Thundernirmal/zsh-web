@@ -496,5 +496,11 @@
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed"
+  },
+  {
+    "text": "Use zi for an interactive zoxide directory picker",
+    "category": "fzf",
+    "source": "zoxide",
+    "availability": "Available when zoxide is installed and fzf is ready"
   }
 ]

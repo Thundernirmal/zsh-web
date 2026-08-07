@@ -287,7 +287,10 @@
     "category": "process",
     "source": "60-functions.zsh",
     "usage": "fkill [signal]",
-    "interactive": true
+    "interactive": true,
+    "requires": [
+      "fzf"
+    ]
   },
   {
     "name": "headers",
@@ -360,7 +363,10 @@
     "category": "git",
     "source": "60-functions.zsh",
     "usage": "fbr",
-    "interactive": true
+    "interactive": true,
+    "requires": [
+      "fzf"
+    ]
   },
   {
     "name": "npkg",

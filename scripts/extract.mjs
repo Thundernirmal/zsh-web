@@ -287,7 +287,7 @@ function readJsonArray(filePath) {
 }
 
 function writeJson(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
 function dedupeBy(records, getKey) {
@@ -407,6 +407,12 @@ function describeCondition(condition) {
 
   if (conditionHasCommand(condition, 'nix')) {
     return 'Available when nix is installed';
+  }
+
+  if (conditionHasCommand(condition, 'zoxide') && conditionRequiresFzf(condition)) {
+    return conditionHasFzfReadyState(condition)
+      ? 'Available when zoxide is installed and fzf is ready'
+      : 'Available when zoxide and fzf are installed';
   }
 
   if (conditionHasCommand(condition, 'zoxide')) {
@@ -531,6 +537,10 @@ function inferFunctionDependencies(body) {
       optional.push(dependency);
     }
     match = optionalRegex.exec(body);
+  }
+
+  if (/\b_zsh_require_fzf\b/.test(body) && !requires.includes('fzf')) {
+    requires.push('fzf');
   }
 
   return {
@@ -832,6 +842,17 @@ function extractTips() {
   let inTipPool = false;
   const conditionStack = [];
 
+  const addTip = (text) => {
+    const condition = conditionStack.join(' && ');
+
+    tipRecords.push({
+      text,
+      category: inferTipCategory(text),
+      source: inferTipSource(condition, text),
+      availability: describeCondition(condition) ?? 'Always available',
+    });
+  };
+
   for (const rawLine of content.split('\n')) {
     const line = rawLine.trim();
 
@@ -842,6 +863,12 @@ function extractTips() {
 
     if (line === 'fi') {
       conditionStack.pop();
+      continue;
+    }
+
+    const inlineTipMatch = line.match(/^_zsh_tip_pool\+?=\("(.+)"\)$/);
+    if (inlineTipMatch) {
+      addTip(inlineTipMatch[1]);
       continue;
     }
 
@@ -861,15 +888,7 @@ function extractTips() {
 
     const match = line.match(/^"(.+)"$/);
     if (match) {
-      const text = match[1];
-      const condition = conditionStack[conditionStack.length - 1] ?? '';
-
-      tipRecords.push({
-        text,
-        category: inferTipCategory(text),
-        source: inferTipSource(condition, text),
-        availability: describeCondition(condition) ?? 'Always available',
-      });
+      addTip(match[1]);
     }
   }
 
