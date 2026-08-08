@@ -1,6 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SearchCommands from '../components/SearchCommands.tsx';
+import PageHeader from '../components/PageHeader.astro';
+import StatCard from '../components/StatCard.astro';
+import { BracesIcon, FileCheck2Icon, SquareTerminalIcon } from 'lucide-react';
 import commandsData from '../data/commands.json';
 
 type Command = {
@@ -44,27 +47,19 @@ const documentedCount = commands.filter((command) =>
 ---
 
 <Layout title="Commands">
-	<header class="page-header animate-in">
-		<h1 class="page-title">Command Reference</h1>
-		<p class="page-subtitle">
-			{commands.length} live entries synced from <span class="accent-text page-subtitle-accent">Nirmal's Shell</span>, with usage docs and feature notes extracted directly from the zsh sources.
+	<PageHeader title="Command Reference">
+		<p>
+			{commands.length} live entries synced from <span class="font-medium text-primary">Nirmal's Shell</span>, with usage docs and feature notes extracted directly from the zsh sources.
 		</p>
-	</header>
+	</PageHeader>
 
-	<div class="stats-grid stats-grid-3 animate-in animate-in-2">
-		<section class="panel stat-card">
-			<p class="stat-value">{commands.length}</p>
-			<p class="stat-label">total commands</p>
-		</section>
-		<section class="panel stat-card">
-			<p class="stat-value">{functionCount}</p>
-			<p class="stat-label">custom functions</p>
-		</section>
-		<section class="panel stat-card">
-			<p class="stat-value">{documentedCount}</p>
-			<p class="stat-label">entries with extracted details</p>
-		</section>
+	<div class="grid gap-4">
+		<div class="grid grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid-cols-3">
+			<StatCard value={commands.length} label="total commands" icon={SquareTerminalIcon} />
+			<StatCard value={functionCount} label="custom functions" icon={BracesIcon} />
+			<StatCard value={documentedCount} label="entries with extracted details" icon={FileCheck2Icon} />
+		</div>
+
+		<SearchCommands client:load />
 	</div>
-
-	<SearchCommands client:load />
 </Layout>

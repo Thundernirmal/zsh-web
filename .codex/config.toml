@@ -2,5 +2,27 @@
 command = "npx"
 args = [
     "-y",
-    "@modelcontextprotocol/server-playwright",
+    "@playwright/mcp@latest",
+    "--headless",
+    "--isolated",
+    "--browser",
+    "chromium",
 ]
+
+[mcp_servers.playwright.tools.browser_navigate]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_resize]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_evaluate]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_fill_form]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_click]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_press_key]
+approval_mode = "approve"

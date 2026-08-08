@@ -6,41 +6,37 @@ interface Props {
 }
 
 const { featuredTip, upkgExample, npkgExample } = Astro.props;
+import { Grid2X2Icon, MenuIcon, SquarePlusIcon, XIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import TerminalPrompt from '@/components/TerminalPrompt.astro';
 ---
 
-<div class="terminal animate-in animate-in-3">
-    <div class="terminal-titlebar">
-        <span class="terminal-dot terminal-dot-red" aria-hidden="true"></span>
-        <span class="terminal-dot terminal-dot-yellow" aria-hidden="true"></span>
-        <span class="terminal-dot terminal-dot-green" aria-hidden="true"></span>
-        <span class="terminal-title">~/.config/zsh</span>
-    </div>
-    <div class="terminal-body" aria-label="Terminal demonstration showing example commands" role="img">
-        <div class="typing-line">
-            <span class="terminal-prompt">❯ </span>
-            <span class="terminal-command">tips</span>
-        </div>
-        <div class="typing-line">
-            <span class="terminal-output">tip: {featuredTip}</span>
-        </div>
-        <div class="typing-line">&nbsp;</div>
-        <div class="typing-line">
-            <span class="terminal-prompt">❯ </span>
-            <span class="terminal-command">{upkgExample}</span>
-        </div>
-        <div class="typing-line">
-            <span class="terminal-output">manager   package    summary</span>
-        </div>
-        <div class="typing-line">
-            <span class="terminal-output">brew      ripgrep    Search package names across detected managers</span>
-        </div>
-        <div class="typing-line">&nbsp;</div>
-        <div class="typing-line">
-            <span class="terminal-prompt">❯ </span>
-            <span class="terminal-command">{npkgExample}</span>
-        </div>
-        <div class="typing-line">
-            <span class="terminal-output">Interactive picker ready with preview metadata</span>
-        </div>
-    </div>
-</div>
+<figure class="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+    <figcaption class="sr-only">Terminal demonstration showing example shell commands and their output.</figcaption>
+    <Card className="gap-0 py-0 shadow-xl shadow-background/40 [--card-spacing:--spacing(3)]">
+        <CardHeader className="grid h-10 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-none border-b bg-terminal-toolbar px-2.5 py-1.5">
+            <span class="flex justify-self-start" aria-hidden="true">
+                <span class="flex size-7 items-center justify-center rounded-lg bg-background/30 ring-1 ring-foreground/10">
+                    <SquarePlusIcon className="size-3.5" />
+                </span>
+            </span>
+            <span class="truncate text-center text-sm font-semibold text-foreground">
+                nirmal@Tiger: ~ <span class="hidden sm:inline">— zsh</span>
+            </span>
+            <span class="flex items-center justify-self-end gap-1" aria-hidden="true">
+                <span class="hidden size-7 items-center justify-center rounded-lg sm:flex">
+                    <Grid2X2Icon className="size-3.5" />
+                </span>
+                <span class="flex size-7 items-center justify-center rounded-lg">
+                    <MenuIcon className="size-3.5" />
+                </span>
+                <span class="flex size-7 items-center justify-center rounded-full bg-background/30">
+                    <XIcon className="size-3.5" />
+                </span>
+            </span>
+        </CardHeader>
+        <CardContent className="overflow-hidden bg-terminal-background p-0">
+            <pre class="overflow-x-auto whitespace-pre-wrap break-words p-4 text-xs leading-6 sm:p-6 sm:text-sm"><code><span class="block"><TerminalPrompt>tips</TerminalPrompt></span><span class="block"><span class="text-primary">tip:</span> <span class="text-muted-foreground">{featuredTip}</span></span><span class="block h-3" aria-hidden="true"></span><span class="block"><TerminalPrompt>{upkgExample}</TerminalPrompt></span><span class="block text-muted-foreground">manager   package    summary</span><span class="block"><span class="text-category-git">dnf</span>       <span class="text-category-search">ripgrep</span>    <span class="text-muted-foreground">Search package names across detected managers</span></span><span class="block h-3" aria-hidden="true"></span><span class="block"><TerminalPrompt>{npkgExample}</TerminalPrompt></span><span class="block text-muted-foreground">Interactive picker ready with preview metadata</span><span class="block"><TerminalPrompt cursor /></span></code></pre>
+        </CardContent>
+    </Card>
+</figure>

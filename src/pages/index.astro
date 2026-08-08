@@ -2,6 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import TerminalHero from '../components/TerminalHero.astro';
 import TipRoulette from '../components/TipRoulette.tsx';
+import PageHeader from '../components/PageHeader.astro';
+import { ArrowRightIcon, LightbulbIcon, SquareTerminalIcon } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import commandsData from '../data/commands.json';
 import tipsData from '../data/tips.json';
 
@@ -29,50 +33,53 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 ---
 
 <Layout title="Home">
-	<header class="page-header animate-in">
-		<h1 class="page-title"><span class="gradient-text">Nirmal's</span> Shell</h1>
-		<p class="page-subtitle">
-			A living guide to aliases, functions, tips, and workflows — extracted directly from :
-			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="page-subtitle-link">
+	<PageHeader id="home-page-header" title="Nirmal's Shell" accent="Nirmal's" hero>
+		<p>
+			A living guide to aliases, functions, tips, and workflows — extracted directly from:
+			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="font-medium text-primary underline-offset-4 hover:underline">
 				github.com/Thundernirmal/zsh
 			</a>
 		</p>
-	</header>
+	</PageHeader>
 
 	<div>
 		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
 	</div>
 
-	<div class="panel-grid panel-grid-2 animate-in animate-in-4">
-		<!-- Left Pane: Command Reference -->
-		<section class="panel panel-center panel-roomy">
-			<h2 class="panel-title panel-title-lg">Command Library</h2>
-			<p class="panel-copy panel-copy-spaced">
+	<div class="grid gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 lg:grid-cols-2">
+		<Card size="sm">
+			<CardHeader className="gap-2">
+				<CardTitle><h2 class="flex items-center gap-2 text-xl"><SquareTerminalIcon className="size-5 text-primary" aria-hidden="true" />Command Library</h2></CardTitle>
+				<CardDescription>
 				Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the live shell sources.
-			</p>
-			<p class="panel-copy panel-copy-spaced">
-				From <code>upkg search ripgrep</code> to <code>npkg add bat</code>, quick aliases like <code>ll</code> and <code>lt</code>, and more — all documented with usage, options, and availability notes.
-			</p>
-			<p class="panel-copy panel-copy-spaced">
-				Filter by type — aliases, functions, or key bindings — and search instantly with results synced to the URL for easy sharing.
-			</p>
-			<div class="panel-actions">
-				<a href="/commands" class="btn btn-lg">Browse Commands</a>
-			</div>
-		</section>
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="grid flex-1 content-start gap-3 leading-6 text-muted-foreground">
+				<p>
+					From <code>upkg search ripgrep</code> to <code>npkg add bat</code>, quick aliases like <code>ll</code> and <code>lt</code>, and more — all documented with usage, options, and availability notes.
+				</p>
+				<p>
+					Filter by type — aliases, functions, or key bindings — and search instantly with results synced to the URL for easy sharing.
+				</p>
+			</CardContent>
+			<CardFooter>
+				<a href="/commands" class={buttonVariants({ size: 'lg' })}>Browse Commands <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
+			</CardFooter>
+		</Card>
 
-		<!-- Right Pane: Interactive Tips -->
-		<section class="panel panel-stack">
-			<div class="panel-header panel-header-split">
-				<h2 class="panel-title panel-title-md">Shell Tips</h2>
-				<a href="/tips" class="text-button text-button-sm">View All {tips.length} →</a>
-			</div>
-			<p class="panel-copy panel-copy-spaced">
+		<Card size="sm">
+			<CardHeader className="gap-2">
+				<CardTitle><h2 class="flex items-center gap-2 text-xl"><LightbulbIcon className="size-5 text-primary" aria-hidden="true" />Shell Tips</h2></CardTitle>
+				<CardDescription>
 				Review always-on shortcuts and conditional features side by side, with availability notes carried through from the zsh config.
-			</p>
-			<div class="panel-fill">
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="flex-1">
 				<TipRoulette client:load />
-			</div>
-		</section>
+			</CardContent>
+			<CardFooter>
+				<a href="/tips" class={buttonVariants({ size: 'lg' })}>View All {tips.length} Tips <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
+			</CardFooter>
+		</Card>
 	</div>
 </Layout>

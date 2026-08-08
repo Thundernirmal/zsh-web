@@ -168,12 +168,6 @@
     "availability": "Always available"
   },
   {
-    "text": "* includes dotfiles because GLOB_DOTS is enabled",
-    "category": "globbing",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
     "text": "Use *(.m-1) to glob files modified in the last day",
     "category": "globbing",
     "source": "core",
@@ -222,28 +216,22 @@
     "availability": "Available when zoxide is installed"
   },
   {
-    "text": "Use zi for an interactive zoxide directory picker",
-    "category": "fzf",
-    "source": "zoxide",
-    "availability": "Available when zoxide is installed"
-  },
-  {
     "text": "Press Ctrl+R to fuzzy search your command history",
     "category": "history",
     "source": "fzf",
-    "availability": "Available when fzf is installed in an interactive shell"
+    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "text": "Press Ctrl+T to fuzzy insert a file path at your cursor",
     "category": "fzf",
     "source": "fzf",
-    "availability": "Available when fzf is installed in an interactive shell"
+    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "text": "Press Alt+C to fuzzy cd into a directory",
     "category": "fzf",
     "source": "fzf",
-    "availability": "Available when fzf is installed in an interactive shell"
+    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "text": "Run npkg add bat for a short nix profile add command",
@@ -264,34 +252,28 @@
     "availability": "Available when nix and jq are installed"
   },
   {
-    "text": "Run npkg outdated to preview available package upgrades before running npkg upgrade",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed"
-  },
-  {
     "text": "Run npkg install with no args to fuzzy-pick nixpkgs attribute names",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix, jq, and fzf are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run npkg find nvim to seed the nix package picker with an initial query",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix, jq, and fzf are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "npkg find shows description, version, and homepage in the preview pane",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix, jq, and fzf are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run npkg remove with no args to fuzzy-select installed Nix packages to uninstall",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix, jq, and fzf are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run fanprofile to see the current laptop performance/fan profile",
@@ -339,7 +321,7 @@
     "text": "npkg pickers move the preview below the list on narrow terminals so names stay readable",
     "category": "nix",
     "source": "npkg",
-    "availability": "Available when nix, jq, and fzf are installed"
+    "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
     "text": "Run upkg search ripgrep to compare matches from detected managers in one compact table",
@@ -478,5 +460,47 @@
     "category": "packages",
     "source": "upkg",
     "availability": "Available when at least one supported package manager is installed"
+  },
+  {
+    "text": "dusage, bigfiles, and path render control characters as visible escapes without changing printable Unicode",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Use *(D) or **/*(D) when a glob should explicitly include dotfiles",
+    "category": "globbing",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Fuzzy workflows require stable fzf 0.52.0 or newer; check setup with scripts/check-deps.sh",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Validated fzf startup integration is reused across shells and refreshes automatically when fzf changes",
+    "category": "shell",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run npkg outdated to report current, changed, or unknown Nix outputs before upgrading",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed"
+  },
+  {
+    "text": "Press Ctrl+C during npkg outdated to cancel its checks without disturbing unrelated background jobs",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed"
+  },
+  {
+    "text": "Use zi for an interactive zoxide directory picker",
+    "category": "fzf",
+    "source": "zoxide",
+    "availability": "Available when zoxide is installed and fzf is ready"
   }
 ]

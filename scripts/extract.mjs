@@ -287,7 +287,7 @@ function readJsonArray(filePath) {
 }
 
 function writeJson(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
 function dedupeBy(records, getKey) {
@@ -395,8 +395,10 @@ function describeCondition(condition) {
     return 'Available when at least one supported package manager is installed';
   }
 
-  if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq') && conditionHasCommand(condition, 'fzf')) {
-    return 'Available when nix, jq, and fzf are installed';
+  if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq') && conditionRequiresFzf(condition)) {
+    return conditionHasFzfReadyState(condition)
+      ? 'Available when nix and jq are installed and fzf is ready'
+      : 'Available when nix, jq, and fzf are installed';
   }
 
   if (conditionHasCommand(condition, 'nix') && conditionHasCommand(condition, 'jq')) {
@@ -407,8 +409,22 @@ function describeCondition(condition) {
     return 'Available when nix is installed';
   }
 
+  if (conditionHasCommand(condition, 'zoxide') && conditionRequiresFzf(condition)) {
+    return conditionHasFzfReadyState(condition)
+      ? 'Available when zoxide is installed and fzf is ready'
+      : 'Available when zoxide and fzf are installed';
+  }
+
   if (conditionHasCommand(condition, 'zoxide')) {
     return 'Available when zoxide is installed';
+  }
+
+  if (conditionHasFzfReadyState(condition) && condition.includes('interactive')) {
+    return 'Available when fzf is ready in an interactive shell';
+  }
+
+  if (conditionHasFzfReadyState(condition)) {
+    return 'Available when fzf is ready';
   }
 
   if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) {
@@ -431,6 +447,14 @@ function conditionHasCommand(condition, command) {
     condition.includes(`$+commands[${command}]`);
 }
 
+function conditionHasFzfReadyState(condition) {
+  return condition.includes('_FZF_STATE') && /==\s*ready/.test(condition);
+}
+
+function conditionRequiresFzf(condition) {
+  return conditionHasCommand(condition, 'fzf') || conditionHasFzfReadyState(condition);
+}
+
 function isPackageManagerCondition(condition) {
   return ['paru', 'pacman', 'apt', 'dnf', 'brew', 'flatpak', 'npm']
     .some((manager) => conditionHasCommand(condition, manager));
@@ -446,9 +470,9 @@ function inferTipSource(condition, text) {
   }
 
   if (conditionHasCommand(condition, 'zoxide')) return 'zoxide';
-  if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) return 'fzf';
   if (isPackageManagerCondition(condition)) return 'upkg';
   if (conditionHasCommand(condition, 'nix')) return 'npkg';
+  if (conditionRequiresFzf(condition)) return 'fzf';
   if (condition.includes('alias gs') && condition.includes('alias gco')) return 'git-plugin';
   if (condition.includes('alias lt')) return 'navigation';
 
@@ -513,6 +537,10 @@ function inferFunctionDependencies(body) {
       optional.push(dependency);
     }
     match = optionalRegex.exec(body);
+  }
+
+  if (/\b_zsh_require_fzf\b/.test(body) && !requires.includes('fzf')) {
+    requires.push('fzf');
   }
 
   return {
@@ -814,6 +842,17 @@ function extractTips() {
   let inTipPool = false;
   const conditionStack = [];
 
+  const addTip = (text) => {
+    const condition = conditionStack.join(' && ');
+
+    tipRecords.push({
+      text,
+      category: inferTipCategory(text),
+      source: inferTipSource(condition, text),
+      availability: describeCondition(condition) ?? 'Always available',
+    });
+  };
+
   for (const rawLine of content.split('\n')) {
     const line = rawLine.trim();
 
@@ -824,6 +863,12 @@ function extractTips() {
 
     if (line === 'fi') {
       conditionStack.pop();
+      continue;
+    }
+
+    const inlineTipMatch = line.match(/^_zsh_tip_pool\+?=\("(.+)"\)$/);
+    if (inlineTipMatch) {
+      addTip(inlineTipMatch[1]);
       continue;
     }
 
@@ -843,15 +888,7 @@ function extractTips() {
 
     const match = line.match(/^"(.+)"$/);
     if (match) {
-      const text = match[1];
-      const condition = conditionStack[conditionStack.length - 1] ?? '';
-
-      tipRecords.push({
-        text,
-        category: inferTipCategory(text),
-        source: inferTipSource(condition, text),
-        availability: describeCondition(condition) ?? 'Always available',
-      });
+      addTip(match[1]);
     }
   }
 

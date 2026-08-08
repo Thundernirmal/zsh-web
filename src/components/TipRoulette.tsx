@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { RefreshCwIcon } from 'lucide-react';
 import tipsData from '../data/tips.json';
+import { CategoryBadge } from '@/components/CategoryBadge';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 type Tip = {
   text: string;
@@ -92,16 +96,16 @@ export default function TipRoulette() {
       };
 
   return (
-    <div className="roulette">
+    <div className="grid min-h-52 content-start gap-3">
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcedTip}
       </div>
 
-      <div className="roulette-display">
-        <AnimatePresence mode="wait">
+      <div className="flex min-h-24 items-center border-l-2 border-primary py-2 pl-3">
+        <AnimatePresence initial={false} mode="wait">
           <motion.p
             key={currentTip?.text ?? 'Discover shell wisdom — click below!'}
-            className="roulette-text"
+            className="text-pretty text-base leading-7 text-foreground"
             {...motionProps}
           >
             {currentTip?.text ?? 'Discover shell wisdom — click below!'}
@@ -109,34 +113,37 @@ export default function TipRoulette() {
         </AnimatePresence>
       </div>
 
-      <div className="roulette-meta">
+      <div className="flex min-h-10 flex-wrap content-center items-center gap-x-1.5 gap-y-1">
         {currentTip ? (
           <>
-            <span className="badge badge-category" data-category={currentTip.category}>
-              {formatLabel(currentTip.category)}
-            </span>
+            <CategoryBadge category={currentTip.category} />
             {currentTip.source && (
-              <span className="badge badge-subtle">{formatLabel(currentTip.source)}</span>
+              <Badge variant="metadata">{formatLabel(currentTip.source)}</Badge>
             )}
             {currentTip.availability && (
-              <span className="roulette-meta-text">{currentTip.availability}</span>
+              <span className="basis-full text-pretty text-xs leading-5 text-muted-foreground">
+                {currentTip.availability}
+              </span>
             )}
           </>
         ) : (
           <>
-            <span className="badge badge-category roulette-placeholder" aria-hidden="true">category</span>
-            <span className="badge badge-subtle roulette-placeholder" aria-hidden="true">source</span>
+            <Badge variant="outline" className="opacity-50" aria-hidden="true">Category</Badge>
+            <Badge variant="metadata" className="opacity-50" aria-hidden="true">Source</Badge>
           </>
         )}
       </div>
 
-      <button
-        className="btn roulette-button"
+      <Button
         type="button"
+        variant="secondary"
+        size="lg"
         onClick={spin}
+        className="w-full sm:w-auto"
       >
+        <RefreshCwIcon data-icon="inline-start" aria-hidden="true" />
         {isSpinning ? 'Show Tip Now' : 'Show Random Tip'}
-      </button>
+      </Button>
     </div>
   );
 }

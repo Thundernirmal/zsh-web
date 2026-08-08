@@ -1,5 +1,10 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import { ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 interface Props {
 	title: string;
@@ -7,10 +12,11 @@ interface Props {
 
 const { title } = Astro.props;
 const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content="A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment." />
@@ -28,40 +34,116 @@ const currentPath = Astro.url.pathname;
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 		<title>{title} | Nirmal's Shell</title>
+		<ClientRouter />
 	</head>
 	<body>
 		<a href="#main-content" class="skip-link">Skip to main content</a>
-		<div class="page-wrapper">
-			<div class="container">
-				<nav class="nav" aria-label="Main navigation">
-					<a href="/" class="nav-brand" data-astro-prefetch="load">
-						<span class="brand-accent">~</span> Nirmal's Shell
+		<div class="flex min-h-screen w-full flex-col">
+			<header
+				class:list={[
+					'sticky top-0 z-20 border-b bg-background/90 backdrop-blur-md',
+					isHome && 'transition-[border-color] duration-300 motion-reduce:transition-none sm:has-data-[brand-visible=false]:border-transparent',
+				]}
+			>
+				<nav
+					class:list={[
+						'mx-auto flex w-full max-w-[1000px] flex-wrap items-center gap-2.5 px-4 py-3 sm:px-6 lg:px-8',
+						isHome && 'transition-[gap] duration-300 ease-out motion-reduce:transition-none data-[brand-visible=false]:gap-0',
+					]}
+					aria-label="Main navigation"
+					data-brand-visible={isHome ? 'false' : undefined}
+				>
+					<a
+						href="/"
+						class:list={[
+							'flex min-w-0 items-center gap-2 rounded-md font-heading text-base font-semibold tracking-tight text-foreground outline-none transition-[color,background-color,box-shadow] hover:text-primary focus-visible:ring-[3px] focus-visible:ring-ring/50',
+							isHome
+								? 'max-h-10 max-w-56 shrink-0 overflow-hidden whitespace-nowrap opacity-100 transition-[color,background-color,box-shadow,max-width,max-height,opacity,transform] duration-300 ease-out motion-reduce:transition-none data-[visible=false]:pointer-events-none data-[visible=false]:max-h-0 data-[visible=false]:max-w-0 data-[visible=false]:-translate-y-1 data-[visible=false]:opacity-0'
+								: 'w-full sm:w-auto',
+						]}
+						data-scroll-brand={isHome ? '' : undefined}
+						data-visible={isHome ? 'false' : undefined}
+						aria-hidden={isHome ? 'true' : undefined}
+						tabindex={isHome ? -1 : undefined}
+						data-astro-prefetch="load"
+					>
+						<TerminalIcon className="size-5 text-primary" aria-hidden="true" />
+						<span>Nirmal's Shell</span>
 					</a>
-					<div class="nav-spacer"></div>
-					<div class="nav-links">
-						<a href="/commands" class={`nav-link ${currentPath.startsWith('/commands') ? 'active' : ''}`} data-astro-prefetch="load">Commands</a>
-						<a href="/tips" class={`nav-link ${currentPath.startsWith('/tips') ? 'active' : ''}`} data-astro-prefetch="load">Tips</a>
-						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="nav-link" aria-label="GitHub Repository">
-							GitHub ↗
+					<div class="flex w-full min-w-0 items-center gap-0.5 rounded-lg border bg-card/60 p-1 shadow-sm sm:ml-auto sm:w-auto">
+						<a href="/commands" aria-current={currentPath.startsWith('/commands') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/commands') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">
+							<SquareTerminalIcon data-icon="inline-start" aria-hidden="true" />
+							Commands
+						</a>
+						<a href="/tips" aria-current={currentPath.startsWith('/tips') ? 'page' : undefined} class={cn(buttonVariants({ variant: currentPath.startsWith('/tips') ? 'secondary' : 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')} data-astro-prefetch="load">
+							<LightbulbIcon data-icon="inline-start" aria-hidden="true" />
+							Tips
+						</a>
+						<Separator orientation="vertical" className="mx-0.5 my-1" />
+						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'flex-1 sm:flex-none')}>
+							<ExternalLinkIcon data-icon="inline-start" aria-hidden="true" />
+							GitHub <span class="sr-only">(opens in a new tab)</span>
 						</a>
 					</div>
 				</nav>
-				<main id="main-content" tabindex="-1" class="main-layout">
-					<slot />
-				</main>
-			</div>
+			</header>
 
-			<footer class="footer">
-				<div class="footer-content">
-					<p class="footer-text">
+			<main id="main-content" tabindex="-1" class="mx-auto grid w-full max-w-[1000px] flex-1 content-start gap-6 px-4 py-10 outline-none sm:gap-8 sm:px-6 sm:py-14 lg:px-8">
+				<slot />
+			</main>
+
+			<footer class="w-full pb-6">
+				<Separator />
+				<div class="mx-auto w-full max-w-[1000px] px-4 py-5 text-sm leading-6 text-muted-foreground sm:px-6 lg:px-8">
+					<p class="flex flex-wrap items-center gap-x-2 gap-y-1">
 						Built by <a href="https://nirmalkatariya.com">Nirmal Katariya</a>
-						<span class="footer-divider">·</span>
+						<span aria-hidden="true">·</span>
 						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer">Source Config</a>
-						<span class="footer-divider">·</span>
+						<span aria-hidden="true">·</span>
 						Powered by Astro & Catppuccin Mocha
 					</p>
 				</div>
 			</footer>
 		</div>
+
+		<script>
+			let brandObserver: IntersectionObserver | undefined;
+
+			const setupScrollBrand = () => {
+				brandObserver?.disconnect();
+
+				const brand = document.querySelector<HTMLElement>('[data-scroll-brand]');
+				const navigation = brand?.closest<HTMLElement>('nav');
+				const homeTitle = document.querySelector<HTMLElement>('#home-page-header h1');
+
+				if (!brand || !navigation || !homeTitle) return;
+
+				const setBrandVisible = (visible: boolean) => {
+					brand.dataset.visible = String(visible);
+					navigation.dataset.brandVisible = String(visible);
+
+					if (visible) {
+						brand.removeAttribute('aria-hidden');
+						brand.removeAttribute('tabindex');
+					} else {
+						brand.setAttribute('aria-hidden', 'true');
+						brand.tabIndex = -1;
+					}
+				};
+
+				brandObserver = new IntersectionObserver(
+					([entry]) => {
+						if (entry) {
+							setBrandVisible(!entry.isIntersecting && entry.boundingClientRect.bottom <= 64);
+						}
+					},
+					{ rootMargin: '-64px 0px 0px', threshold: 0 },
+				);
+
+				brandObserver.observe(homeTitle);
+			};
+
+			document.addEventListener('astro:page-load', setupScrollBrand);
+		</script>
 	</body>
 </html>

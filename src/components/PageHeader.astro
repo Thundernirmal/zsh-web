@@ -1,0 +1,37 @@
+---
+interface Props {
+  title: string;
+  accent?: string;
+  hero?: boolean;
+  id?: string;
+}
+
+const { title, accent, hero = false, id } = Astro.props;
+const accentIndex = accent ? title.indexOf(accent) : -1;
+const titleBeforeAccent = accentIndex >= 0 ? title.slice(0, accentIndex) : "";
+const titleAfterAccent = accentIndex >= 0 ? title.slice(accentIndex + (accent?.length ?? 0)) : "";
+---
+
+<header id={id} class="grid max-w-3xl gap-2.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+  <h1
+    class:list={[
+      "text-balance tracking-tight text-foreground",
+      hero
+        ? "text-[2.5rem] font-extrabold leading-[1.2] sm:text-[4rem]"
+        : "text-4xl font-semibold sm:text-5xl",
+    ]}
+  >
+    {
+      accentIndex >= 0 ? (
+        <>
+          {titleBeforeAccent}<span class="text-primary">{accent}</span>{titleAfterAccent}
+        </>
+      ) : (
+        title
+      )
+    }
+  </h1>
+  <div class="text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
+    <slot />
+  </div>
+</header>
