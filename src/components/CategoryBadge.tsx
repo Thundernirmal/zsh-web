@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { formatLabel } from "@/lib/shell-docs"
 import { cn } from "@/lib/utils"
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -86,15 +87,6 @@ const categoryLabels: Record<string, string> = {
   system: "System",
   security: "Security",
   meta: "Meta",
-}
-
-function formatLabel(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .split(/[-\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
 }
 
 export function CategoryIcon({

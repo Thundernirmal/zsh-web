@@ -8,32 +8,39 @@ import { cn } from '@/lib/utils';
 
 interface Props {
 	title: string;
+	description?: string;
 }
 
-const { title } = Astro.props;
+const defaultDescription = "A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment.";
+const { title, description = defaultDescription } = Astro.props;
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === '/';
+const pageTitle = isHome ? "Nirmal's Shell" : `${title} | Nirmal's Shell`;
+const canonicalUrl = new URL(currentPath, Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
 <html lang="en" class="dark">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment." />
+		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/favicon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="theme-color" content="#1e1e2e" />
-		<meta property="og:title" content={`${title} | Nirmal's Shell`} />
-		<meta property="og:description" content="A living guide to aliases, functions, tips, and workflows from Nirmal Katariya's shell environment." />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />
-		<meta property="og:url" content="https://zsh.nirmalkatariya.com" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:site_name" content="Nirmal's Shell" />
+		<meta name="twitter:card" content="summary" />
+		<link rel="canonical" href={canonicalUrl} />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-		<title>{title} | Nirmal's Shell</title>
+		<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+		<title>{pageTitle}</title>
 		<ClientRouter />
 	</head>
 	<body>
@@ -98,7 +105,7 @@ const isHome = currentPath === '/';
 					<p class="flex flex-wrap items-center gap-x-2 gap-y-1">
 						Built by <a href="https://nirmalkatariya.com">Nirmal Katariya</a>
 						<span aria-hidden="true">·</span>
-						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer">Source Config</a>
+						<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer">Source Config<span class="sr-only"> (opens in a new tab)</span></a>
 						<span aria-hidden="true">·</span>
 						Powered by Astro & Catppuccin Mocha
 					</p>

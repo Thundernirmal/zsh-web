@@ -1,8 +1,8 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
 
-import commandsData from "@/data/commands.json"
 import { CategoryBadge } from "@/components/CategoryBadge"
+import { highlightText } from "@/components/HighlightText"
 import {
   Accordion,
   AccordionContent,
@@ -36,42 +36,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-
-type Command = {
-  name: string
-  command?: string
-  usage?: string
-  description?: string
-  type: string
-  category?: string
-  source?: string
-  availability?: string
-  dependencies?: string
-  examples?: string[]
-  features?: string[]
-  notes?: string[]
-  requires?: string[]
-  optional?: string[]
-  interactive?: boolean
-  plainMode?: boolean
-  richOutput?: boolean
-}
+import { formatLabel, type ShellCommand } from "@/lib/shell-docs"
 
 type Filter = "all" | "alias" | "global_alias" | "function"
 
-const commands = commandsData as Command[]
 const validFilters = new Set<Filter>(["all", "alias", "global_alias", "function"])
 
-function formatLabel(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .split(/[-\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
-
-function commandId(command: Command) {
+function commandId(command: ShellCommand) {
   return `${command.type}:${command.name}`
 }
 
@@ -82,26 +53,7 @@ function typeVariant(type: string): "alias" | "global" | "function" | "metadata"
   return "metadata"
 }
 
-function highlightText(text: string, query: string): ReactNode {
-  const normalized = query.trim()
-  if (normalized.length < 2) return text
-
-  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const splitRegex = new RegExp(`(${escaped})`, "gi")
-  const exactRegex = new RegExp(`^${escaped}$`, "i")
-
-  return text.split(splitRegex).map((part, index) =>
-    exactRegex.test(part) ? (
-      <mark key={`${part}:${index}`} className="rounded-sm bg-primary/20 px-0.5 text-foreground">
-        {part}
-      </mark>
-    ) : (
-      part
-    ),
-  )
-}
-
-function searchableText(command: Command) {
+function searchableText(command: ShellCommand) {
   return [
     command.name,
     command.command,
@@ -123,7 +75,7 @@ function searchableText(command: Command) {
     .toLowerCase()
 }
 
-function matchingDetailSections(command: Command, query: string) {
+function matchingDetailSections(command: ShellCommand, query: string) {
   const normalized = query.trim().toLowerCase()
   if (normalized.length < 2) return []
 
@@ -165,7 +117,7 @@ function splitFeature(feature: string) {
     : { usage: "", description: feature.trim() }
 }
 
-function searchableFeatures(command: Command) {
+function searchableFeatures(command: ShellCommand) {
   return (command.features ?? []).flatMap((feature) => {
     const { usage } = splitFeature(feature)
     return usage ? [feature, `${command.name} ${usage}`] : [feature]
@@ -191,7 +143,7 @@ function literalUsageTokens(usage: string) {
     .filter((token) => token && !/[<[\]]|\.\.\./.test(token))
 }
 
-function exampleArguments(command: Command, example: string) {
+function exampleArguments(command: ShellCommand, example: string) {
   const { command: exampleCommand } = splitExample(example)
   const tokens = (exampleCommand.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [])
     .map(normalizeCommandToken)
@@ -207,7 +159,7 @@ function normalizeInvocation(value: string) {
   return value.trim().replace(/\s+/g, " ")
 }
 
-function isRedundantStandaloneExample(command: Command, example: string) {
+function isRedundantStandaloneExample(command: ShellCommand, example: string) {
   const { command: exampleCommand, annotation } = splitExample(example)
   if (annotation) return false
 
@@ -217,7 +169,7 @@ function isRedundantStandaloneExample(command: Command, example: string) {
     .some((value) => normalizeInvocation(value) === normalizedExample)
 }
 
-function isRedundantFeatureExample(command: Command, usage: string, example: string) {
+function isRedundantFeatureExample(command: ShellCommand, usage: string, example: string) {
   const { annotation } = splitExample(example)
   if (annotation) return false
 
@@ -241,7 +193,7 @@ function featureMatchScore(usage: string, args: string[]) {
   return matched * 100 + (matched === literals.length ? 10 : 0)
 }
 
-function buildFeatureDetails(command: Command) {
+function buildFeatureDetails(command: ShellCommand) {
   const features: FeatureDetail[] = (command.features ?? []).map((feature) => ({
     ...splitFeature(feature),
     examples: [],
@@ -283,7 +235,7 @@ function buildFeatureDetails(command: Command) {
   return { features, unmatchedExamples }
 }
 
-function meaningfulExamples(command: Command) {
+function meaningfulExamples(command: ShellCommand) {
   const { features, unmatchedExamples } = buildFeatureDetails(command)
   return [...unmatchedExamples, ...features.flatMap((feature) => feature.examples)]
 }
@@ -292,7 +244,7 @@ function Example({ example, query }: { example: string; query: string }) {
   const { command, annotation } = splitExample(example)
 
   return (
-    <span className="grid min-w-0 gap-0.5">
+    <div className="grid min-w-0 gap-0.5">
       <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-medium leading-5 text-foreground">
         <code translate="no">{highlightText(command, query)}</code>
       </pre>
@@ -301,7 +253,7 @@ function Example({ example, query }: { example: string; query: string }) {
           {highlightText(annotation, query)}
         </span>
       )}
-    </span>
+    </div>
   )
 }
 
@@ -337,7 +289,7 @@ function FeatureTable({
             key={`${feature.usage}:${feature.description}`}
             className="grid min-w-0 gap-2.5 pt-3 first:pt-0"
           >
-            <span className="grid min-w-0 gap-1">
+            <div className="grid min-w-0 gap-1">
               {feature.usage ? (
                 <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-semibold leading-5 text-foreground">
                   <code translate="no">{highlightText(feature.usage, query)}</code>
@@ -345,19 +297,19 @@ function FeatureTable({
               ) : (
                 <span className="text-sm text-muted-foreground">General feature</span>
               )}
-              <span className="text-pretty text-sm leading-5">
+              <p className="text-pretty text-sm leading-5">
                 {highlightText(feature.description, query)}
-              </span>
-            </span>
+              </p>
+            </div>
             {feature.examples.length > 0 && (
-              <span className="grid min-w-0 gap-1">
+              <div className="grid min-w-0 gap-1">
                 <span className="text-xs font-medium text-muted-foreground">Example</span>
-                <span className="grid min-w-0 gap-2">
+                <div className="grid min-w-0 gap-2">
                   {feature.examples.map((example) => (
                     <Example key={example} example={example} query={query} />
                   ))}
-                </span>
-              </span>
+                </div>
+              </div>
             )}
             {index < features.length - 1 && <Separator />}
           </li>
@@ -393,11 +345,11 @@ function FeatureTable({
                 {hasFeatureExamples && (
                   <TableCell className="align-top whitespace-normal">
                     {feature.examples.length > 0 ? (
-                      <span className="grid min-w-0 gap-2">
+                      <div className="grid min-w-0 gap-2">
                         {feature.examples.map((example) => (
                           <Example key={example} example={example} query={query} />
                         ))}
-                      </span>
+                      </div>
                     ) : (
                       <span className="sr-only">No example documented</span>
                     )}
@@ -469,13 +421,14 @@ function NotesList({ id, notes, query }: { id: string; notes: string[]; query: s
   )
 }
 
-export default function SearchCommands() {
+export default function SearchCommands({ commands }: { commands: ShellCommand[] }) {
   const [query, setQuery] = useState("")
   const [filter, setFilter] = useState<Filter>("all")
   const [expanded, setExpanded] = useState<string[]>([])
   const [isMounted, setIsMounted] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
+  /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const nextQuery = params.get("q")
@@ -488,7 +441,8 @@ export default function SearchCommands() {
       setExpanded([nextCommand])
     }
     setIsMounted(true)
-  }, [])
+  }, [commands])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!isMounted) return
@@ -522,20 +476,26 @@ export default function SearchCommands() {
   }, [])
 
   const normalizedQuery = query.trim().toLowerCase()
-  const matchesQuery = (command: Command) =>
-    normalizedQuery.length === 0 || searchableText(command).includes(normalizedQuery)
+  const matchesQuery = useCallback(
+    (command: ShellCommand) =>
+      normalizedQuery.length === 0 || searchableText(command).includes(normalizedQuery),
+    [normalizedQuery],
+  )
 
   const filteredCommands = useMemo(
     () => commands.filter((command) => matchesQuery(command) && (filter === "all" || command.type === filter)),
-    [filter, normalizedQuery],
+    [commands, filter, matchesQuery],
   )
 
-  const counts = {
-    all: commands.filter(matchesQuery).length,
-    alias: commands.filter((command) => matchesQuery(command) && command.type === "alias").length,
-    global_alias: commands.filter((command) => matchesQuery(command) && command.type === "global_alias").length,
-    function: commands.filter((command) => matchesQuery(command) && command.type === "function").length,
-  }
+  const counts = useMemo(
+    () => ({
+      all: commands.filter(matchesQuery).length,
+      alias: commands.filter((command) => matchesQuery(command) && command.type === "alias").length,
+      global_alias: commands.filter((command) => matchesQuery(command) && command.type === "global_alias").length,
+      function: commands.filter((command) => matchesQuery(command) && command.type === "function").length,
+    }),
+    [commands, matchesQuery],
+  )
 
   const filters: Array<{ key: Filter; label: string; count: number }> = [
     { key: "all", label: "All", count: counts.all },
@@ -596,7 +556,7 @@ export default function SearchCommands() {
                 key={item.key}
                 value={item.key}
                 disabled={item.count === 0 && filter !== item.key}
-                aria-label={`${item.label}, ${item.count} results`}
+                aria-label={`${item.label}, ${item.count} ${item.count === 1 ? "result" : "results"}`}
                 className="items-baseline"
               >
                 {item.label}

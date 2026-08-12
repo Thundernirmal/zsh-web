@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const ZSH_DIR = process.env.ZSH_CONFIG_DIR
   ? path.resolve(process.env.ZSH_CONFIG_DIR)
@@ -22,7 +22,12 @@ const SOURCE_FILES = [
   ...FUNCTION_SOURCES,
   GLOBALS_SOURCE,
 ];
-const REQUIRE_SOURCES = process.argv.includes('--required');
+const CHECK_ONLY = process.argv.includes('--check');
+const unknownArguments = process.argv.slice(2).filter((argument) => argument !== '--check');
+
+if (unknownArguments.length > 0) {
+  throw new Error(`Unknown extractor argument${unknownArguments.length === 1 ? '' : 's'}: ${unknownArguments.join(', ')}`);
+}
 
 const HELP_CHECK_AVAILABILITY = {
   zoxide: 'Available when zoxide is installed',
@@ -93,22 +98,23 @@ function ensureSourceFilesAvailable() {
   const missingFiles = getMissingSourceFiles();
 
   if (missingFiles.length === 0) {
-    return true;
+    return;
   }
 
   const missingPaths = missingFiles.map((fileName) => sourcePath(fileName)).join(', ');
-  const message = `Zsh source files not found: ${missingPaths}`;
-
-  if (REQUIRE_SOURCES) {
-    throw new Error(message);
-  }
-
-  console.warn(`[extract] ${message}. Using committed src/data/*.json as-is.`);
-  return false;
+  throw new Error(`Zsh source files not found: ${missingPaths}`);
 }
 
-function writeJson(filePath, data) {
-  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
+function serializeJson(data) {
+  return `${JSON.stringify(data, null, 2)}\n`;
+}
+
+function writeJson(filePath, contents) {
+  fs.writeFileSync(filePath, contents);
+}
+
+function isCurrentJson(filePath, contents) {
+  return fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8') === contents;
 }
 
 function dedupeBy(records, getKey) {
@@ -842,11 +848,7 @@ function extractTips() {
 }
 
 function main() {
-  ensureDataDir();
-
-  if (!ensureSourceFilesAvailable()) {
-    return;
-  }
+  ensureSourceFilesAvailable();
 
   const catalogue = extractHelpCatalogue();
   validateGuideCoverage(catalogue);
@@ -854,8 +856,28 @@ function main() {
   const commands = buildCommands(catalogue);
   const tips = extractTips();
 
-  writeJson(path.join(DATA_DIR, 'commands.json'), commands);
-  writeJson(path.join(DATA_DIR, 'tips.json'), tips);
+  const outputs = [
+    { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(commands) },
+    { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(tips) },
+  ];
+
+  if (CHECK_ONLY) {
+    const staleFiles = outputs
+      .filter(({ filePath, contents }) => !isCurrentJson(filePath, contents))
+      .map(({ filePath }) => path.relative(process.cwd(), filePath));
+
+    if (staleFiles.length > 0) {
+      throw new Error(`Generated data is stale: ${staleFiles.join(', ')}. Run npm run sync.`);
+    }
+
+    console.log(`[extract] Verified ${commands.length} commands and ${tips.length} tips against ${ZSH_DIR}.`);
+    return;
+  }
+
+  ensureDataDir();
+  for (const { filePath, contents } of outputs) {
+    writeJson(filePath, contents);
+  }
 
   console.log(`[extract] Synced ${commands.length} commands and ${tips.length} tips from ${ZSH_DIR}.`);
 }
