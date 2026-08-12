@@ -38,6 +38,10 @@ const categoryIcons: Record<string, LucideIcon> = {
   process: ActivityIcon,
   safety: ShieldCheckIcon,
   viewing: EyeIcon,
+  files: EyeIcon,
+  system: TerminalIcon,
+  security: ShieldCheckIcon,
+  meta: WorkflowIcon,
 }
 
 const categoryStyles: Record<string, string> = {
@@ -56,6 +60,10 @@ const categoryStyles: Record<string, string> = {
   process: "border-category-process/30 bg-category-process/10 text-category-process",
   safety: "border-category-safety/30 bg-category-safety/10 text-category-safety",
   viewing: "border-category-viewing/30 bg-category-viewing/10 text-category-viewing",
+  files: "border-category-viewing/30 bg-category-viewing/10 text-category-viewing",
+  system: "border-category-network/30 bg-category-network/10 text-category-network",
+  security: "border-category-safety/30 bg-category-safety/10 text-category-safety",
+  meta: "border-category-pipe/30 bg-category-pipe/10 text-category-pipe",
 }
 
 const categoryLabels: Record<string, string> = {
@@ -74,6 +82,10 @@ const categoryLabels: Record<string, string> = {
   process: "Process",
   safety: "Safety",
   viewing: "Viewing",
+  files: "Files",
+  system: "System",
+  security: "Security",
+  meta: "Meta",
 }
 
 function formatLabel(value: string) {

@@ -50,6 +50,10 @@ const categoryOrder = [
   "shell",
   "network",
   "process",
+  "security",
+  "files",
+  "system",
+  "meta",
 ]
 
 function formatLabel(value: string) {
@@ -86,10 +90,13 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
   const [isMounted, setIsMounted] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  const availableCategories = useMemo(
-    () => categoryOrder.filter((category) => tips.some((tip) => tip.category === category)),
-    [tips],
-  )
+  const availableCategories = useMemo(() => {
+    const present = Array.from(new Set(tips.map((tip) => tip.category)))
+    const known = categoryOrder.filter((category) => present.includes(category))
+    const additional = present.filter((category) => !categoryOrder.includes(category)).sort()
+
+    return [...known, ...additional]
+  }, [tips])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)

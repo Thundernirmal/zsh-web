@@ -15,6 +15,7 @@ The current config covers:
 - search and process helpers such as `ft`, `fkill`, and `fbr`
 - utility functions such as `dusage`, `bigfiles`, and `peek`
 - network helpers such as `headers`, plus the `upkg` package update wrapper, the `npkg` Nix wrapper, and dependency-aware tips
+- searchable command discovery through `zhelp` and optional Secret Service credentials through `cgm`
 
 ## Architecture
 
@@ -22,7 +23,7 @@ The current config covers:
 - **UI:** shadcn/ui Base UI primitives with Nova styling
 - **Styling:** Tailwind CSS v4 + semantic Catppuccin Mocha theme tokens
 - **Language:** TypeScript 6
-- **Data Source:** Extracted from `~/.config/zsh/20-aliases.zsh`, `60-functions.zsh`, `70-globals.zsh`, and `80-tips.zsh`
+- **Data Source:** Command records from `~/.config/zsh/65-help.zsh`, implementation details from the live Zsh modules, and tips from `80-tips.zsh`, with catalogue coverage checked against `GUIDE.md`
 - **Deployment:** Cloudflare Pages (Static Export)
 
 ## Local Development
