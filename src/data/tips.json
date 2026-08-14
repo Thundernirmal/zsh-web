@@ -232,146 +232,153 @@
   },
   {
     "id": "tip-034",
-    "text": "Run fbr to select and check out a Git branch",
+    "text": "Run fbr to select a branch, enter its worktree, or check it out",
     "category": "git",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "id": "tip-035",
+    "text": "Use [WT] in fbr to spot branches checked out in another worktree",
+    "category": "git",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "id": "tip-036",
     "text": "Use zi to select a remembered directory interactively",
     "category": "fzf",
     "source": "zoxide",
     "availability": "Available when zoxide is installed and fzf is ready"
   },
   {
-    "id": "tip-036",
+    "id": "tip-037",
     "text": "Run lt for a tree view up to three levels deep",
     "category": "navigation",
     "source": "navigation",
     "availability": "Available when the lt alias is available"
   },
   {
-    "id": "tip-037",
+    "id": "tip-038",
     "text": "Run cgm set OPENAI_KEY to store a credential securely",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
   },
   {
-    "id": "tip-038",
+    "id": "tip-039",
     "text": "Run cgm env OPENAI_KEY to load a credential into this shell",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
   },
   {
-    "id": "tip-039",
+    "id": "tip-040",
     "text": "Run cgm list to show saved names without retrieving values",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
   },
   {
-    "id": "tip-040",
+    "id": "tip-041",
     "text": "Run npkg add bat to add a package to the current Nix profile",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed"
   },
   {
-    "id": "tip-041",
+    "id": "tip-042",
     "text": "Run npkg search ripgrep to search nixpkgs",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed"
   },
   {
-    "id": "tip-042",
+    "id": "tip-043",
     "text": "Run npkg list to show the current Nix profile",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed"
   },
   {
-    "id": "tip-043",
+    "id": "tip-044",
     "text": "Run npkg refresh to rebuild the nixpkgs attribute cache",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed"
   },
   {
-    "id": "tip-044",
+    "id": "tip-045",
     "text": "Run npkg outdated to check for Nix output changes",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed"
   },
   {
-    "id": "tip-045",
+    "id": "tip-046",
     "text": "Run npkg find nvim to open a seeded package picker",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
-    "id": "tip-046",
+    "id": "tip-047",
     "text": "Run npkg remove with no arguments to select installed packages",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
-    "id": "tip-047",
+    "id": "tip-048",
     "text": "Run upkg to check detected package managers for updates",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
-    "id": "tip-048",
+    "id": "tip-049",
     "text": "Run upkg search ripgrep to search detected package managers",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
-    "id": "tip-049",
+    "id": "tip-050",
     "text": "Run upkg managers to show active and alternate backends",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
-    "id": "tip-050",
+    "id": "tip-051",
     "text": "Use upkg --only=brew,npm to select specific backends",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
-    "id": "tip-051",
+    "id": "tip-052",
     "text": "Run upkg plan to preview package upgrades",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
-    "id": "tip-052",
+    "id": "tip-053",
     "text": "Run upkg clean --dry-run before package cleanup",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
-    "id": "tip-053",
+    "id": "tip-054",
     "text": "Run upkg upgrade --sudo to authorize system package upgrades",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, or dnf is installed"
   },
   {
-    "id": "tip-054",
+    "id": "tip-055",
     "text": "Run upkg clean --sudo to authorize system package cleanup",
     "category": "packages",
     "source": "upkg",
