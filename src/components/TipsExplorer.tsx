@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
 
 import { CategoryBadge, CategoryIcon, categoryLabels } from "@/components/CategoryBadge"
+import { highlightText } from "@/components/HighlightText"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,13 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { formatLabel, type ShellTip } from "@/lib/shell-docs"
 
-type Tip = {
-  text: string
-  category: string
-  source?: string
-  availability?: string
-}
+const PAGE_SIZE = 24
 
 const categoryOrder = [
   "navigation",
@@ -50,47 +47,28 @@ const categoryOrder = [
   "shell",
   "network",
   "process",
+  "security",
+  "files",
+  "system",
+  "meta",
 ]
 
-function formatLabel(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .split(/[-\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
-
-function highlightText(text: string, query: string): ReactNode {
-  const normalized = query.trim()
-  if (normalized.length < 2) return text
-
-  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const splitRegex = new RegExp(`(${escaped})`, "gi")
-  const exactRegex = new RegExp(`^${escaped}$`, "i")
-
-  return text.split(splitRegex).map((part, index) =>
-    exactRegex.test(part) ? (
-      <mark key={`${part}:${index}`} className="rounded-sm bg-primary/20 px-0.5 text-foreground">
-        {part}
-      </mark>
-    ) : (
-      part
-    ),
-  )
-}
-
-export default function TipsExplorer({ tips }: { tips: Tip[] }) {
+export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [query, setQuery] = useState("")
   const [filter, setFilter] = useState("all")
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [isMounted, setIsMounted] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  const availableCategories = useMemo(
-    () => categoryOrder.filter((category) => tips.some((tip) => tip.category === category)),
-    [tips],
-  )
+  const availableCategories = useMemo(() => {
+    const present = Array.from(new Set(tips.map((tip) => tip.category)))
+    const known = categoryOrder.filter((category) => present.includes(category))
+    const additional = present.filter((category) => !categoryOrder.includes(category)).sort()
 
+    return [...known, ...additional]
+  }, [tips])
+
+  /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const nextQuery = params.get("q")
@@ -100,6 +78,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
     if (nextFilter && availableCategories.includes(nextFilter)) setFilter(nextFilter)
     setIsMounted(true)
   }, [availableCategories])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!isMounted) return
@@ -131,7 +110,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
   }, [])
 
   const matchesQuery = useCallback(
-    (tip: Tip) => {
+    (tip: ShellTip) => {
       const normalized = query.trim().toLowerCase()
       if (!normalized) return true
       return [tip.text, tip.category, tip.source, tip.availability]
@@ -145,6 +124,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
     () => tips.filter((tip) => matchesQuery(tip) && (filter === "all" || tip.category === filter)),
     [filter, matchesQuery, tips],
   )
+  const visibleTips = filteredTips.slice(0, visibleCount)
 
   const counts = useMemo(() => {
     const categoryCounts: Record<string, number> = { all: tips.filter(matchesQuery).length }
@@ -165,6 +145,7 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
   const clearSearch = () => {
     setQuery("")
     setFilter("all")
+    setVisibleCount(PAGE_SIZE)
     searchRef.current?.focus()
   }
 
@@ -184,7 +165,10 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
               type="search"
               placeholder="Search tips, categories, workflows…"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value)
+                setVisibleCount(PAGE_SIZE)
+              }}
               autoComplete="off"
               spellCheck={false}
             />
@@ -198,14 +182,17 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
         </div>
 
         <div className="min-w-0">
-          <label id="tip-category-label" className="sr-only">Category</label>
           <Select
             name="tip-category"
             value={filter}
-            onValueChange={(value) => value && setFilter(value)}
+            onValueChange={(value) => {
+              if (!value) return
+              setFilter(value)
+              setVisibleCount(PAGE_SIZE)
+            }}
             items={selectItems}
           >
-            <SelectTrigger className="w-full data-[size=default]:h-9" aria-labelledby="tip-category-label">
+            <SelectTrigger className="w-full data-[size=default]:h-9" aria-label="Filter tips by category">
               <CategoryIcon category={filter} className="text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
@@ -245,30 +232,43 @@ export default function TipsExplorer({ tips }: { tips: Tip[] }) {
           </EmptyContent>
         </Empty>
       ) : (
-        <ItemGroup className="gap-2">
-          {filteredTips.map((tip) => (
-            <Item
-              key={`${tip.category}:${tip.text}`}
-              role="listitem"
-              variant="outline"
-              size="xs"
-              className="tip-virtual-item min-w-0 items-start bg-card"
-            >
-              <ItemContent className="min-w-0 gap-1">
-                <ItemDescription className="line-clamp-none text-pretty">
-                  {highlightText(tip.text, query)}
-                </ItemDescription>
-                {tip.availability && (
-                  <p className="text-sm leading-5 text-muted-foreground">{highlightText(tip.availability, query)}</p>
-                )}
-              </ItemContent>
-              <ItemActions className="basis-full flex-wrap justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
-                <CategoryBadge category={tip.category} />
-                {tip.source && <Badge variant="metadata">{formatLabel(tip.source)}</Badge>}
-              </ItemActions>
-            </Item>
-          ))}
-        </ItemGroup>
+        <>
+          <ItemGroup className="gap-2">
+            {visibleTips.map((tip) => (
+              <Item
+                key={`${tip.category}:${tip.text}`}
+                role="listitem"
+                variant="outline"
+                size="xs"
+                className="min-w-0 items-start bg-card"
+              >
+                <ItemContent className="min-w-0 gap-1">
+                  <ItemDescription className="line-clamp-none text-pretty">
+                    {highlightText(tip.text, query)}
+                  </ItemDescription>
+                  {tip.availability && (
+                    <p className="text-sm leading-5 text-muted-foreground">{highlightText(tip.availability, query)}</p>
+                  )}
+                </ItemContent>
+                <ItemActions className="basis-full flex-wrap justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
+                  <CategoryBadge category={tip.category} />
+                  {tip.source && <Badge variant="metadata">{formatLabel(tip.source)}</Badge>}
+                </ItemActions>
+              </Item>
+            ))}
+          </ItemGroup>
+          {visibleTips.length < filteredTips.length && (
+            <div className="flex justify-center pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+              >
+                Show {Math.min(PAGE_SIZE, filteredTips.length - visibleTips.length)} More Tips
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </section>
   )

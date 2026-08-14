@@ -1,36 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { RefreshCwIcon } from 'lucide-react';
-import tipsData from '../data/tips.json';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatLabel, type ShellTip } from '@/lib/shell-docs';
 
-type Tip = {
-  text: string;
-  category: string;
-  source?: string;
-  availability?: string;
-};
-
-function formatLabel(value: string): string {
-  return value
-    .split(/[-\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
-export default function TipRoulette() {
-  const tips: Tip[] = tipsData;
-  const [currentTip, setCurrentTip] = useState<Tip | null>(null);
+export default function TipRoulette({ tips }: { tips: ShellTip[] }) {
+  const [currentTip, setCurrentTip] = useState<ShellTip | null>(null);
   const [announcedTip, setAnnouncedTip] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
   const prefersReduced = useReducedMotion();
   const spinIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const finalTipRef = useRef<Tip | null>(currentTip);
+  const finalTipRef = useRef<ShellTip | null>(null);
 
-  const stopSpin = (tip: Tip) => {
+  const stopSpin = (tip: ShellTip) => {
     if (spinIntervalRef.current) {
       clearInterval(spinIntervalRef.current);
       spinIntervalRef.current = null;
@@ -39,6 +23,7 @@ export default function TipRoulette() {
     setCurrentTip(tip);
     setAnnouncedTip(tip.text);
     setIsSpinning(false);
+    finalTipRef.current = null;
   };
 
   useEffect(() => {
@@ -52,13 +37,12 @@ export default function TipRoulette() {
   const spin = () => {
     if (tips.length === 0) return;
 
-    const finalTip = tips[Math.floor(Math.random() * tips.length)];
-    finalTipRef.current = finalTip;
-
     if (isSpinning) {
-      stopSpin(finalTipRef.current);
+      if (finalTipRef.current) stopSpin(finalTipRef.current);
       return;
     }
+
+    const finalTip = tips[Math.floor(Math.random() * tips.length)];
 
     if (prefersReduced) {
       setCurrentTip(finalTip);
@@ -66,6 +50,7 @@ export default function TipRoulette() {
       return;
     }
 
+    finalTipRef.current = finalTip;
     setIsSpinning(true);
     let iterations = 0;
     const maxIterations = 12;
@@ -104,11 +89,11 @@ export default function TipRoulette() {
       <div className="flex min-h-24 items-center border-l-2 border-primary py-2 pl-3">
         <AnimatePresence initial={false} mode="wait">
           <motion.p
-            key={currentTip?.text ?? 'Discover shell wisdom — click below!'}
+            key={currentTip?.text ?? 'Choose Show Random Tip for a shell shortcut.'}
             className="text-pretty text-base leading-7 text-foreground"
             {...motionProps}
           >
-            {currentTip?.text ?? 'Discover shell wisdom — click below!'}
+            {currentTip?.text ?? 'Choose Show Random Tip for a shell shortcut.'}
           </motion.p>
         </AnimatePresence>
       </div>

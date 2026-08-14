@@ -1,250 +1,235 @@
 [
   {
-    "name": "ls",
-    "command": "lsd",
-    "description": "List directory contents with icons and colors",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "ll",
-    "command": "lsd -lah --group-dirs=first",
-    "description": "Long listing with hidden files and grouped directories",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "la",
-    "command": "lsd -A",
-    "description": "List all files including hidden ones",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "lt",
-    "command": "lsd --tree --depth=3 --group-dirs=first",
-    "description": "Tree view up to 3 levels deep with grouped directories",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh"
-  },
-  {
     "name": "..",
     "command": "cd ..",
-    "description": "Go up one directory level",
+    "usage": "..",
+    "description": "Move up one directory",
     "type": "alias",
     "category": "navigation",
-    "source": "20-aliases.zsh"
+    "source": "20-aliases.zsh",
+    "examples": [
+      ".."
+    ]
   },
   {
     "name": "...",
     "command": "cd ../..",
-    "description": "Go up two directory levels",
+    "usage": "...",
+    "description": "Move up two directories",
     "type": "alias",
     "category": "navigation",
-    "source": "20-aliases.zsh"
+    "source": "20-aliases.zsh",
+    "examples": [
+      "..."
+    ]
   },
   {
     "name": "....",
     "command": "cd ../../..",
-    "description": "Go up three directory levels",
+    "usage": "....",
+    "description": "Move up three directories",
     "type": "alias",
     "category": "navigation",
-    "source": "20-aliases.zsh"
+    "source": "20-aliases.zsh",
+    "examples": [
+      "...."
+    ]
   },
   {
     "name": "-",
     "command": "cd -",
+    "usage": "-",
     "description": "Return to the previous directory",
     "type": "alias",
     "category": "navigation",
-    "source": "20-aliases.zsh"
+    "source": "20-aliases.zsh",
+    "examples": [
+      "-"
+    ]
+  },
+  {
+    "name": "z",
+    "command": "z <query>",
+    "usage": "z <query>",
+    "description": "Jump with zoxide",
+    "type": "function",
+    "category": "navigation",
+    "source": "30-zoxide.zsh",
+    "availability": "Available when zoxide is installed",
+    "dependencies": "zoxide",
+    "examples": [
+      "z projects"
+    ]
+  },
+  {
+    "name": "zi",
+    "command": "zi [query]",
+    "usage": "zi [query]",
+    "description": "Pick a zoxide directory",
+    "type": "function",
+    "category": "navigation",
+    "source": "30-zoxide.zsh",
+    "availability": "Available when zoxide is installed and fzf 0.52.0+ is ready",
+    "dependencies": "zoxide and fzf 0.52.0+",
+    "examples": [
+      "zi projects"
+    ]
+  },
+  {
+    "name": "mkcd",
+    "command": "mkcd <directory>",
+    "usage": "mkcd <directory>",
+    "description": "Create a directory and enter it",
+    "type": "function",
+    "category": "navigation",
+    "source": "60-functions.zsh",
+    "examples": [
+      "mkcd new-project"
+    ]
+  },
+  {
+    "name": "croot",
+    "command": "croot",
+    "usage": "croot",
+    "description": "Enter the Git repository root",
+    "type": "function",
+    "category": "navigation",
+    "source": "60-functions.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "croot"
+    ]
+  },
+  {
+    "name": "ls",
+    "command": "lsd",
+    "usage": "ls [path]",
+    "description": "List directory contents",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or GNU ls",
+    "examples": [
+      "ls"
+    ]
+  },
+  {
+    "name": "ll",
+    "command": "lsd -lah --group-dirs=first",
+    "usage": "ll [path]",
+    "description": "List all entries with details",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or GNU ls",
+    "examples": [
+      "ll"
+    ]
+  },
+  {
+    "name": "la",
+    "command": "lsd -A",
+    "usage": "la [path]",
+    "description": "List entries including hidden files",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or GNU ls",
+    "examples": [
+      "la"
+    ]
+  },
+  {
+    "name": "lt",
+    "command": "lsd --tree --depth=3 --group-dirs=first",
+    "usage": "lt [path]",
+    "description": "Show a three-level directory tree",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or tree",
+    "examples": [
+      "lt"
+    ]
   },
   {
     "name": "mkdir",
     "command": "mkdir -p",
-    "description": "Create directories including parent paths automatically",
+    "usage": "mkdir <directory> ...",
+    "description": "Create directories, including missing parents",
     "type": "alias",
-    "category": "safety",
-    "source": "20-aliases.zsh"
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "mkdir",
+    "examples": [
+      "mkdir new-project/src"
+    ]
   },
   {
     "name": "cp",
     "command": "cp -iv",
-    "description": "Copy files with interactive confirmation and verbose output",
+    "usage": "cp <source> <destination>",
+    "description": "Copy verbosely; confirm overwrites",
     "type": "alias",
-    "category": "safety",
-    "source": "20-aliases.zsh"
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "cp",
+    "examples": [
+      "cp config.example config.local"
+    ]
   },
   {
     "name": "mv",
     "command": "mv -iv",
-    "description": "Move files with interactive confirmation and verbose output",
+    "usage": "mv <source> <destination>",
+    "description": "Move verbosely; confirm overwrites",
     "type": "alias",
-    "category": "safety",
-    "source": "20-aliases.zsh"
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "mv",
+    "examples": [
+      "mv old-name new-name"
+    ]
   },
   {
     "name": "rm",
     "command": "rm -iv",
-    "description": "Remove files with interactive confirmation and verbose output",
+    "usage": "rm <path> ...",
+    "description": "Remove verbosely; confirm each path",
     "type": "alias",
-    "category": "safety",
-    "source": "20-aliases.zsh"
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "rm",
+    "examples": [
+      "rm unwanted-file"
+    ]
   },
   {
     "name": "cat",
     "command": "bat --style=numbers --paging=never",
-    "description": "Display file contents with syntax highlighting and line numbers",
+    "usage": "cat <file>",
+    "description": "Print files with bat highlighting",
     "type": "alias",
-    "category": "viewing",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "grep",
-    "command": "grep --color=auto",
-    "description": "Search text with colorized output",
-    "type": "alias",
-    "category": "viewing",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "diff",
-    "command": "diff --color=auto",
-    "description": "Compare files with colorized output",
-    "type": "alias",
-    "category": "viewing",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "ports",
-    "command": "ports",
-    "description": "Show listening ports and owning processes",
-    "type": "function",
-    "category": "network",
-    "source": "60-functions.zsh",
-    "usage": "ports",
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "name": "myip",
-    "command": "myip",
-    "description": "Show public IP address over HTTPS",
-    "type": "function",
-    "category": "network",
-    "source": "60-functions.zsh",
-    "usage": "myip",
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "name": "weather",
-    "command": "curl --http1.1 -fsSL https://wttr.in",
-    "description": "Show the current weather forecast",
-    "type": "alias",
-    "category": "network",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "glog",
-    "command": "git log --oneline --graph --decorate -20",
-    "description": "Show a compact git history graph",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "gpr",
-    "command": "git pull --rebase",
-    "description": "Pull with rebase for a cleaner git history",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "gun",
-    "command": "git reset HEAD~1 --soft",
-    "description": "Undo the last commit while keeping changes staged",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "gcount",
-    "command": "gitcount",
-    "description": "Count commits per author",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh"
-  },
-  {
-    "name": "G",
-    "command": "| grep",
-    "description": "Pipe to grep — use anywhere in a command",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
-  },
-  {
-    "name": "L",
-    "command": "| less",
-    "description": "Pipe to less — use anywhere in a command",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
-  },
-  {
-    "name": "W",
-    "command": "| wc -l",
-    "description": "Count lines — use anywhere in a command",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
-  },
-  {
-    "name": "H",
-    "command": "| head",
-    "description": "Show first lines — use anywhere in a command",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
-  },
-  {
-    "name": "T",
-    "command": "| tail",
-    "description": "Show last lines — use anywhere in a command",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
-  },
-  {
-    "name": "NE",
-    "command": "2>/dev/null",
-    "description": "Suppress stderr output",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
-  },
-  {
-    "name": "NUL",
-    "command": ">/dev/null 2>&1",
-    "description": "Suppress all output (stdout and stderr)",
-    "type": "global_alias",
-    "category": "pipe",
-    "source": "70-globals.zsh"
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "bat",
+    "examples": [
+      "cat README.md"
+    ]
   },
   {
     "name": "extract",
     "command": "extract <archive>",
-    "description": "Extract any supported archive format automatically",
+    "usage": "extract <archive>",
+    "description": "Unpack a supported archive",
     "type": "function",
-    "category": "utility",
+    "category": "files",
     "source": "60-functions.zsh",
-    "usage": "extract <file>",
+    "dependencies": "tar; format-specific unpackers when needed",
+    "examples": [
+      "extract archive.tar.gz"
+    ],
     "optional": [
       "bunzip2",
       "unrar",
@@ -255,60 +240,18 @@
     ]
   },
   {
-    "name": "ff",
-    "command": "ff <pattern> [path]",
-    "description": "Find files by name recursively — uses fd when available",
-    "type": "function",
-    "category": "search",
-    "source": "60-functions.zsh",
-    "usage": "ff <pattern> [path]",
-    "optional": [
-      "fd",
-      "fdfind"
-    ]
-  },
-  {
-    "name": "ft",
-    "command": "ft <text> [path]",
-    "description": "Find text in files — uses ripgrep when available, falls back to grep",
-    "type": "function",
-    "category": "search",
-    "source": "60-functions.zsh",
-    "usage": "ft <pattern> [path]",
-    "optional": [
-      "rg"
-    ]
-  },
-  {
-    "name": "fkill",
-    "command": "fkill [signal]",
-    "description": "Fuzzy-select and kill a running process",
-    "type": "function",
-    "category": "process",
-    "source": "60-functions.zsh",
-    "usage": "fkill [signal]",
-    "interactive": true,
-    "requires": [
-      "fzf"
-    ]
-  },
-  {
-    "name": "headers",
-    "command": "headers <url>",
-    "description": "Follow redirects and print HTTP response headers",
-    "type": "function",
-    "category": "network",
-    "source": "60-functions.zsh",
-    "usage": "headers <url>"
-  },
-  {
     "name": "peek",
     "command": "peek <file>",
-    "description": "Preview a file quickly — uses bat when available",
-    "type": "function",
-    "category": "viewing",
-    "source": "60-functions.zsh",
     "usage": "peek <file>",
+    "description": "Preview a file with bat or cat",
+    "type": "function",
+    "category": "files",
+    "source": "60-functions.zsh",
+    "availability": "Available when bat or cat is installed",
+    "dependencies": "bat or cat",
+    "examples": [
+      "peek README.md"
+    ],
     "optional": [
       "bat"
     ]
@@ -316,114 +259,337 @@
   {
     "name": "dusage",
     "command": "dusage [path] [count]",
-    "description": "Show disk usage summary for the largest items in a directory",
-    "type": "function",
-    "category": "utility",
-    "source": "60-functions.zsh",
     "usage": "dusage [path] [count]",
+    "description": "Rank immediate entries by disk usage",
+    "type": "function",
+    "category": "files",
+    "source": "60-functions.zsh",
+    "availability": "Available when GNU find and du are installed",
+    "dependencies": "GNU du and find",
+    "examples": [
+      "dusage . 10"
+    ],
     "plainMode": true,
     "richOutput": true
   },
   {
     "name": "bigfiles",
     "command": "bigfiles [path] [count]",
-    "description": "Find the largest files recursively in a directory tree",
-    "type": "function",
-    "category": "utility",
-    "source": "60-functions.zsh",
     "usage": "bigfiles [path] [count]",
+    "description": "Rank files recursively by size",
+    "type": "function",
+    "category": "files",
+    "source": "60-functions.zsh",
+    "availability": "Available when GNU find and du are installed",
+    "dependencies": "GNU find and du",
+    "examples": [
+      "bigfiles . 10"
+    ],
     "plainMode": true,
     "richOutput": true
   },
   {
-    "name": "croot",
-    "command": "croot",
-    "description": "Jump to the root of the current git repository",
+    "name": "grep",
+    "command": "grep --color=auto",
+    "usage": "grep <pattern> [file ...]",
+    "description": "Search text with automatic colour",
+    "type": "alias",
+    "category": "search",
+    "source": "20-aliases.zsh",
+    "dependencies": "grep with --color=auto support",
+    "examples": [
+      "grep TODO README.md"
+    ]
+  },
+  {
+    "name": "diff",
+    "command": "diff --color=auto",
+    "usage": "diff <file-a> <file-b>",
+    "description": "Compare files with automatic colour",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "diff with --color=auto support",
+    "examples": [
+      "diff before.txt after.txt"
+    ]
+  },
+  {
+    "name": "ff",
+    "command": "ff <pattern> [path]",
+    "usage": "ff <pattern> [path]",
+    "description": "Find files by name",
+    "type": "function",
+    "category": "search",
+    "source": "60-functions.zsh",
+    "availability": "Available when fd, fdfind, or GNU find is installed",
+    "dependencies": "fd, fdfind, or find",
+    "examples": [
+      "ff config ."
+    ],
+    "optional": [
+      "fd",
+      "fdfind"
+    ]
+  },
+  {
+    "name": "ft",
+    "command": "ft <pattern> [path]",
+    "usage": "ft <pattern> [path]",
+    "description": "Search file contents",
+    "type": "function",
+    "category": "search",
+    "source": "60-functions.zsh",
+    "availability": "Available when ripgrep or grep is installed",
+    "dependencies": "rg or grep",
+    "examples": [
+      "ft TODO ."
+    ],
+    "optional": [
+      "rg"
+    ]
+  },
+  {
+    "name": "glog",
+    "command": "git log --oneline --graph --decorate -20",
+    "usage": "glog",
+    "description": "Graph the latest 20 commits",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "glog"
+    ]
+  },
+  {
+    "name": "gpr",
+    "command": "git pull --rebase",
+    "usage": "gpr",
+    "description": "Pull with rebase",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gpr"
+    ]
+  },
+  {
+    "name": "gun",
+    "command": "git reset HEAD~1 --soft",
+    "usage": "gun",
+    "description": "Undo the latest commit; keep changes staged",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gun"
+    ]
+  },
+  {
+    "name": "gitcount",
+    "command": "gitcount",
+    "usage": "gitcount",
+    "description": "Count non-merge commits by contributor",
     "type": "function",
     "category": "git",
     "source": "60-functions.zsh",
-    "usage": "croot"
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gitcount"
+    ],
+    "notes": [
+      "Alias gcount points to gitcount for compatibility"
+    ]
   },
   {
-    "name": "path",
-    "command": "path",
-    "description": "Print each PATH entry on its own line",
-    "type": "function",
-    "category": "utility",
-    "source": "60-functions.zsh",
-    "usage": "path",
-    "plainMode": true,
-    "richOutput": true
+    "name": "gcount",
+    "command": "gitcount",
+    "usage": "gcount",
+    "description": "Alias for gitcount",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gcount"
+    ]
   },
   {
     "name": "fbr",
     "command": "fbr",
-    "description": "Fuzzy-pick and checkout a git branch from local or remote refs",
+    "usage": "fbr",
+    "description": "Pick and check out a Git branch",
     "type": "function",
     "category": "git",
     "source": "60-functions.zsh",
-    "usage": "fbr",
-    "interactive": true,
+    "availability": "Available when git is installed and fzf 0.52.0+ is ready",
+    "dependencies": "git and fzf 0.52.0+",
+    "examples": [
+      "fbr"
+    ],
     "requires": [
       "fzf"
+    ],
+    "interactive": true
+  },
+  {
+    "name": "weather",
+    "command": "curl --http1.1 -fsSL https://wttr.in",
+    "usage": "weather",
+    "description": "Show the default HTTPS forecast",
+    "type": "alias",
+    "category": "system",
+    "source": "20-aliases.zsh",
+    "availability": "Available when curl is installed",
+    "dependencies": "curl",
+    "examples": [
+      "weather"
     ]
   },
   {
-    "name": "npkg",
-    "command": "npkg <subcommand>",
-    "description": "Nix package manager wrapper — add, remove, find, search, upgrade, and more",
+    "name": "fkill",
+    "command": "fkill [signal]",
+    "usage": "fkill [signal]",
+    "description": "Pick processes and send a signal",
     "type": "function",
-    "category": "nix",
+    "category": "system",
     "source": "60-functions.zsh",
-    "usage": "npkg <command> [args]",
-    "availability": "Available when nix is installed",
+    "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
+    "dependencies": "ps and fzf 0.52.0+",
     "examples": [
-      "npkg add bat",
-      "npkg find nvim",
-      "npkg remove",
-      "npkg outdated",
-      "npkg refresh",
-      "npkg upgrade"
+      "fkill 15"
     ],
-    "features": [
-      "add [pkg ...]        Add package(s); with no args opens an fzf picker",
-      "install [pkg ...]    Alias for add",
-      "find [query]         Fuzzy-pick nixpkgs attribute names and add selections",
-      "search <query>       Run a plain nixpkgs search with descriptions",
-      "list                 List packages in the current profile",
-      "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
-      "outdated             Compare installed and evaluated Nix output identities",
-      "refresh              Rebuild the cached nixpkgs attribute index",
-      "upgrade [pkg ...]    Upgrade all packages or only the named ones",
-      "help                 Show this help text"
+    "requires": [
+      "fzf"
     ],
-    "notes": [
-      "Bare install names are expanded to nixpkgs#<name>",
-      "npkg find searches a cached list of nixpkgs attribute names",
-      "npkg refresh and outdated need jq",
-      "Interactive add/find/remove needs jq and fzf 0.52.0+",
-      "Advanced nix flags can be passed through by calling nix directly"
+    "interactive": true
+  },
+  {
+    "name": "headers",
+    "command": "headers <url>",
+    "usage": "headers <url>",
+    "description": "Print response headers after redirects",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when curl is installed",
+    "dependencies": "curl",
+    "examples": [
+      "headers https://example.com"
     ]
   },
   {
     "name": "fanprofile",
     "command": "fanprofile",
-    "description": "Show the current laptop performance profile",
-    "type": "function",
-    "category": "utility",
-    "source": "60-functions.zsh",
     "usage": "fanprofile",
+    "description": "Show the laptop performance profile",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available on a supported Linux laptop profile interface",
+    "dependencies": "Linux ACPI or ASUS WMI profile interface",
+    "examples": [
+      "fanprofile"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "name": "ports",
+    "command": "ports",
+    "usage": "ports",
+    "description": "Show listening sockets and processes",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when ss is installed",
+    "dependencies": "ss",
+    "examples": [
+      "ports"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "name": "myip",
+    "command": "myip",
+    "usage": "myip",
+    "description": "Show the public IP address",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when curl is installed",
+    "dependencies": "curl",
+    "examples": [
+      "myip"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "name": "path",
+    "command": "path",
+    "usage": "path",
+    "description": "List PATH entries",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "examples": [
+      "path"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "name": "cgm",
+    "command": "cgm <command> [credential ...]",
+    "usage": "cgm <command> [credential ...]",
+    "description": "Store and load shell credentials securely",
+    "type": "function",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool and a Secret Service provider are available",
+    "dependencies": "secret-tool and a Secret Service provider",
+    "examples": [
+      "cgm env OPENAI_KEY"
+    ],
+    "features": [
+      "set <name>          Securely store or replace one credential",
+      "list                List saved names without retrieving values",
+      "env <name ...>      Load selected credentials into this shell",
+      "env --all           Load every saved credential into this shell",
+      "unset <name ...>    Remove selected variables from this shell",
+      "delete <name ...>   Delete stored credentials and unset them here",
+      "help                Show this help text"
+    ],
+    "notes": [
+      "Secrets are stored by Linux Secret Service through secret-tool.",
+      "cgm list and completion use credential names only; values stay hidden.",
+      "cgm env changes this shell and child processes started afterward.",
+      "Other open shells and already-running processes are not changed.",
+      "cgm delete returns nonzero if a current-shell variable cannot be unset."
+    ],
     "plainMode": true,
     "richOutput": true
   },
   {
     "name": "upkg",
-    "command": "upkg [command]",
-    "description": "Unified package update/check wrapper across supported managers",
+    "command": "upkg [command] [args] [flags]",
+    "usage": "upkg [command] [args] [flags]",
+    "description": "Check, search, upgrade, and clean detected managers",
     "type": "function",
     "category": "packages",
     "source": "60-functions.zsh",
-    "usage": "upkg [command] [args] [--only <list>] [--skip <list>] [--sudo] [--dry-run]",
+    "availability": "Available when at least one supported package manager is installed",
+    "dependencies": "a supported package manager",
     "examples": [
       "upkg                                  # check for outdated packages",
       "upkg search ripgrep                  # compare package search matches",
@@ -433,7 +599,8 @@
       "upkg upgrade --sudo --only apt       # run a privileged backend",
       "upkg clean --dry-run --only brew,npm # preview manager-owned cleanup",
       "upkg clean --sudo --only apt         # remove unused APT data",
-      "upkg managers --only npm,flatpak     # inspect selected order"
+      "upkg managers --only npm,flatpak     # inspect selected order",
+      "upkg search ripgrep --only=apt,nix"
     ],
     "features": [
       "outdated            Show outdated packages across detected managers",
@@ -468,24 +635,168 @@
     "richOutput": true
   },
   {
-    "name": "gitcount",
-    "command": "gitcount",
-    "description": "Show contributor counts for the current repo history",
+    "name": "npkg",
+    "command": "npkg <command> [args]",
+    "usage": "npkg <command> [args]",
+    "description": "Manage the current Nix profile",
     "type": "function",
-    "category": "git",
+    "category": "packages",
     "source": "60-functions.zsh",
-    "usage": "gitcount",
+    "availability": "Available when nix is installed",
+    "dependencies": "nix; jq and fzf 0.52.0+ for optional workflows",
+    "examples": [
+      "npkg add bat",
+      "npkg find nvim",
+      "npkg remove",
+      "npkg outdated",
+      "npkg refresh",
+      "npkg upgrade",
+      "npkg search ripgrep"
+    ],
+    "features": [
+      "add [pkg ...]        Add package(s); with no args opens an fzf picker",
+      "install [pkg ...]    Alias for add",
+      "find [query]         Fuzzy-pick nixpkgs attribute names and add selections",
+      "search <query>       Run a plain nixpkgs search with descriptions",
+      "list                 List packages in the current profile",
+      "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
+      "outdated             Compare installed and evaluated Nix output identities",
+      "refresh              Rebuild the cached nixpkgs attribute index",
+      "upgrade [pkg ...]    Upgrade all packages or only the named ones",
+      "help                 Show this help text"
+    ],
     "notes": [
-      "Alias gcount points to gitcount for compatibility"
+      "Bare install names are expanded to nixpkgs#<name>",
+      "npkg find searches a cached list of nixpkgs attribute names",
+      "npkg refresh and outdated need jq",
+      "Interactive add/find/remove needs jq and fzf 0.52.0+",
+      "Advanced nix flags can be passed through by calling nix directly"
     ]
   },
   {
-    "name": "mkcd",
-    "command": "mkcd <dir>",
-    "description": "Create a directory and cd into it in one step",
+    "name": "G",
+    "command": "| grep",
+    "usage": "<command> G <pattern>",
+    "description": "Pipe command output to grep",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when grep is installed",
+    "dependencies": "grep",
+    "examples": [
+      "git log --oneline G fix"
+    ]
+  },
+  {
+    "name": "L",
+    "command": "| less",
+    "usage": "<command> L",
+    "description": "Pipe command output to less",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when less is installed",
+    "dependencies": "less",
+    "examples": [
+      "git diff L"
+    ]
+  },
+  {
+    "name": "W",
+    "command": "| wc -l",
+    "usage": "<command> W",
+    "description": "Pipe command output to a line count",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when wc is installed",
+    "dependencies": "wc",
+    "examples": [
+      "git log --oneline W"
+    ]
+  },
+  {
+    "name": "H",
+    "command": "| head",
+    "usage": "<command> H",
+    "description": "Pipe command output to head",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when head is installed",
+    "dependencies": "head",
+    "examples": [
+      "git log --oneline H"
+    ]
+  },
+  {
+    "name": "T",
+    "command": "| tail",
+    "usage": "<command> T",
+    "description": "Pipe command output to tail",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when tail is installed",
+    "dependencies": "tail",
+    "examples": [
+      "git log --oneline T"
+    ]
+  },
+  {
+    "name": "NE",
+    "command": "2>/dev/null",
+    "usage": "<command> NE",
+    "description": "Suppress stderr for one command",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "examples": [
+      "optional-command NE"
+    ]
+  },
+  {
+    "name": "NUL",
+    "command": ">/dev/null 2>&1",
+    "usage": "<command> NUL",
+    "description": "Suppress stdout and stderr for one command",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "examples": [
+      "noisy-command NUL"
+    ]
+  },
+  {
+    "name": "tips",
+    "command": "tips",
+    "usage": "tips",
+    "description": "Print one short usage tip",
     "type": "function",
-    "category": "navigation",
-    "source": "60-functions.zsh",
-    "usage": "mkcd <directory>"
+    "category": "meta",
+    "source": "80-tips.zsh",
+    "examples": [
+      "tips"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "name": "zhelp",
+    "command": "zhelp [--all] [--plain] [query]",
+    "usage": "zhelp [--all] [--plain] [query]",
+    "description": "Find commands and queue an example",
+    "type": "function",
+    "category": "meta",
+    "source": "65-help.zsh",
+    "dependencies": "fzf 0.52.0+ for the optional interactive palette",
+    "examples": [
+      "zhelp package"
+    ],
+    "features": [
+      "--all       Include unavailable commands",
+      "--plain     Force plain-text output",
+      "-h, --help  Show help"
+    ]
   }
 ]

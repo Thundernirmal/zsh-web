@@ -204,10 +204,6 @@
     z-index: 50;
   }
 
-  .tip-virtual-item {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 4.75rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

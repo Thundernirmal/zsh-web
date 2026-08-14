@@ -1,75 +1,57 @@
 [
   {
-    "text": "Use .. / ... / .... to go up 1/2/3 levels quickly",
+    "text": "Use .., ..., or .... to move up one, two, or three directories",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Use - to go back to your previous directory",
+    "text": "Use - to return to the previous directory",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Use pushd/popd and dirs -v for directory stack navigation",
+    "text": "Run dirs -v to inspect the directory stack",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Use cd ~1 after dirs -v to jump back through your directory stack",
+    "text": "Use *(D) when a glob should include hidden entries",
+    "category": "globbing",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Start a command with a space to keep it out of saved history",
+    "category": "history",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run zhelp to find a command and queue an editable example",
+    "category": "shell",
+    "source": "help",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run ll for a detailed listing that includes hidden entries",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Run ll for a long listing with hidden files and readable sizes",
-    "category": "navigation",
+    "text": "Run ff <pattern> [path] to find files by name",
+    "category": "search",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Run lt for a tree view up to 3 levels deep",
-    "category": "navigation",
-    "source": "navigation",
-    "availability": "Available when the lt alias is available"
-  },
-  {
-    "text": "Run glog for a visual git graph of the last 20 commits",
-    "category": "git",
-    "source": "git",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run gpr to pull with rebase for a cleaner history",
-    "category": "git",
+    "text": "Run ft <pattern> [path] to search file contents",
+    "category": "search",
     "source": "core",
     "availability": "Always available"
-  },
-  {
-    "text": "Run gun to undo your last commit while keeping changes staged",
-    "category": "git",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run croot to jump to the root of the current git repo",
-    "category": "git",
-    "source": "git",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run fbr to fuzzy-pick and checkout a git branch from local or remote refs",
-    "category": "git",
-    "source": "git",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use gs, gd, ga, gaa, gco, gb for quick git operations when the OMZ git plugin is enabled",
-    "category": "git",
-    "source": "git-plugin",
-    "availability": "Available when the OMZ git plugin aliases are loaded"
   },
   {
     "text": "Run extract <archive> to unpack a supported archive",
@@ -78,429 +60,267 @@
     "availability": "Always available"
   },
   {
-    "text": "Run mkcd <dir> to create a directory and cd into it in one step",
+    "text": "Run mkcd <dir> to create and enter a directory",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Run dusage [path] [count] to summarize any directory with a custom limit",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run bigfiles [path] [count] to inspect any tree with a custom limit",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run ports to see all listening ports and their processes",
-    "category": "network",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run myip to check your public IP address over HTTPS",
-    "category": "network",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run weather to get a quick forecast over HTTPS",
-    "category": "network",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run peek <file> to preview a file quickly",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run headers <url> to follow redirects and print response headers",
-    "category": "network",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use global alias G anywhere: git log G fix pipes to grep",
-    "category": "pipe",
-    "source": "git",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use global alias L anywhere: cat file.txt L pipes to less",
-    "category": "pipe",
-    "source": "globals",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use global alias W anywhere: ps aux W counts lines",
-    "category": "pipe",
-    "source": "globals",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use global alias NE anywhere: command NE suppresses errors",
-    "category": "pipe",
-    "source": "globals",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use global alias NUL anywhere: noisy-command NUL silences stdout and stderr",
-    "category": "pipe",
-    "source": "globals",
-    "availability": "Always available"
-  },
-  {
-    "text": "Combine globals: git log G fix W counts commits mentioning fix",
-    "category": "pipe",
-    "source": "git",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use **/*.ext for recursive glob matching (EXTENDED_GLOB)",
-    "category": "globbing",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use *(.m-1) to glob files modified in the last day",
-    "category": "globbing",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "file2 sorts before file10 because NUMERIC_GLOB_SORT is enabled",
-    "category": "globbing",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "History is shared across all open terminal sessions",
-    "category": "history",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Ctrl+R history search skips duplicate commands",
-    "category": "history",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Commands starting with a space are omitted from history (HIST_IGNORE_SPACE)",
-    "category": "history",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Command spell-correction prompts are intentionally disabled",
-    "category": "shell",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Tab completion is case-insensitive for names and paths",
-    "category": "shell",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Use z <pattern> to jump to directories zoxide remembers",
-    "category": "fzf",
-    "source": "zoxide",
-    "availability": "Available when zoxide is installed"
-  },
-  {
-    "text": "Press Ctrl+R to fuzzy search your command history",
-    "category": "history",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
-  },
-  {
-    "text": "Press Ctrl+T to fuzzy insert a file path at your cursor",
-    "category": "fzf",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
-  },
-  {
-    "text": "Press Alt+C to fuzzy cd into a directory",
-    "category": "fzf",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
-  },
-  {
-    "text": "Run npkg add bat for a short nix profile add command",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix is installed"
-  },
-  {
-    "text": "Run npkg search ripgrep to search nixpkgs with package descriptions",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix is installed"
-  },
-  {
-    "text": "Run npkg refresh to rebuild the cached nixpkgs picker index (requires jq)",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed"
-  },
-  {
-    "text": "Run npkg install with no args to fuzzy-pick nixpkgs attribute names",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready"
-  },
-  {
-    "text": "Run npkg find nvim to seed the nix package picker with an initial query",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready"
-  },
-  {
-    "text": "npkg find shows description, version, and homepage in the preview pane",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready"
-  },
-  {
-    "text": "Run npkg remove with no args to fuzzy-select installed Nix packages to uninstall",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready"
-  },
-  {
-    "text": "Run fanprofile to see the current laptop performance/fan profile",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run upkg managers to see active backends and alternates like pacman via --only",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run upkg managers --only=npm,flatpak to confirm selected execution order before upgrading",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "On Arch-family systems, upkg treats empty repo and AUR outdated checks as up to date instead of surfacing a false failure",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run upkg plan or upkg --dry-run to preview upgrades without changing packages",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run upkg upgrade --sudo to opt into system package upgrades explicitly",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run gitcount to see contributor counts for the current repo; gcount still works as a shortcut",
+    "text": "Run croot to jump to the current Git repository root",
     "category": "git",
     "source": "git",
     "availability": "Always available"
   },
   {
-    "text": "npkg pickers move the preview below the list on narrow terminals so names stay readable",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready"
-  },
-  {
-    "text": "Run upkg search ripgrep to compare matches from detected managers in one compact table",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "In rich terminals, upkg search shows which manager it is querying before the final table appears",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run upkg search ripgrep viewer to pass multi-word searches through to package manager backends",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Use upkg search ripgrep --only=brew to search Homebrew formulae and casks without touching other package managers",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "When upkg search has backend failures, the summary names the failing manager IDs so you can rerun with --only quickly",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Pipe upkg managers when you want plain active-manager IDs without extra status tags",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Use ff <pattern> [path] to find files by name; it falls back from fd/fdfind to find",
-    "category": "search",
-    "source": "core",
+    "text": "Run glog to see the latest 20 commits as a graph",
+    "category": "git",
+    "source": "git",
     "availability": "Always available"
   },
   {
-    "text": "Use ft <pattern> [path] to search text; it falls back from ripgrep to grep",
-    "category": "search",
-    "source": "core",
+    "text": "Run gpr to pull the current branch with rebase",
+    "category": "git",
+    "source": "git",
     "availability": "Always available"
   },
   {
-    "text": "Run path to inspect each PATH entry with rich output in capable terminals",
+    "text": "Run gun to undo the latest commit but keep changes staged",
+    "category": "git",
+    "source": "git",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run gitcount to count non-merge commits by contributor",
+    "category": "git",
+    "source": "git",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run path to inspect every PATH entry",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Run upkg to list outdated packages across detected package managers",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Use upkg --only=flatpak,npm to limit checks to selected managers",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run fkill to fuzzy select processes and send SIGTERM for a graceful shutdown",
-    "category": "search",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Run fkill 9 only when a process must be force-killed with SIGKILL",
-    "category": "search",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "text": "Custom commands complete only the argument types they accept, such as archives, directories, counts, URLs, and signals",
+    "text": "Run dusage [path] [count] to rank immediate entries by size",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Run zhelp to search available commands and queue an editable example without executing it",
+    "text": "Run bigfiles [path] [count] to rank files recursively",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Press Tab after npkg to browse its commands; cached package attributes are offered without running Nix",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix is installed"
-  },
-  {
-    "text": "Nix cleanup uses nix-collect-garbage; the dependency checker reports when a Nix install is missing it",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix is installed"
-  },
-  {
-    "text": "Run upkg clean --dry-run to preview unused-package and stale-cache cleanup without changing manager state",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run upkg clean to let each selected package manager conservatively remove data it classifies as unused or stale",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "In rich terminals, every upkg command path—including help and upgrades—uses the shared dashboard theme",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Press Tab after upkg or --only= to browse commands, flags, and supported manager IDs",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "npm cleanup lists npx cache keys and removes only those explicit entries without --force",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "Run upkg clean --sudo to authorize cleanup for selected system package managers",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when at least one supported package manager is installed"
-  },
-  {
-    "text": "dusage, bigfiles, and path render control characters as visible escapes without changing printable Unicode",
-    "category": "utility",
+    "text": "Run ports to show listening sockets and their processes",
+    "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Use *(D) or **/*(D) when a glob should explicitly include dotfiles",
-    "category": "globbing",
+    "text": "Run myip to show your public IP address",
+    "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Fuzzy workflows require stable fzf 0.52.0 or newer; check setup with scripts/check-deps.sh",
-    "category": "utility",
+    "text": "Run weather for a concise HTTPS forecast",
+    "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Validated fzf startup integration is reused across shells and refreshes automatically when fzf changes",
+    "text": "Run peek <file> for a quick file preview",
+    "category": "viewing",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Run headers <url> to follow redirects and print HTTP headers",
+    "category": "network",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "text": "Use G, L, or W to pipe to grep, less, or wc -l",
+    "category": "pipe",
+    "source": "globals",
+    "availability": "Always available"
+  },
+  {
+    "text": "Use NE to hide stderr or NUL to hide all output",
+    "category": "pipe",
+    "source": "globals",
+    "availability": "Always available"
+  },
+  {
+    "text": "Press Tab after a custom command to see valid arguments",
     "category": "shell",
     "source": "core",
     "availability": "Always available"
   },
   {
-    "text": "Run npkg outdated to report current, changed, or unknown Nix outputs before upgrading",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "text": "Run fanprofile to show the current laptop performance profile",
+    "category": "utility",
+    "source": "system",
+    "availability": "Available on a supported Linux laptop profile interface"
   },
   {
-    "text": "Press Ctrl+C during npkg outdated to cancel its checks without disturbing unrelated background jobs",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed"
+    "text": "Use z <query> to jump to a remembered directory",
+    "category": "navigation",
+    "source": "zoxide",
+    "availability": "Available when zoxide is installed"
   },
   {
-    "text": "Use zi for an interactive zoxide directory picker",
+    "text": "Press Ctrl+R to insert a history entry for editing",
+    "category": "history",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "text": "Press Ctrl+T to insert a selected file path",
+    "category": "fzf",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "text": "Press Alt+C to select and enter a directory",
+    "category": "fzf",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "text": "Run fkill to select processes and send SIGTERM; use 9 only to force",
+    "category": "process",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "text": "Run fbr to select and check out a Git branch",
+    "category": "git",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "text": "Use zi to select a remembered directory interactively",
     "category": "fzf",
     "source": "zoxide",
     "availability": "Available when zoxide is installed and fzf is ready"
+  },
+  {
+    "text": "Run lt for a tree view up to three levels deep",
+    "category": "navigation",
+    "source": "navigation",
+    "availability": "Available when the lt alias is available"
+  },
+  {
+    "text": "Run cgm set OPENAI_KEY to store a credential securely",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool"
+  },
+  {
+    "text": "Run cgm env OPENAI_KEY to load a credential into this shell",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool"
+  },
+  {
+    "text": "Run cgm list to show saved names without retrieving values",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool"
+  },
+  {
+    "text": "Run npkg add bat to add a package to the current Nix profile",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix is installed"
+  },
+  {
+    "text": "Run npkg search ripgrep to search nixpkgs",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix is installed"
+  },
+  {
+    "text": "Run npkg list to show the current Nix profile",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix is installed"
+  },
+  {
+    "text": "Run npkg refresh to rebuild the nixpkgs attribute cache",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed"
+  },
+  {
+    "text": "Run npkg outdated to check for Nix output changes",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed"
+  },
+  {
+    "text": "Run npkg find nvim to open a seeded package picker",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed and fzf is ready"
+  },
+  {
+    "text": "Run npkg remove with no arguments to select installed packages",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed and fzf is ready"
+  },
+  {
+    "text": "Run upkg to check detected package managers for updates",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "text": "Run upkg search ripgrep to search detected package managers",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "text": "Run upkg managers to show active and alternate backends",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "text": "Use upkg --only=brew,npm to select specific backends",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "text": "Run upkg plan to preview package upgrades",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "text": "Run upkg clean --dry-run before package cleanup",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "text": "Run upkg upgrade --sudo to authorize system package upgrades",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, or dnf is installed"
+  },
+  {
+    "text": "Run upkg clean --sudo to authorize system package cleanup",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, or dnf is installed"
   }
 ]

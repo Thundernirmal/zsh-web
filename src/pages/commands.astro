@@ -5,25 +5,12 @@ import PageHeader from '../components/PageHeader.astro';
 import StatCard from '../components/StatCard.astro';
 import { BracesIcon, FileCheck2Icon, SquareTerminalIcon } from 'lucide-react';
 import commandsData from '../data/commands.json';
+import type { ShellCommand } from '@/lib/shell-docs';
 
-type Command = {
-	type: string;
-	usage?: string;
-	availability?: string;
-	features?: string[];
-	examples?: string[];
-	notes?: string[];
-	requires?: string[];
-	optional?: string[];
-	interactive?: boolean;
-	plainMode?: boolean;
-	richOutput?: boolean;
-};
-
-const commands: Command[] = commandsData;
+const commands = commandsData as ShellCommand[];
 const functionCount = commands.filter((command) => command.type === 'function').length;
 const hasItems = (items?: string[]) => (items?.length ?? 0) > 0;
-const hasExtractedDetails = (command: Command) => {
+const hasExtractedDetails = (command: ShellCommand) => {
 	const listFields = [
 		command.features,
 		command.examples,
@@ -34,6 +21,7 @@ const hasExtractedDetails = (command: Command) => {
 	const flagFields = [
 		command.usage,
 		command.availability,
+		command.dependencies,
 		command.interactive,
 		command.plainMode,
 		command.richOutput,
@@ -46,7 +34,7 @@ const documentedCount = commands.filter((command) =>
 ).length;
 ---
 
-<Layout title="Commands">
+<Layout title="Commands" description={`Search ${commands.length} aliases, global aliases, and functions extracted from Nirmal's Zsh config.`}>
 	<PageHeader title="Command Reference">
 		<p>
 			{commands.length} live entries synced from <span class="font-medium text-primary">Nirmal's Shell</span>, with usage docs and feature notes extracted directly from the zsh sources.
@@ -60,6 +48,6 @@ const documentedCount = commands.filter((command) =>
 			<StatCard value={documentedCount} label="entries with extracted details" icon={FileCheck2Icon} />
 		</div>
 
-		<SearchCommands client:load />
+		<SearchCommands client:load commands={commands} />
 	</div>
 </Layout>

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
 
-import commandsData from "@/data/commands.json"
 import { CategoryBadge } from "@/components/CategoryBadge"
+import { highlightText } from "@/components/HighlightText"
 import {
   Accordion,
   AccordionContent,
@@ -25,42 +25,24 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { Separator } from "@/components/ui/separator"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-
-type Command = {
-  name: string
-  command?: string
-  usage?: string
-  description?: string
-  type: string
-  category?: string
-  source?: string
-  availability?: string
-  examples?: string[]
-  features?: string[]
-  notes?: string[]
-  requires?: string[]
-  optional?: string[]
-  interactive?: boolean
-  plainMode?: boolean
-  richOutput?: boolean
-}
+import { formatLabel, type ShellCommand } from "@/lib/shell-docs"
 
 type Filter = "all" | "alias" | "global_alias" | "function"
 
-const commands = commandsData as Command[]
 const validFilters = new Set<Filter>(["all", "alias", "global_alias", "function"])
 
-function formatLabel(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .split(/[-\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
-
-function commandId(command: Command) {
+function commandId(command: ShellCommand) {
   return `${command.type}:${command.name}`
 }
 
@@ -71,26 +53,7 @@ function typeVariant(type: string): "alias" | "global" | "function" | "metadata"
   return "metadata"
 }
 
-function highlightText(text: string, query: string): ReactNode {
-  const normalized = query.trim()
-  if (normalized.length < 2) return text
-
-  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const splitRegex = new RegExp(`(${escaped})`, "gi")
-  const exactRegex = new RegExp(`^${escaped}$`, "i")
-
-  return text.split(splitRegex).map((part, index) =>
-    exactRegex.test(part) ? (
-      <mark key={`${part}:${index}`} className="rounded-sm bg-primary/20 px-0.5 text-foreground">
-        {part}
-      </mark>
-    ) : (
-      part
-    ),
-  )
-}
-
-function searchableText(command: Command) {
+function searchableText(command: ShellCommand) {
   return [
     command.name,
     command.command,
@@ -100,8 +63,9 @@ function searchableText(command: Command) {
     command.category,
     command.source,
     command.availability,
-    ...(command.examples ?? []),
-    ...(command.features ?? []),
+    command.dependencies,
+    ...meaningfulExamples(command),
+    ...searchableFeatures(command),
     ...(command.notes ?? []),
     ...(command.requires ?? []),
     ...(command.optional ?? []),
@@ -111,7 +75,7 @@ function searchableText(command: Command) {
     .toLowerCase()
 }
 
-function matchingDetailSections(command: Command, query: string) {
+function matchingDetailSections(command: ShellCommand, query: string) {
   const normalized = query.trim().toLowerCase()
   if (normalized.length < 2) return []
 
@@ -126,10 +90,11 @@ function matchingDetailSections(command: Command, query: string) {
     ["Command", [command.command]],
     ["Usage", [command.usage]],
     ["Availability", [command.availability]],
+    ["Dependencies", [command.dependencies]],
     ["Requirements", command.requires ?? []],
     ["Integrations", command.optional ?? []],
-    ["Examples", command.examples ?? []],
-    ["Features", command.features ?? []],
+    ["Examples", meaningfulExamples(command)],
+    ["Features", searchableFeatures(command)],
     ["Notes", command.notes ?? []],
   ]
 
@@ -138,28 +103,332 @@ function matchingDetailSections(command: Command, query: string) {
     .map(([label]) => label)
 }
 
-function DetailList({ title, items, query }: { title: string; items?: string[]; query: string }) {
-  if (!items?.length) return null
+type FeatureDetail = {
+  usage: string
+  description: string
+  examples: string[]
+}
+
+function splitFeature(feature: string) {
+  const parts = feature.match(/^(.+?)\s{2,}(.+)$/)
+
+  return parts
+    ? { usage: parts[1].trim(), description: parts[2].trim() }
+    : { usage: "", description: feature.trim() }
+}
+
+function searchableFeatures(command: ShellCommand) {
+  return (command.features ?? []).flatMap((feature) => {
+    const { usage } = splitFeature(feature)
+    return usage ? [feature, `${command.name} ${usage}`] : [feature]
+  })
+}
+
+function splitExample(example: string) {
+  const parts = example.match(/^(.*?)\s+#\s+(.+)$/)
+
+  return parts
+    ? { command: parts[1].trim(), annotation: parts[2].trim() }
+    : { command: example.trim(), annotation: undefined }
+}
+
+function normalizeCommandToken(token: string) {
+  return token.replace(/^['"]|['"]$/g, "").replace(/[,;:]$/, "")
+}
+
+function literalUsageTokens(usage: string) {
+  return usage
+    .split(/\s+/)
+    .map(normalizeCommandToken)
+    .filter((token) => token && !/[<[\]]|\.\.\./.test(token))
+}
+
+function exampleArguments(command: ShellCommand, example: string) {
+  const { command: exampleCommand } = splitExample(example)
+  const tokens = (exampleCommand.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [])
+    .map(normalizeCommandToken)
+
+  if (tokens[0] === command.name) {
+    tokens.shift()
+  }
+
+  return tokens
+}
+
+function normalizeInvocation(value: string) {
+  return value.trim().replace(/\s+/g, " ")
+}
+
+function isRedundantStandaloneExample(command: ShellCommand, example: string) {
+  const { command: exampleCommand, annotation } = splitExample(example)
+  if (annotation) return false
+
+  const normalizedExample = normalizeInvocation(exampleCommand)
+  return [command.name, command.command, command.usage]
+    .filter((value): value is string => Boolean(value))
+    .some((value) => normalizeInvocation(value) === normalizedExample)
+}
+
+function isRedundantFeatureExample(command: ShellCommand, usage: string, example: string) {
+  const { annotation } = splitExample(example)
+  if (annotation) return false
+
+  const args = exampleArguments(command, example)
+  const literals = literalUsageTokens(usage)
+
+  return args.length === literals.length && args.every((arg, index) => arg === literals[index])
+}
+
+function featureMatchScore(usage: string, args: string[]) {
+  const literals = literalUsageTokens(usage)
+  if (literals.length === 0 || args.length === 0) return 0
+
+  let matched = 0
+  while (matched < literals.length && literals[matched] === args[matched]) {
+    matched += 1
+  }
+
+  if (matched === 0) return 0
+
+  return matched * 100 + (matched === literals.length ? 10 : 0)
+}
+
+function buildFeatureDetails(command: ShellCommand) {
+  const features: FeatureDetail[] = (command.features ?? []).map((feature) => ({
+    ...splitFeature(feature),
+    examples: [],
+  }))
+  const unmatchedExamples: string[] = []
+  const defaultFeature = command.notes
+    ?.map((note) => note.match(/\bdefaults to ([A-Za-z0-9_-]+)/i)?.[1])
+    .find(Boolean)
+
+  for (const example of command.examples ?? []) {
+    const args = exampleArguments(command, example)
+    let bestIndex = -1
+    let bestScore = 0
+
+    features.forEach((feature, index) => {
+      const score = featureMatchScore(feature.usage, args)
+      if (score > bestScore) {
+        bestIndex = index
+        bestScore = score
+      }
+    })
+
+    if (bestIndex === -1 && defaultFeature) {
+      bestIndex = features.findIndex(
+        (feature) => literalUsageTokens(feature.usage)[0] === defaultFeature,
+      )
+    }
+
+    if (bestIndex >= 0) {
+      const feature = features[bestIndex]
+      if (!isRedundantFeatureExample(command, feature.usage, example)) {
+        feature.examples.push(example)
+      }
+    } else if (!isRedundantStandaloneExample(command, example)) {
+      unmatchedExamples.push(example)
+    }
+  }
+
+  return { features, unmatchedExamples }
+}
+
+function meaningfulExamples(command: ShellCommand) {
+  const { features, unmatchedExamples } = buildFeatureDetails(command)
+  return [...unmatchedExamples, ...features.flatMap((feature) => feature.examples)]
+}
+
+function Example({ example, query }: { example: string; query: string }) {
+  const { command, annotation } = splitExample(example)
 
   return (
-    <section className="grid min-w-0 gap-1.5">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h4>
-      <ul className="grid gap-1.5 pl-4 text-base leading-6 marker:text-primary">
-        {items.map((item) => (
-          <li key={`${title}:${item}`}>{highlightText(item, query)}</li>
+    <div className="grid min-w-0 gap-0.5">
+      <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-medium leading-5 text-foreground">
+        <code translate="no">{highlightText(command, query)}</code>
+      </pre>
+      {annotation && (
+        <span className="text-pretty text-sm leading-5 text-muted-foreground">
+          {highlightText(annotation, query)}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function FeatureTable({
+  id,
+  commandName,
+  features,
+  query,
+}: {
+  id: string
+  commandName: string
+  features: FeatureDetail[]
+  query: string
+}) {
+  if (features.length === 0) return null
+  const hasFeatureExamples = features.some((feature) => feature.examples.length > 0)
+
+  return (
+    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-features`}>
+      <div className="grid min-w-0 gap-0.5 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-3">
+        <h4 id={`${id}-features`} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {hasFeatureExamples ? "Features & Examples" : "Features"}
+        </h4>
+        {hasFeatureExamples && (
+          <p className="text-pretty text-sm leading-5 text-muted-foreground">
+            Examples appear only where they add useful detail.
+          </p>
+        )}
+      </div>
+      <ul className="grid md:hidden">
+        {features.map((feature, index) => (
+          <li
+            key={`${feature.usage}:${feature.description}`}
+            className="grid min-w-0 gap-2.5 pt-3 first:pt-0"
+          >
+            <div className="grid min-w-0 gap-1">
+              {feature.usage ? (
+                <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-semibold leading-5 text-foreground">
+                  <code translate="no">{highlightText(feature.usage, query)}</code>
+                </pre>
+              ) : (
+                <span className="text-sm text-muted-foreground">General feature</span>
+              )}
+              <p className="text-pretty text-sm leading-5">
+                {highlightText(feature.description, query)}
+              </p>
+            </div>
+            {feature.examples.length > 0 && (
+              <div className="grid min-w-0 gap-1">
+                <span className="text-xs font-medium text-muted-foreground">Example</span>
+                <div className="grid min-w-0 gap-2">
+                  {feature.examples.map((example) => (
+                    <Example key={example} example={example} query={query} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {index < features.length - 1 && <Separator />}
+          </li>
+        ))}
+      </ul>
+      <div className="hidden md:block">
+        <Table className="table-fixed">
+          <TableCaption className="sr-only">
+            Features and descriptions{hasFeatureExamples ? ", with matching examples" : ""} for {commandName}
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead scope="col" className="w-1/4">Usage</TableHead>
+              <TableHead scope="col">Description</TableHead>
+              {hasFeatureExamples && <TableHead scope="col" className="w-1/3">Example</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {features.map((feature) => (
+              <TableRow key={`${feature.usage}:${feature.description}`}>
+                <TableHead scope="row" className="h-auto align-top whitespace-normal py-2">
+                  {feature.usage ? (
+                    <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-semibold leading-5 text-foreground">
+                      <code translate="no">{highlightText(feature.usage, query)}</code>
+                    </pre>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableHead>
+                <TableCell className="align-top whitespace-normal text-pretty leading-6">
+                  {highlightText(feature.description, query)}
+                </TableCell>
+                {hasFeatureExamples && (
+                  <TableCell className="align-top whitespace-normal">
+                    {feature.examples.length > 0 ? (
+                      <div className="grid min-w-0 gap-2">
+                        {feature.examples.map((example) => (
+                          <Example key={example} example={example} query={query} />
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="sr-only">No example documented</span>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </section>
+  )
+}
+
+function ExampleList({
+  id,
+  examples,
+  query,
+  additional,
+}: {
+  id: string
+  examples: string[]
+  query: string
+  additional: boolean
+}) {
+  if (examples.length === 0) return null
+
+  return (
+    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-examples`}>
+      <div className="grid gap-0.5">
+        <h4 id={`${id}-examples`} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {additional ? "Additional Examples" : "Examples"}
+        </h4>
+        {additional && (
+          <p className="text-pretty text-sm leading-5 text-muted-foreground">
+            General workflows that are not tied to one feature.
+          </p>
+        )}
+      </div>
+      <ul className="grid">
+        {examples.map((example, index) => (
+          <li key={example} className="grid gap-2 pt-2.5 first:pt-0">
+            <Example example={example} query={query} />
+            {index < examples.length - 1 && <Separator />}
+          </li>
         ))}
       </ul>
     </section>
   )
 }
 
-export default function SearchCommands() {
+function NotesList({ id, notes, query }: { id: string; notes: string[]; query: string }) {
+  if (notes.length === 0) return null
+
+  return (
+    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-notes`}>
+      <h4 id={`${id}-notes`} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Notes
+      </h4>
+      <ul className="grid">
+        {notes.map((note, index) => (
+          <li key={note} className="grid gap-2 pt-2.5 text-pretty leading-6 first:pt-0">
+            <span className="min-w-0">{highlightText(note, query)}</span>
+            {index < notes.length - 1 && <Separator />}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+export default function SearchCommands({ commands }: { commands: ShellCommand[] }) {
   const [query, setQuery] = useState("")
   const [filter, setFilter] = useState<Filter>("all")
   const [expanded, setExpanded] = useState<string[]>([])
   const [isMounted, setIsMounted] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
+  /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const nextQuery = params.get("q")
@@ -172,7 +441,8 @@ export default function SearchCommands() {
       setExpanded([nextCommand])
     }
     setIsMounted(true)
-  }, [])
+  }, [commands])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!isMounted) return
@@ -206,20 +476,26 @@ export default function SearchCommands() {
   }, [])
 
   const normalizedQuery = query.trim().toLowerCase()
-  const matchesQuery = (command: Command) =>
-    normalizedQuery.length === 0 || searchableText(command).includes(normalizedQuery)
+  const matchesQuery = useCallback(
+    (command: ShellCommand) =>
+      normalizedQuery.length === 0 || searchableText(command).includes(normalizedQuery),
+    [normalizedQuery],
+  )
 
   const filteredCommands = useMemo(
     () => commands.filter((command) => matchesQuery(command) && (filter === "all" || command.type === filter)),
-    [filter, normalizedQuery],
+    [commands, filter, matchesQuery],
   )
 
-  const counts = {
-    all: commands.filter(matchesQuery).length,
-    alias: commands.filter((command) => matchesQuery(command) && command.type === "alias").length,
-    global_alias: commands.filter((command) => matchesQuery(command) && command.type === "global_alias").length,
-    function: commands.filter((command) => matchesQuery(command) && command.type === "function").length,
-  }
+  const counts = useMemo(
+    () => ({
+      all: commands.filter(matchesQuery).length,
+      alias: commands.filter((command) => matchesQuery(command) && command.type === "alias").length,
+      global_alias: commands.filter((command) => matchesQuery(command) && command.type === "global_alias").length,
+      function: commands.filter((command) => matchesQuery(command) && command.type === "function").length,
+    }),
+    [commands, matchesQuery],
+  )
 
   const filters: Array<{ key: Filter; label: string; count: number }> = [
     { key: "all", label: "All", count: counts.all },
@@ -280,7 +556,8 @@ export default function SearchCommands() {
                 key={item.key}
                 value={item.key}
                 disabled={item.count === 0 && filter !== item.key}
-                aria-label={`${item.label}, ${item.count} results`}
+                aria-label={`${item.label}, ${item.count} ${item.count === 1 ? "result" : "results"}`}
+                className="items-baseline"
               >
                 {item.label}
                 <span className="text-xs text-muted-foreground tabular-nums">{item.count}</span>
@@ -315,13 +592,30 @@ export default function SearchCommands() {
         >
           {filteredCommands.map((command) => {
             const detailsMatches = matchingDetailSections(command, query)
+            const detailId = commandId(command).replace(/[^A-Za-z0-9_-]/g, "-")
+            const { features, unmatchedExamples } = buildFeatureDetails(command)
+            const hasFeatures = features.length > 0
+            const displayExamples = unmatchedExamples
+            const notes = command.notes ?? []
+            const hasReferenceDetails = hasFeatures || displayExamples.length > 0 || notes.length > 0
+            const syntaxDetails: Array<{ label: string; value: string }> = []
+
+            if (command.command) {
+              syntaxDetails.push({
+                label: command.type === "function" ? "Command" : "Expands To",
+                value: command.command,
+              })
+            }
+            if (command.usage && command.usage !== command.command) {
+              syntaxDetails.push({ label: "Usage", value: command.usage })
+            }
 
             return (
               <AccordionItem key={commandId(command)} value={commandId(command)}>
                 <AccordionTrigger className="gap-2 py-3 hover:no-underline">
                   <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
                     <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                      <span className="font-mono text-base font-semibold text-foreground">{highlightText(command.name, query)}</span>
+                      <span translate="no" className="font-mono text-base font-semibold text-foreground">{highlightText(command.name, query)}</span>
                       <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
                       {command.category && <CategoryBadge category={command.category} />}
                       {command.source && <Badge variant="metadata">{formatLabel(command.source)}</Badge>}
@@ -336,26 +630,41 @@ export default function SearchCommands() {
                     )}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="grid gap-4 border-t pt-3 pb-4">
+                <AccordionContent className="grid gap-4 pb-4">
+                  <Separator />
                   <div className="grid gap-2.5">
-                    {command.command && (
-                      <div className="grid gap-1.5">
-                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Command</h4>
-                        <code className="block max-w-full overflow-x-auto rounded-lg border bg-background px-2.5 py-2 text-base leading-6 text-foreground">
-                          {highlightText(command.command, query)}
-                        </code>
-                      </div>
-                    )}
-                    {command.usage && command.usage !== command.command && (
-                      <div className="grid gap-1.5">
-                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Usage</h4>
-                        <code className="block max-w-full overflow-x-auto rounded-lg border bg-background px-2.5 py-2 text-base leading-6 text-foreground">
-                          {highlightText(command.usage, query)}
-                        </code>
-                      </div>
-                    )}
-                    {command.availability && (
-                      <p className="text-base leading-6 text-muted-foreground">{highlightText(command.availability, query)}</p>
+                    {syntaxDetails.map((detail, index) => (
+                      <Fragment key={detail.label}>
+                        {index > 0 && <Separator />}
+                        <div className="grid min-w-0 gap-1">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {detail.label}
+                          </h4>
+                          <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-base font-semibold leading-6 text-foreground">
+                            <code translate="no">{highlightText(detail.value, query)}</code>
+                          </pre>
+                        </div>
+                      </Fragment>
+                    ))}
+                    {(command.availability || command.dependencies) && (
+                      <dl className="grid min-w-0 gap-x-4 gap-y-1.5 text-sm leading-6 sm:grid-cols-[7rem_minmax(0,1fr)]">
+                        {command.availability && (
+                          <Fragment>
+                            <dt className="font-medium text-muted-foreground">Availability</dt>
+                            <dd className="min-w-0 text-pretty text-foreground">
+                              {highlightText(command.availability, query)}
+                            </dd>
+                          </Fragment>
+                        )}
+                        {command.dependencies && (
+                          <Fragment>
+                            <dt className="font-medium text-muted-foreground">Dependencies</dt>
+                            <dd className="min-w-0 text-pretty text-foreground">
+                              {highlightText(command.dependencies, query)}
+                            </dd>
+                          </Fragment>
+                        )}
+                      </dl>
                     )}
                   </div>
 
@@ -373,11 +682,27 @@ export default function SearchCommands() {
                     </div>
                   )}
 
-                  <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    <DetailList title="Examples" items={command.examples} query={query} />
-                    <DetailList title="Features" items={command.features} query={query} />
-                    <DetailList title="Notes" items={command.notes} query={query} />
-                  </div>
+                  {hasReferenceDetails && (
+                    <div className="grid min-w-0 gap-5">
+                      {hasFeatures && (
+                        <FeatureTable
+                          id={detailId}
+                          commandName={command.name}
+                          features={features}
+                          query={query}
+                        />
+                      )}
+                      {hasFeatures && displayExamples.length > 0 && <Separator />}
+                      <ExampleList
+                        id={detailId}
+                        examples={displayExamples}
+                        query={query}
+                        additional={hasFeatures}
+                      />
+                      {(hasFeatures || displayExamples.length > 0) && notes.length > 0 && <Separator />}
+                      <NotesList id={detailId} notes={notes} query={query} />
+                    </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             )

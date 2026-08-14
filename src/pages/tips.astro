@@ -5,14 +5,14 @@ import PageHeader from '../components/PageHeader.astro';
 import StatCard from '../components/StatCard.astro';
 import { Layers3Icon, LightbulbIcon, WorkflowIcon } from 'lucide-react';
 import tipsData from '../data/tips.json';
+import type { ShellTip } from '@/lib/shell-docs';
 
-type Tip = { text: string; category: string; source?: string; availability?: string };
-const tips: Tip[] = tipsData;
+const tips = tipsData as ShellTip[];
 const conditionalCount = tips.filter((tip) => tip.availability && tip.availability !== 'Always available').length;
 const sourceCount = new Set(tips.map((tip) => tip.source).filter(Boolean)).size;
 ---
 
-<Layout title="Shell Tips">
+<Layout title="Shell Tips" description={`Browse ${tips.length} searchable shell shortcuts and workflows, including dependency and availability notes.`}>
 	<PageHeader title="Shell Tips">
 		<p>
 			{tips.length} curated tips — shortcuts, workflows, and hidden features from <span class="font-medium text-primary">Nirmal's Shell</span>, including when conditional tools and integrations show up.
