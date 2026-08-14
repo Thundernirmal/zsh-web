@@ -1,0 +1,195 @@
+---
+import { RefreshCwIcon } from 'lucide-react';
+import { CategoryIcon, categoryLabels as sharedCategoryLabels } from '@/components/CategoryBadge';
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+
+const rouletteCategories = Object.keys(sharedCategoryLabels);
+---
+
+<div class="grid min-h-52 content-start gap-3" data-tip-roulette>
+	<div class="sr-only" aria-live="polite" aria-atomic="true" data-tip-announcement></div>
+
+	<div class="flex min-h-24 items-center border-l-2 border-primary py-2 pl-3">
+		<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
+			Choose Show Random Tip for a shell shortcut.
+		</p>
+	</div>
+
+	<div class="flex min-h-10 flex-wrap content-center items-center gap-x-1.5 gap-y-1" data-tip-metadata>
+		<span class="contents" data-tip-placeholders aria-hidden="true">
+			<Badge variant="placeholder" data-tip-placeholder-category>Category</Badge>
+			<Badge variant="placeholder" data-tip-placeholder-source>Source</Badge>
+		</span>
+		<span class="inline-flex" data-tip-category-wrapper hidden>
+			<Badge variant="outline" className="roulette-category" data-tip-category>
+				{rouletteCategories.map((category) => (
+					<CategoryIcon category={category} className="hidden" data-icon="inline-start" data-tip-category-icon={category} />
+				))}
+				<CategoryIcon category="all" className="hidden" data-icon="inline-start" data-tip-category-icon="fallback" />
+				<span data-tip-category-label></span>
+			</Badge>
+		</span>
+		<span class="inline-flex" data-tip-source-wrapper hidden>
+			<Badge variant="metadata" data-tip-source></Badge>
+		</span>
+		<span class="basis-full text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
+	</div>
+
+	<button
+		type="button"
+		class:list={[buttonVariants({ variant: 'secondary', size: 'lg' }), 'w-full sm:w-auto']}
+		data-tip-action
+	>
+		<RefreshCwIcon data-icon="inline-start" aria-hidden="true" />
+		<span data-tip-action-label>Show Random Tip</span>
+	</button>
+</div>
+
+<script>
+	interface ShellTip {
+		text: string;
+		category: string;
+		source?: string;
+		availability?: string;
+	}
+
+	let tipsPromise: Promise<ShellTip[]> | undefined;
+	let cleanUpRoulette: (() => void) | undefined;
+
+	const categoryTokens: Record<string, string> = {
+		security: 'safety',
+		files: 'viewing',
+		system: 'network',
+		meta: 'pipe',
+	};
+	const categoryLabels: Record<string, string> = {
+		search: 'Search & Process',
+		packages: 'Package Updates',
+		pipe: 'Pipe Aliases',
+		fzf: 'FZF & Zoxide',
+		shell: 'Shell Behavior',
+	};
+
+	const formatLabel = (value: string) => value
+		.replace(/_/g, ' ')
+		.split(/[-\s]+/)
+		.filter(Boolean)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(' ');
+
+	const loadTips = () => {
+		tipsPromise ??= fetch('/tips.json')
+			.then((response) => {
+				if (!response.ok) throw new Error('Unable to load tips');
+				return response.json() as Promise<ShellTip[]>;
+			})
+			.catch((error) => {
+				tipsPromise = undefined;
+				throw error;
+			});
+
+		return tipsPromise;
+	};
+
+	const setupRoulette = () => {
+		cleanUpRoulette?.();
+
+		const root = document.querySelector<HTMLElement>('[data-tip-roulette]');
+		const text = root?.querySelector<HTMLElement>('[data-tip-text]');
+		const announcement = root?.querySelector<HTMLElement>('[data-tip-announcement]');
+		const placeholders = root?.querySelector<HTMLElement>('[data-tip-placeholders]');
+		const category = root?.querySelector<HTMLElement>('[data-tip-category]');
+		const categoryWrapper = root?.querySelector<HTMLElement>('[data-tip-category-wrapper]');
+		const categoryLabel = root?.querySelector<HTMLElement>('[data-tip-category-label]');
+		const categoryIcons = Array.from(root?.querySelectorAll<SVGElement>('[data-tip-category-icon]') ?? []);
+		const source = root?.querySelector<HTMLElement>('[data-tip-source]');
+		const sourceWrapper = root?.querySelector<HTMLElement>('[data-tip-source-wrapper]');
+		const availability = root?.querySelector<HTMLElement>('[data-tip-availability]');
+		const action = root?.querySelector<HTMLButtonElement>('[data-tip-action]');
+		const actionLabel = root?.querySelector<HTMLElement>('[data-tip-action-label]');
+
+		if (!root || !text || !announcement || !placeholders || !category || !categoryWrapper || !categoryLabel || !source || !sourceWrapper || !availability || !action || !actionLabel) return;
+
+		const controller = new AbortController();
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+		let interval = 0;
+		let finalTip: ShellTip | undefined;
+		let spinning = false;
+
+		const showTip = (tip: ShellTip, announce = false) => {
+			text.textContent = tip.text;
+			const token = categoryTokens[tip.category] ?? tip.category;
+			category.style.setProperty('--roulette-category', `var(--category-${token})`);
+			category.dataset.category = tip.category;
+			categoryLabel.textContent = categoryLabels[tip.category] ?? formatLabel(tip.category);
+			const selectedIcon = categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === tip.category)
+				?? categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === 'fallback');
+			categoryIcons.forEach((icon) => icon.classList.toggle('hidden', icon !== selectedIcon));
+			placeholders.hidden = true;
+			categoryWrapper.hidden = false;
+
+			source.textContent = tip.source ? formatLabel(tip.source) : '';
+			sourceWrapper.hidden = !tip.source;
+			availability.textContent = tip.availability ?? '';
+			availability.hidden = !tip.availability;
+
+			if (announce) announcement.textContent = tip.text;
+		};
+
+		const finish = (tip: ShellTip) => {
+			if (interval) window.clearInterval(interval);
+			interval = 0;
+			spinning = false;
+			finalTip = undefined;
+			showTip(tip, true);
+			actionLabel.textContent = 'Show Random Tip';
+		};
+
+		const spin = async () => {
+			if (spinning && finalTip) {
+				finish(finalTip);
+				return;
+			}
+
+			action.disabled = true;
+			actionLabel.textContent = 'Loading…';
+
+			try {
+				const tips = await loadTips();
+				if (tips.length === 0) throw new Error('No tips available');
+
+				finalTip = tips[Math.floor(Math.random() * tips.length)];
+				if (reducedMotion.matches) {
+					finish(finalTip);
+					return;
+				}
+
+				spinning = true;
+				actionLabel.textContent = 'Show Tip Now';
+				let iterations = 0;
+				interval = window.setInterval(() => {
+					showTip(tips[Math.floor(Math.random() * tips.length)]);
+					iterations += 1;
+					if (iterations >= 12 && finalTip) finish(finalTip);
+				}, 80);
+			} catch {
+				text.textContent = 'Tips could not be loaded. Try again.';
+				announcement.textContent = text.textContent;
+				actionLabel.textContent = 'Try Again';
+			} finally {
+				action.disabled = false;
+			}
+		};
+
+		action.addEventListener('click', spin, { signal: controller.signal });
+
+		cleanUpRoulette = () => {
+			controller.abort();
+			if (interval) window.clearInterval(interval);
+		};
+	};
+
+	document.addEventListener('astro:page-load', setupRoulette);
+	setupRoulette();
+</script>

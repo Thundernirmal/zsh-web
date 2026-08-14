@@ -154,7 +154,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
       <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0">
           <label htmlFor="tips-search" className="sr-only">Search tips</label>
-          <InputGroup className="h-9">
+          <InputGroup className="h-12 sm:h-9">
             <InputGroupAddon align="inline-start">
               <SearchIcon aria-hidden="true" />
             </InputGroupAddon>
@@ -163,7 +163,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               id="tips-search"
               name="tips-search"
               type="search"
-              placeholder="Search tips, categories, workflows…"
+              placeholder="Search tips…"
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value)
@@ -173,12 +173,15 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               spellCheck={false}
             />
             <InputGroupAddon align="inline-end" className="gap-2">
-              <span className="text-sm tabular-nums" aria-live="polite" aria-atomic="true">
+              <span className="hidden text-sm tabular-nums sm:inline" aria-live="polite" aria-atomic="true">
                 {filteredTips.length} tip{filteredTips.length === 1 ? "" : "s"}
               </span>
               <Kbd className="hidden sm:inline-flex" aria-hidden="true">/</Kbd>
             </InputGroupAddon>
           </InputGroup>
+          <span className="mt-2 block text-sm text-muted-foreground tabular-nums sm:hidden" aria-live="polite" aria-atomic="true">
+            {filteredTips.length} tip{filteredTips.length === 1 ? "" : "s"}
+          </span>
         </div>
 
         <div className="min-w-0">
@@ -192,7 +195,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
             }}
             items={selectItems}
           >
-            <SelectTrigger className="w-full data-[size=default]:h-9" aria-label="Filter tips by category">
+            <SelectTrigger className="w-full data-[size=default]:h-11 sm:data-[size=default]:h-9" aria-label="Filter tips by category">
               <CategoryIcon category={filter} className="text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>

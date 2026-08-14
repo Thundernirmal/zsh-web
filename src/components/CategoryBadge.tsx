@@ -93,14 +93,23 @@ export function CategoryIcon({
   category,
   className,
   "data-icon": dataIcon,
+  "data-tip-category-icon": dataTipCategoryIcon,
 }: {
   category: string
   className?: string
   "data-icon"?: "inline-start" | "inline-end"
+  "data-tip-category-icon"?: string
 }) {
   const Icon = categoryIcons[category] ?? TagIcon
 
-  return <Icon className={className} data-icon={dataIcon} aria-hidden="true" />
+  return (
+    <Icon
+      className={className}
+      data-icon={dataIcon}
+      data-tip-category-icon={dataTipCategoryIcon}
+      aria-hidden="true"
+    />
+  )
 }
 
 export function CategoryBadge({

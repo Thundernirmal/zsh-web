@@ -1,3 +1,8 @@
+@layer properties, theme, base, components, utilities;
+
+@import "@fontsource-variable/outfit/wght.css";
+@import "@fontsource-variable/plus-jakarta-sans/wght.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -33,9 +38,9 @@
   --ctp-mantle: #181825;
   --ctp-crust: #11111b;
 
-  --font-display: "Outfit", sans-serif;
-  --font-body: "Plus Jakarta Sans", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Outfit Variable", "Outfit", sans-serif;
+  --font-body: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
 
   /* shadcn semantic tokens */
   --background: var(--ctp-base);
@@ -100,6 +105,7 @@
 @theme inline {
   --font-heading: var(--font-display);
   --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -169,6 +175,8 @@
   html {
     @apply scroll-smooth font-sans;
     color-scheme: dark;
+    scrollbar-gutter: stable;
+    scroll-padding-top: calc(var(--site-header-height, 5rem) + 1rem);
     -webkit-tap-highlight-color: color-mix(in srgb, var(--primary) 24%, transparent);
   }
 
@@ -190,20 +198,80 @@
 
   a {
     @apply transition-colors;
+    touch-action: manipulation;
   }
 
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
     touch-action: manipulation;
   }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 35%, transparent);
+    color: var(--foreground);
+  }
 }
 
 @layer components {
   .skip-link {
-    @apply fixed top-2 left-2 -translate-y-16 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-md transition-transform focus:translate-y-0;
-    z-index: 50;
+    @apply fixed top-2 left-2 -translate-y-20 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-md transition-transform focus-visible:translate-y-0;
+    z-index: 60;
   }
 
+  .content-shell {
+    @apply mx-auto w-full max-w-[1000px] px-4 sm:px-6 lg:px-8;
+    padding-inline-start: max(1rem, env(safe-area-inset-left));
+    padding-inline-end: max(1rem, env(safe-area-inset-right));
+  }
+
+  .site-header {
+    padding-block-start: env(safe-area-inset-top);
+  }
+
+  .site-header[data-scroll-state="hidden"] {
+    transform: translateY(calc(-100% - env(safe-area-inset-top)));
+  }
+
+  .site-header:focus-within {
+    transform: translateY(0);
+  }
+
+  footer {
+    padding-block-end: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .footer-link {
+    @apply inline-flex min-h-11 items-center rounded-sm underline-offset-4 hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:min-h-6;
+  }
+
+  .roulette-category {
+    border-color: color-mix(in srgb, var(--roulette-category, var(--foreground)) 30%, transparent);
+    background: color-mix(in srgb, var(--roulette-category, var(--foreground)) 10%, transparent);
+    color: var(--roulette-category, var(--foreground));
+  }
+
+  /* Reading roles: 12px remains reserved for badges, counts, and keyboard hints. */
+  .detail-section-heading {
+    @apply text-pretty font-heading text-base leading-6 font-semibold text-foreground;
+  }
+
+  .detail-label {
+    @apply text-base leading-6 font-semibold text-muted-foreground md:text-sm md:leading-5;
+  }
+
+  .detail-body {
+    @apply text-pretty text-base leading-7 md:text-sm md:leading-6;
+  }
+
+  .detail-code {
+    @apply min-w-0 whitespace-pre-wrap break-words font-mono text-base leading-6 font-medium text-foreground md:text-sm md:leading-5;
+  }
+}
+
+@media (min-width: 640px) {
+  .site-header[data-scroll-state="hidden"] {
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

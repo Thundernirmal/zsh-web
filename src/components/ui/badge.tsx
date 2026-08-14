@@ -26,6 +26,7 @@ const badgeVariants = cva(
         function:
           "border-command-function/30 bg-command-function/10 text-command-function",
         metadata: "border-border bg-muted text-muted-foreground",
+        placeholder: "border-border text-muted-foreground",
       },
     },
     defaultVariants: {
