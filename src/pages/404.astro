@@ -1,0 +1,42 @@
+---
+import { ArrowLeftIcon, SearchIcon } from 'lucide-react';
+import Layout from '@/layouts/Layout.astro';
+import TerminalPrompt from '@/components/TerminalPrompt.astro';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+---
+
+<Layout title="Page Not Found" description="The requested page could not be found in Nirmal's Shell guide.">
+	<section class="grid max-w-3xl gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2" aria-labelledby="not-found-title">
+		<header class="grid gap-2.5">
+			<p class="font-mono text-sm font-semibold tracking-widest text-primary">HTTP 404</p>
+			<h1 id="not-found-title" class="text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+				Command not found.
+			</h1>
+			<p class="max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
+				That path is not available in this shell guide. Return home or search the command reference to get back on track.
+			</p>
+		</header>
+
+		<Card className="gap-0 py-0 shadow-xl shadow-background/40">
+			<CardHeader className="rounded-none border-b bg-terminal-toolbar py-2.5">
+				<CardTitle className="font-mono text-sm text-muted-foreground">nirmal@Tiger: ~ — zsh</CardTitle>
+			</CardHeader>
+			<CardContent className="bg-terminal-background p-4 sm:p-6">
+				<pre class="overflow-x-auto whitespace-pre-wrap break-words text-sm leading-6" translate="no"><code><span class="block"><TerminalPrompt>open /requested/page</TerminalPrompt></span><span class="block text-category-shell">zsh: no such page: /requested/page</span><span class="block h-3" aria-hidden="true"></span><span class="block"><TerminalPrompt cursor /></span></code></pre>
+			</CardContent>
+		</Card>
+
+		<nav class="flex flex-col gap-2 sm:flex-row" aria-label="404 recovery links">
+			<a href="/" class={cn(buttonVariants({ size: 'lg' }), 'w-full sm:w-auto')}>
+				<ArrowLeftIcon data-icon="inline-start" aria-hidden="true" />
+				Return Home
+			</a>
+			<a href="/commands" class={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'w-full sm:w-auto')}>
+				<SearchIcon data-icon="inline-start" aria-hidden="true" />
+				Browse Commands
+			</a>
+		</nav>
+	</section>
+</Layout>

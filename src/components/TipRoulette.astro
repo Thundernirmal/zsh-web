@@ -157,6 +157,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 
 			try {
 				const tips = await loadTips();
+				if (controller.signal.aborted) return;
 				if (tips.length === 0) throw new Error('No tips available');
 
 				finalTip = tips[Math.floor(Math.random() * tips.length)];
@@ -174,11 +175,12 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 					if (iterations >= 12 && finalTip) finish(finalTip);
 				}, 80);
 			} catch {
+				if (controller.signal.aborted) return;
 				text.textContent = 'Tips could not be loaded. Try again.';
 				announcement.textContent = text.textContent;
 				actionLabel.textContent = 'Try Again';
 			} finally {
-				action.disabled = false;
+				if (!controller.signal.aborted) action.disabled = false;
 			}
 		};
 
@@ -191,5 +193,6 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 	};
 
 	document.addEventListener('astro:page-load', setupRoulette);
+	document.addEventListener('astro:before-swap', () => cleanUpRoulette?.());
 	setupRoulette();
 </script>

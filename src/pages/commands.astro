@@ -4,10 +4,10 @@ import SearchCommands from '../components/SearchCommands.tsx';
 import PageHeader from '../components/PageHeader.astro';
 import StatCard from '../components/StatCard.astro';
 import { BracesIcon, FileCheck2Icon, SquareTerminalIcon } from 'lucide-react';
-import commandsData from '../data/commands.json';
+import { getCollection } from 'astro:content';
 import type { ShellCommand } from '@/lib/shell-docs';
 
-const commands = commandsData as ShellCommand[];
+const commands = (await getCollection('commands')).map(({ data }) => data);
 const functionCount = commands.filter((command) => command.type === 'function').length;
 const hasItems = (items?: string[]) => (items?.length ?? 0) > 0;
 const hasExtractedDetails = (command: ShellCommand) => {

@@ -4,10 +4,9 @@ import TipsExplorer from '../components/TipsExplorer.tsx';
 import PageHeader from '../components/PageHeader.astro';
 import StatCard from '../components/StatCard.astro';
 import { Layers3Icon, LightbulbIcon, WorkflowIcon } from 'lucide-react';
-import tipsData from '../data/tips.json';
-import type { ShellTip } from '@/lib/shell-docs';
+import { getCollection } from 'astro:content';
 
-const tips = tipsData as ShellTip[];
+const tips = (await getCollection('tips')).map(({ data }) => data);
 const conditionalCount = tips.filter((tip) => tip.availability && tip.availability !== 'Always available').length;
 const sourceCount = new Set(tips.map((tip) => tip.source).filter(Boolean)).size;
 ---

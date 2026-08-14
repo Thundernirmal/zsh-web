@@ -107,6 +107,7 @@ const links = [
 
 		brandObserver = new IntersectionObserver(
 			([entry]) => {
+				if (!brand.isConnected || !navigation.isConnected || !homeTitle.isConnected) return;
 				if (entry) setBrandVisible(!entry.isIntersecting && entry.boundingClientRect.bottom <= 64);
 			},
 			{ rootMargin: '-64px 0px 0px', threshold: 0 },
@@ -186,7 +187,15 @@ const links = [
 		};
 	};
 
+	const cleanUpHeader = () => {
+		brandObserver?.disconnect();
+		brandObserver = undefined;
+		cleanUpSmartHeader?.();
+		cleanUpSmartHeader = undefined;
+	};
+
 	document.addEventListener('astro:page-load', setupScrollBrand);
 	document.addEventListener('astro:page-load', setupSmartHeader);
+	document.addEventListener('astro:before-swap', cleanUpHeader);
 	setupSmartHeader();
 </script>

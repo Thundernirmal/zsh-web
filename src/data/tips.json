@@ -1,323 +1,377 @@
 [
   {
+    "id": "tip-001",
     "text": "Use .., ..., or .... to move up one, two, or three directories",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-002",
     "text": "Use - to return to the previous directory",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-003",
     "text": "Run dirs -v to inspect the directory stack",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-004",
     "text": "Use *(D) when a glob should include hidden entries",
     "category": "globbing",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-005",
     "text": "Start a command with a space to keep it out of saved history",
     "category": "history",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-006",
     "text": "Run zhelp to find a command and queue an editable example",
     "category": "shell",
     "source": "help",
     "availability": "Always available"
   },
   {
+    "id": "tip-007",
     "text": "Run ll for a detailed listing that includes hidden entries",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-008",
     "text": "Run ff <pattern> [path] to find files by name",
     "category": "search",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-009",
     "text": "Run ft <pattern> [path] to search file contents",
     "category": "search",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-010",
     "text": "Run extract <archive> to unpack a supported archive",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-011",
     "text": "Run mkcd <dir> to create and enter a directory",
     "category": "navigation",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-012",
     "text": "Run croot to jump to the current Git repository root",
     "category": "git",
     "source": "git",
     "availability": "Always available"
   },
   {
+    "id": "tip-013",
     "text": "Run glog to see the latest 20 commits as a graph",
     "category": "git",
     "source": "git",
     "availability": "Always available"
   },
   {
+    "id": "tip-014",
     "text": "Run gpr to pull the current branch with rebase",
     "category": "git",
     "source": "git",
     "availability": "Always available"
   },
   {
+    "id": "tip-015",
     "text": "Run gun to undo the latest commit but keep changes staged",
     "category": "git",
     "source": "git",
     "availability": "Always available"
   },
   {
+    "id": "tip-016",
     "text": "Run gitcount to count non-merge commits by contributor",
     "category": "git",
     "source": "git",
     "availability": "Always available"
   },
   {
+    "id": "tip-017",
     "text": "Run path to inspect every PATH entry",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-018",
     "text": "Run dusage [path] [count] to rank immediate entries by size",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-019",
     "text": "Run bigfiles [path] [count] to rank files recursively",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-020",
     "text": "Run ports to show listening sockets and their processes",
     "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-021",
     "text": "Run myip to show your public IP address",
     "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-022",
     "text": "Run weather for a concise HTTPS forecast",
     "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-023",
     "text": "Run peek <file> for a quick file preview",
     "category": "viewing",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-024",
     "text": "Run headers <url> to follow redirects and print HTTP headers",
     "category": "network",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-025",
     "text": "Use G, L, or W to pipe to grep, less, or wc -l",
     "category": "pipe",
     "source": "globals",
     "availability": "Always available"
   },
   {
+    "id": "tip-026",
     "text": "Use NE to hide stderr or NUL to hide all output",
     "category": "pipe",
     "source": "globals",
     "availability": "Always available"
   },
   {
+    "id": "tip-027",
     "text": "Press Tab after a custom command to see valid arguments",
     "category": "shell",
     "source": "core",
     "availability": "Always available"
   },
   {
+    "id": "tip-028",
     "text": "Run fanprofile to show the current laptop performance profile",
     "category": "utility",
     "source": "system",
     "availability": "Available on a supported Linux laptop profile interface"
   },
   {
+    "id": "tip-029",
     "text": "Use z <query> to jump to a remembered directory",
     "category": "navigation",
     "source": "zoxide",
     "availability": "Available when zoxide is installed"
   },
   {
+    "id": "tip-030",
     "text": "Press Ctrl+R to insert a history entry for editing",
     "category": "history",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
+    "id": "tip-031",
     "text": "Press Ctrl+T to insert a selected file path",
     "category": "fzf",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
+    "id": "tip-032",
     "text": "Press Alt+C to select and enter a directory",
     "category": "fzf",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
+    "id": "tip-033",
     "text": "Run fkill to select processes and send SIGTERM; use 9 only to force",
     "category": "process",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
+    "id": "tip-034",
     "text": "Run fbr to select and check out a Git branch",
     "category": "git",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
+    "id": "tip-035",
     "text": "Use zi to select a remembered directory interactively",
     "category": "fzf",
     "source": "zoxide",
     "availability": "Available when zoxide is installed and fzf is ready"
   },
   {
+    "id": "tip-036",
     "text": "Run lt for a tree view up to three levels deep",
     "category": "navigation",
     "source": "navigation",
     "availability": "Available when the lt alias is available"
   },
   {
+    "id": "tip-037",
     "text": "Run cgm set OPENAI_KEY to store a credential securely",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
   },
   {
+    "id": "tip-038",
     "text": "Run cgm env OPENAI_KEY to load a credential into this shell",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
   },
   {
+    "id": "tip-039",
     "text": "Run cgm list to show saved names without retrieving values",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
   },
   {
+    "id": "tip-040",
     "text": "Run npkg add bat to add a package to the current Nix profile",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed"
   },
   {
+    "id": "tip-041",
     "text": "Run npkg search ripgrep to search nixpkgs",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed"
   },
   {
+    "id": "tip-042",
     "text": "Run npkg list to show the current Nix profile",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed"
   },
   {
+    "id": "tip-043",
     "text": "Run npkg refresh to rebuild the nixpkgs attribute cache",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed"
   },
   {
+    "id": "tip-044",
     "text": "Run npkg outdated to check for Nix output changes",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed"
   },
   {
+    "id": "tip-045",
     "text": "Run npkg find nvim to open a seeded package picker",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
+    "id": "tip-046",
     "text": "Run npkg remove with no arguments to select installed packages",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready"
   },
   {
+    "id": "tip-047",
     "text": "Run upkg to check detected package managers for updates",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
+    "id": "tip-048",
     "text": "Run upkg search ripgrep to search detected package managers",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
+    "id": "tip-049",
     "text": "Run upkg managers to show active and alternate backends",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
+    "id": "tip-050",
     "text": "Use upkg --only=brew,npm to select specific backends",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
+    "id": "tip-051",
     "text": "Run upkg plan to preview package upgrades",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
+    "id": "tip-052",
     "text": "Run upkg clean --dry-run before package cleanup",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
   },
   {
+    "id": "tip-053",
     "text": "Run upkg upgrade --sudo to authorize system package upgrades",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, or dnf is installed"
   },
   {
+    "id": "tip-054",
     "text": "Run upkg clean --sudo to authorize system package cleanup",
     "category": "packages",
     "source": "upkg",

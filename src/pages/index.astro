@@ -6,12 +6,10 @@ import PageHeader from '../components/PageHeader.astro';
 import { ArrowRightIcon, LightbulbIcon, SquareTerminalIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import commandsData from '../data/commands.json';
-import tipsData from '../data/tips.json';
-import type { ShellCommand, ShellTip } from '@/lib/shell-docs';
+import { getCollection } from 'astro:content';
 
-const commands = commandsData as ShellCommand[];
-const tips = tipsData as ShellTip[];
+const commands = (await getCollection('commands')).map(({ data }) => data);
+const tips = (await getCollection('tips')).map(({ data }) => data);
 const categoryCount = new Set(commands.map((command) => command.category).filter(Boolean)).size;
 const featuredTip = tips.find((tip) => tip.source === 'upkg')?.text ?? tips[0]?.text ?? 'Run tips again for another hint';
 const upkgExamples = commands.find((command) => command.name === 'upkg')?.examples ?? [];
