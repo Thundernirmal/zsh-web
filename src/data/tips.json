@@ -198,7 +198,13 @@
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
-    "text": "Run fbr to select and check out a Git branch",
+    "text": "Run fbr to select a branch, enter its worktree, or check it out",
+    "category": "git",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "text": "Use [WT] in fbr to spot branches checked out in another worktree",
     "category": "git",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"

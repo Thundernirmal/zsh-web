@@ -426,7 +426,7 @@
     "name": "fbr",
     "command": "fbr",
     "usage": "fbr",
-    "description": "Pick and check out a Git branch",
+    "description": "Pick a branch; enter its worktree or check it out",
     "type": "function",
     "category": "git",
     "source": "60-functions.zsh",
@@ -438,7 +438,8 @@
     "requires": [
       "fzf"
     ],
-    "interactive": true
+    "interactive": true,
+    "plainMode": true
   },
   {
     "name": "weather",
