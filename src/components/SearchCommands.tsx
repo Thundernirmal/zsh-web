@@ -245,11 +245,11 @@ function Example({ example, query }: { example: string; query: string }) {
 
   return (
     <div className="grid min-w-0 gap-0.5">
-      <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-medium leading-5 text-foreground">
+      <pre className="detail-code" data-detail-code>
         <code translate="no">{highlightText(command, query)}</code>
       </pre>
       {annotation && (
-        <span className="text-pretty text-sm leading-5 text-muted-foreground">
+        <span className="text-pretty text-base leading-6 text-muted-foreground md:text-sm md:leading-5" data-detail-body>
           {highlightText(annotation, query)}
         </span>
       )}
@@ -272,49 +272,52 @@ function FeatureTable({
   const hasFeatureExamples = features.some((feature) => feature.examples.length > 0)
 
   return (
-    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-features`}>
-      <div className="grid min-w-0 gap-0.5 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-3">
-        <h4 id={`${id}-features`} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-features`} data-feature-table>
+      <div className="grid min-w-0 gap-0.5 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-3" data-feature-introduction>
+        <h3 id={`${id}-features`} className="detail-section-heading" data-detail-section-heading>
           {hasFeatureExamples ? "Features & Examples" : "Features"}
-        </h4>
+        </h3>
         {hasFeatureExamples && (
-          <p className="text-pretty text-sm leading-5 text-muted-foreground">
+          <p className="detail-body text-muted-foreground" data-detail-body>
             Examples appear only where they add useful detail.
           </p>
         )}
       </div>
-      <ul className="grid md:hidden">
+      <dl className="grid md:hidden">
         {features.map((feature, index) => (
-          <li
+          <div
             key={`${feature.usage}:${feature.description}`}
-            className="grid min-w-0 gap-2.5 pt-3 first:pt-0"
+            className="grid min-w-0 gap-1.5 pt-3 first:pt-0"
+            data-feature-row
           >
-            <div className="grid min-w-0 gap-1">
-              {feature.usage ? (
-                <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-semibold leading-5 text-foreground">
+            {feature.usage ? (
+              <dt>
+                <pre className="detail-code font-semibold" data-detail-code>
                   <code translate="no">{highlightText(feature.usage, query)}</code>
                 </pre>
-              ) : (
-                <span className="text-sm text-muted-foreground">General feature</span>
-              )}
-              <p className="text-pretty text-sm leading-5">
+              </dt>
+            ) : (
+              <dt className="detail-label">General Feature</dt>
+            )}
+            <dd className="grid min-w-0 gap-2.5">
+              <p className="detail-body" data-detail-body>
                 {highlightText(feature.description, query)}
               </p>
-            </div>
-            {feature.examples.length > 0 && (
-              <div className="grid min-w-0 gap-1">
-                <span className="text-xs font-medium text-muted-foreground">Example</span>
-                <div className="grid min-w-0 gap-2">
-                  {feature.examples.map((example) => (
-                    <Example key={example} example={example} query={query} />
-                  ))}
+              {feature.examples.length > 0 && (
+                <div className="grid min-w-0 gap-1.5">
+                  <span className="detail-label" data-detail-label>Example</span>
+                  <div className="grid min-w-0 gap-2">
+                    {feature.examples.map((example) => (
+                      <Example key={example} example={example} query={query} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {index < features.length - 1 && <Separator />}
-          </li>
+              )}
+            </dd>
+            {index < features.length - 1 && <Separator className="mt-1" />}
+          </div>
         ))}
-      </ul>
+      </dl>
       <div className="hidden md:block">
         <Table className="table-fixed">
           <TableCaption className="sr-only">
@@ -332,7 +335,7 @@ function FeatureTable({
               <TableRow key={`${feature.usage}:${feature.description}`}>
                 <TableHead scope="row" className="h-auto align-top whitespace-normal py-2">
                   {feature.usage ? (
-                    <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm font-semibold leading-5 text-foreground">
+                    <pre className="detail-code font-semibold">
                       <code translate="no">{highlightText(feature.usage, query)}</code>
                     </pre>
                   ) : (
@@ -380,11 +383,11 @@ function ExampleList({
   return (
     <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-examples`}>
       <div className="grid gap-0.5">
-        <h4 id={`${id}-examples`} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 id={`${id}-examples`} className="detail-section-heading" data-detail-section-heading>
           {additional ? "Additional Examples" : "Examples"}
-        </h4>
+        </h3>
         {additional && (
-          <p className="text-pretty text-sm leading-5 text-muted-foreground">
+          <p className="detail-body text-muted-foreground" data-detail-body>
             General workflows that are not tied to one feature.
           </p>
         )}
@@ -406,12 +409,12 @@ function NotesList({ id, notes, query }: { id: string; notes: string[]; query: s
 
   return (
     <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-notes`}>
-      <h4 id={`${id}-notes`} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 id={`${id}-notes`} className="detail-section-heading" data-detail-section-heading>
         Notes
-      </h4>
+      </h3>
       <ul className="grid">
         {notes.map((note, index) => (
-          <li key={note} className="grid gap-2 pt-2.5 text-pretty leading-6 first:pt-0">
+          <li key={note} className="detail-body grid gap-2 pt-2.5 first:pt-0" data-detail-body>
             <span className="min-w-0">{highlightText(note, query)}</span>
             {index < notes.length - 1 && <Separator />}
           </li>
@@ -515,7 +518,7 @@ export default function SearchCommands({ commands }: { commands: ShellCommand[] 
     <section className="grid min-w-0 gap-4 motion-safe:animate-in motion-safe:fade-in" aria-label="Command search and results">
       <div className="grid gap-2.5">
         <label htmlFor="command-search" className="sr-only">Search commands</label>
-        <InputGroup className="h-9">
+        <InputGroup className="h-12 sm:h-9">
           <InputGroupAddon align="inline-start">
             <SearchIcon aria-hidden="true" />
           </InputGroupAddon>
@@ -524,21 +527,24 @@ export default function SearchCommands({ commands }: { commands: ShellCommand[] 
             id="command-search"
             name="command-search"
             type="search"
-            placeholder="Search commands, aliases, options…"
+            placeholder="Search commands…"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             autoComplete="off"
             spellCheck={false}
           />
           <InputGroupAddon align="inline-end" className="gap-2">
-            <span className="text-sm tabular-nums" aria-live="polite" aria-atomic="true">
+            <span className="hidden text-sm tabular-nums sm:inline" aria-live="polite" aria-atomic="true">
               {filteredCommands.length} result{filteredCommands.length === 1 ? "" : "s"}
             </span>
             <Kbd className="hidden sm:inline-flex" aria-hidden="true">/</Kbd>
           </InputGroupAddon>
         </InputGroup>
+        <span className="text-sm text-muted-foreground tabular-nums sm:hidden" aria-live="polite" aria-atomic="true">
+          {filteredCommands.length} result{filteredCommands.length === 1 ? "" : "s"}
+        </span>
 
-        <div className="overflow-x-auto pb-1">
+        <div>
           <ToggleGroup
             value={[filter]}
             onValueChange={(values) => {
@@ -547,9 +553,9 @@ export default function SearchCommands({ commands }: { commands: ShellCommand[] 
             }}
             variant="outline"
             size="sm"
-            spacing={0}
+            spacing={2}
             aria-label="Filter commands by type"
-            className="min-w-max"
+            className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-fit sm:gap-1"
           >
             {filters.map((item) => (
               <ToggleGroupItem
@@ -557,9 +563,10 @@ export default function SearchCommands({ commands }: { commands: ShellCommand[] 
                 value={item.key}
                 disabled={item.count === 0 && filter !== item.key}
                 aria-label={`${item.label}, ${item.count} ${item.count === 1 ? "result" : "results"}`}
-                className="items-baseline"
+                className="h-11 w-full items-center justify-center gap-1.5 px-3 sm:h-7 sm:w-auto sm:px-2.5"
+                data-command-filter={item.key}
               >
-                {item.label}
+                <span data-filter-label>{item.label}</span>
                 <span className="text-xs text-muted-foreground tabular-nums">{item.count}</span>
               </ToggleGroupItem>
             ))}
@@ -611,11 +618,11 @@ export default function SearchCommands({ commands }: { commands: ShellCommand[] 
             }
 
             return (
-              <AccordionItem key={commandId(command)} value={commandId(command)}>
-                <AccordionTrigger className="gap-2 py-3 hover:no-underline">
+              <AccordionItem key={commandId(command)} value={commandId(command)} data-command={command.name}>
+                <AccordionTrigger headingLevel={2} className="gap-2 py-3 hover:no-underline">
                   <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
                     <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                      <span translate="no" className="font-mono text-base font-semibold text-foreground">{highlightText(command.name, query)}</span>
+                      <span translate="no" className="font-mono text-lg leading-7 font-semibold text-foreground sm:text-base sm:leading-6">{highlightText(command.name, query)}</span>
                       <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
                       {command.category && <CategoryBadge category={command.category} />}
                       {command.source && <Badge variant="metadata">{formatLabel(command.source)}</Badge>}
@@ -637,17 +644,17 @@ export default function SearchCommands({ commands }: { commands: ShellCommand[] 
                       <Fragment key={detail.label}>
                         {index > 0 && <Separator />}
                         <div className="grid min-w-0 gap-1">
-                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          <h3 className="detail-section-heading" data-detail-section-heading>
                             {detail.label}
-                          </h4>
-                          <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-base font-semibold leading-6 text-foreground">
+                          </h3>
+                          <pre className="detail-code font-semibold" data-detail-code>
                             <code translate="no">{highlightText(detail.value, query)}</code>
                           </pre>
                         </div>
                       </Fragment>
                     ))}
                     {(command.availability || command.dependencies) && (
-                      <dl className="grid min-w-0 gap-x-4 gap-y-1.5 text-sm leading-6 sm:grid-cols-[7rem_minmax(0,1fr)]">
+                      <dl className="grid min-w-0 gap-x-4 gap-y-1.5 text-base leading-7 sm:grid-cols-[7rem_minmax(0,1fr)] sm:text-sm sm:leading-6">
                         {command.availability && (
                           <Fragment>
                             <dt className="font-medium text-muted-foreground">Availability</dt>

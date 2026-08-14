@@ -53,6 +53,9 @@ coverage/
 
 # local browser review artifacts
 .playwright-mcp/
+playwright-report/
+test-results/
+**/*.spec.ts-snapshots/
 
 # Generated documentation data is committed for reproducible static builds.
 

@@ -1,0 +1,192 @@
+---
+import { ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+
+const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
+const links = [
+	{ href: '/', label: 'Home', active: isHome, mobileOnly: true },
+	{ href: '/commands', label: 'Commands', active: currentPath.startsWith('/commands'), icon: SquareTerminalIcon },
+	{ href: '/tips', label: 'Tips', active: currentPath.startsWith('/tips'), icon: LightbulbIcon },
+];
+---
+
+<header
+	class:list={[
+		'site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-md transition-transform duration-200 ease-out motion-reduce:transition-none',
+		isHome && 'sm:transition-[border-color] sm:duration-300 sm:has-data-[brand-visible=false]:border-transparent',
+	]}
+	data-site-header
+	data-scroll-state="visible"
+	transition:name="site-header"
+	transition:animate="none"
+>
+	<nav
+		class:list={[
+			'content-shell flex flex-wrap items-center gap-2.5 py-3',
+			isHome && 'sm:transition-[gap] sm:duration-300 sm:ease-out sm:data-[brand-visible=false]:gap-0 motion-reduce:transition-none',
+		]}
+		aria-label="Main navigation"
+		data-brand-visible={isHome ? 'false' : undefined}
+	>
+		<a
+			href="/"
+			data-astro-prefetch="hover"
+			class:list={[
+				'hidden min-w-0 items-center gap-2 rounded-md font-heading text-base font-semibold tracking-tight text-foreground outline-none transition-[color,background-color,box-shadow] hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex',
+				isHome
+					? 'max-h-10 max-w-56 shrink-0 overflow-hidden whitespace-nowrap opacity-100 transition-[color,background-color,box-shadow,max-width,max-height,opacity,transform] duration-300 ease-out motion-reduce:transition-none data-[visible=false]:pointer-events-none data-[visible=false]:max-h-0 data-[visible=false]:max-w-0 data-[visible=false]:-translate-y-1 data-[visible=false]:opacity-0'
+					: 'w-auto',
+			]}
+			data-scroll-brand={isHome ? '' : undefined}
+			data-visible={isHome ? 'false' : undefined}
+			aria-hidden={isHome ? 'true' : undefined}
+			tabindex={isHome ? -1 : undefined}
+		>
+			<TerminalIcon className="size-5 text-primary" aria-hidden="true" />
+			<span>Nirmal's Shell</span>
+		</a>
+
+		<div class="grid w-full min-w-0 grid-cols-3 items-center gap-1 rounded-lg border bg-card/60 p-1 shadow-sm sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+			{links.map(({ href, label, active, mobileOnly, icon: Icon }) => (
+				<a
+					href={href}
+					aria-current={active ? 'page' : undefined}
+					class:list={[
+						buttonVariants({ variant: active ? 'secondary' : 'ghost', size: 'sm' }),
+						'min-h-11 w-full min-w-0 px-2 text-sm sm:min-h-7 sm:w-auto sm:px-2.5 sm:text-[0.8rem]',
+						mobileOnly && 'sm:hidden',
+					]}
+					data-astro-prefetch="hover"
+				>
+					{Icon && <Icon data-icon="inline-start" className="hidden sm:block" aria-hidden="true" />}
+					{label}
+				</a>
+			))}
+			<Separator orientation="vertical" className="mx-0.5 my-1 hidden sm:block" />
+			<a
+				href="https://github.com/Thundernirmal/zsh"
+				target="_blank"
+				rel="noopener noreferrer"
+				class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:inline-flex')}
+			>
+				<ExternalLinkIcon data-icon="inline-start" aria-hidden="true" />
+				GitHub <span class="sr-only">(opens in a new tab)</span>
+			</a>
+		</div>
+	</nav>
+</header>
+
+<script>
+	let brandObserver: IntersectionObserver | undefined;
+	let cleanUpSmartHeader: (() => void) | undefined;
+
+	const setupScrollBrand = () => {
+		brandObserver?.disconnect();
+
+		const brand = document.querySelector<HTMLElement>('[data-scroll-brand]');
+		const navigation = brand?.closest<HTMLElement>('nav');
+		const homeTitle = document.querySelector<HTMLElement>('#home-page-header h1');
+
+		if (!brand || !navigation || !homeTitle) return;
+
+		const setBrandVisible = (visible: boolean) => {
+			brand.dataset.visible = String(visible);
+			navigation.dataset.brandVisible = String(visible);
+
+			if (visible) {
+				brand.removeAttribute('aria-hidden');
+				brand.removeAttribute('tabindex');
+			} else {
+				brand.setAttribute('aria-hidden', 'true');
+				brand.tabIndex = -1;
+			}
+		};
+
+		brandObserver = new IntersectionObserver(
+			([entry]) => {
+				if (entry) setBrandVisible(!entry.isIntersecting && entry.boundingClientRect.bottom <= 64);
+			},
+			{ rootMargin: '-64px 0px 0px', threshold: 0 },
+		);
+
+		brandObserver.observe(homeTitle);
+	};
+
+	const setupSmartHeader = () => {
+		cleanUpSmartHeader?.();
+
+		const header = document.querySelector<HTMLElement>('[data-site-header]');
+		if (!header) return;
+
+		const root = document.documentElement;
+		const mobileQuery = window.matchMedia('(max-width: 639px)');
+		let lastY = window.scrollY;
+		let direction: 'up' | 'down' = 'up';
+		let directionDistance = 0;
+		let animationFrame = 0;
+
+		const setVisible = (visible: boolean) => {
+			header.dataset.scrollState = visible ? 'visible' : 'hidden';
+		};
+
+		const updateHeaderHeight = () => {
+			root.style.setProperty('--site-header-height', `${header.offsetHeight}px`);
+		};
+
+		const update = () => {
+			animationFrame = 0;
+			const currentY = Math.max(window.scrollY, 0);
+			const delta = currentY - lastY;
+			const nextDirection = delta > 0 ? 'down' : delta < 0 ? 'up' : direction;
+
+			if (nextDirection !== direction) {
+				direction = nextDirection;
+				directionDistance = 0;
+			}
+			directionDistance += Math.abs(delta);
+
+			if (!mobileQuery.matches || currentY <= 80 || header.matches(':focus-within')) {
+				setVisible(true);
+			} else if (direction === 'down' && directionDistance >= 24) {
+				setVisible(false);
+				directionDistance = 0;
+			} else if (direction === 'up' && directionDistance >= 10) {
+				setVisible(true);
+				directionDistance = 0;
+			}
+
+			lastY = currentY;
+		};
+
+		const requestUpdate = () => {
+			if (animationFrame === 0) animationFrame = window.requestAnimationFrame(update);
+		};
+		const revealForNavigation = () => setVisible(true);
+		const resizeObserver = new ResizeObserver(updateHeaderHeight);
+
+		resizeObserver.observe(header);
+		updateHeaderHeight();
+		update();
+
+		window.addEventListener('scroll', requestUpdate, { passive: true });
+		window.addEventListener('resize', requestUpdate);
+		window.addEventListener('hashchange', revealForNavigation);
+		header.addEventListener('focusin', revealForNavigation);
+
+		cleanUpSmartHeader = () => {
+			window.removeEventListener('scroll', requestUpdate);
+			window.removeEventListener('resize', requestUpdate);
+			window.removeEventListener('hashchange', revealForNavigation);
+			header.removeEventListener('focusin', revealForNavigation);
+			resizeObserver.disconnect();
+			if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame);
+		};
+	};
+
+	document.addEventListener('astro:page-load', setupScrollBrand);
+	document.addEventListener('astro:page-load', setupSmartHeader);
+	setupSmartHeader();
+</script>

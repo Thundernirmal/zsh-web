@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TerminalHero from '../components/TerminalHero.astro';
-import TipRoulette from '../components/TipRoulette.tsx';
+import TipRoulette from '../components/TipRoulette.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { ArrowRightIcon, LightbulbIcon, SquareTerminalIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
@@ -63,7 +63,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="flex-1">
-				<TipRoulette client:load tips={tips} />
+				<TipRoulette />
 			</CardContent>
 			<CardFooter>
 				<a href="/tips" class={buttonVariants({ size: 'lg' })}>View All {tips.length} Tips <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
