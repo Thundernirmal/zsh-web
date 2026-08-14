@@ -1,31 +1,8 @@
-type CommandType = 'alias' | 'global_alias' | 'function';
+import type { z } from 'astro/zod';
+import type { shellCommandSchema, shellTipSchema } from '@/lib/content-schemas';
 
-export interface ShellCommand {
-  name: string;
-  command?: string;
-  usage?: string;
-  description?: string;
-  type: CommandType;
-  category?: string;
-  source?: string;
-  availability?: string;
-  dependencies?: string;
-  examples?: string[];
-  features?: string[];
-  notes?: string[];
-  requires?: string[];
-  optional?: string[];
-  interactive?: boolean;
-  plainMode?: boolean;
-  richOutput?: boolean;
-}
-
-export interface ShellTip {
-  text: string;
-  category: string;
-  source?: string;
-  availability?: string;
-}
+export type ShellCommand = z.infer<typeof shellCommandSchema>;
+export type ShellTip = z.infer<typeof shellTipSchema>;
 
 export function formatLabel(value: string) {
   return value

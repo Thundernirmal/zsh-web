@@ -17,7 +17,7 @@ Set `ZSH_CONFIG_DIR` when the source config is elsewhere.
 ZSH_CONFIG_DIR=/path/to/zsh npm run sync
 ```
 
-`npm run sync` is the only project command that rewrites generated data. Development and production builds consume the committed JSON, which keeps local and Cloudflare builds deterministic.
+`npm run sync` is the only project command that rewrites generated data. Astro Content Collections load the committed JSON through Zod schemas, providing build-time validation while keeping local and Cloudflare builds deterministic.
 
 ## Local development
 
@@ -44,13 +44,19 @@ npm run preview
 
 ## Quality checks
 
-Run the complete read-only gate before committing:
+Run the complete static and browser test suite before committing:
+
+```bash
+npm test
+```
+
+For the faster static validation gate without Playwright:
 
 ```bash
 npm run verify
 ```
 
-It verifies that generated data matches the current Zsh sources, runs ESLint and accessibility rules, checks for unused files, dependencies, and exports, runs Astro/TypeScript diagnostics, and produces the static site.
+`npm run verify` verifies that generated data matches the current Zsh sources, runs ESLint and accessibility rules, checks for unused files, dependencies, and exports, runs Astro/TypeScript diagnostics, and produces the static site. `npm test` additionally runs shared behavior and accessibility checks plus dedicated desktop and mobile Playwright suites.
 
 Individual commands:
 
@@ -64,10 +70,15 @@ Individual commands:
 | `npm run check` | Run Astro and TypeScript diagnostics | No |
 | `npm run build` | Type-check and build `dist/` | No tracked files |
 | `npm run verify` | Run every required check and build | No tracked files |
+| `npm run test:e2e` | Build and run desktop and mobile Playwright projects | No tracked files |
+| `npm test` | Run static verification and the full Playwright matrix | No tracked files |
 
 ## Architecture
 
-- Astro static pages with React islands for search, filtering, and the tip roulette
+- Astro static pages with React islands for the route-critical search and filtering interfaces
+- Astro-native, on-demand tip roulette with no React hydration cost
+- Zod-validated Astro Content Collections backed by generated JSON
+- A branded static `404.html` route for static hosting platforms
 - shadcn/ui Base UI primitives with the Nova style
 - Tailwind CSS v4 and Catppuccin Mocha semantic tokens
 - TypeScript strict mode

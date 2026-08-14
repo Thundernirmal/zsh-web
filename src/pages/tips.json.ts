@@ -1,8 +1,10 @@
-import tips from '@/data/tips.json';
+import { getCollection } from 'astro:content';
 
 export const prerender = true;
 
-export function GET() {
+export async function GET() {
+	const tips = (await getCollection('tips')).map(({ data }) => data);
+
 	return new Response(JSON.stringify(tips), {
 		headers: {
 			'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',

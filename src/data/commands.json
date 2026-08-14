@@ -1,5 +1,6 @@
 [
   {
+    "id": "command-001",
     "name": "..",
     "command": "cd ..",
     "usage": "..",
@@ -12,6 +13,7 @@
     ]
   },
   {
+    "id": "command-002",
     "name": "...",
     "command": "cd ../..",
     "usage": "...",
@@ -24,6 +26,7 @@
     ]
   },
   {
+    "id": "command-003",
     "name": "....",
     "command": "cd ../../..",
     "usage": "....",
@@ -36,6 +39,7 @@
     ]
   },
   {
+    "id": "command-004",
     "name": "-",
     "command": "cd -",
     "usage": "-",
@@ -48,6 +52,7 @@
     ]
   },
   {
+    "id": "command-005",
     "name": "z",
     "command": "z <query>",
     "usage": "z <query>",
@@ -62,6 +67,7 @@
     ]
   },
   {
+    "id": "command-006",
     "name": "zi",
     "command": "zi [query]",
     "usage": "zi [query]",
@@ -76,6 +82,7 @@
     ]
   },
   {
+    "id": "command-007",
     "name": "mkcd",
     "command": "mkcd <directory>",
     "usage": "mkcd <directory>",
@@ -88,6 +95,7 @@
     ]
   },
   {
+    "id": "command-008",
     "name": "croot",
     "command": "croot",
     "usage": "croot",
@@ -102,6 +110,7 @@
     ]
   },
   {
+    "id": "command-009",
     "name": "ls",
     "command": "lsd",
     "usage": "ls [path]",
@@ -115,6 +124,7 @@
     ]
   },
   {
+    "id": "command-010",
     "name": "ll",
     "command": "lsd -lah --group-dirs=first",
     "usage": "ll [path]",
@@ -128,6 +138,7 @@
     ]
   },
   {
+    "id": "command-011",
     "name": "la",
     "command": "lsd -A",
     "usage": "la [path]",
@@ -141,6 +152,7 @@
     ]
   },
   {
+    "id": "command-012",
     "name": "lt",
     "command": "lsd --tree --depth=3 --group-dirs=first",
     "usage": "lt [path]",
@@ -154,6 +166,7 @@
     ]
   },
   {
+    "id": "command-013",
     "name": "mkdir",
     "command": "mkdir -p",
     "usage": "mkdir <directory> ...",
@@ -167,6 +180,7 @@
     ]
   },
   {
+    "id": "command-014",
     "name": "cp",
     "command": "cp -iv",
     "usage": "cp <source> <destination>",
@@ -180,6 +194,7 @@
     ]
   },
   {
+    "id": "command-015",
     "name": "mv",
     "command": "mv -iv",
     "usage": "mv <source> <destination>",
@@ -193,6 +208,7 @@
     ]
   },
   {
+    "id": "command-016",
     "name": "rm",
     "command": "rm -iv",
     "usage": "rm <path> ...",
@@ -206,6 +222,7 @@
     ]
   },
   {
+    "id": "command-017",
     "name": "cat",
     "command": "bat --style=numbers --paging=never",
     "usage": "cat <file>",
@@ -219,6 +236,7 @@
     ]
   },
   {
+    "id": "command-018",
     "name": "extract",
     "command": "extract <archive>",
     "usage": "extract <archive>",
@@ -240,6 +258,7 @@
     ]
   },
   {
+    "id": "command-019",
     "name": "peek",
     "command": "peek <file>",
     "usage": "peek <file>",
@@ -257,6 +276,7 @@
     ]
   },
   {
+    "id": "command-020",
     "name": "dusage",
     "command": "dusage [path] [count]",
     "usage": "dusage [path] [count]",
@@ -273,6 +293,7 @@
     "richOutput": true
   },
   {
+    "id": "command-021",
     "name": "bigfiles",
     "command": "bigfiles [path] [count]",
     "usage": "bigfiles [path] [count]",
@@ -289,6 +310,7 @@
     "richOutput": true
   },
   {
+    "id": "command-022",
     "name": "grep",
     "command": "grep --color=auto",
     "usage": "grep <pattern> [file ...]",
@@ -302,6 +324,7 @@
     ]
   },
   {
+    "id": "command-023",
     "name": "diff",
     "command": "diff --color=auto",
     "usage": "diff <file-a> <file-b>",
@@ -315,6 +338,7 @@
     ]
   },
   {
+    "id": "command-024",
     "name": "ff",
     "command": "ff <pattern> [path]",
     "usage": "ff <pattern> [path]",
@@ -333,6 +357,7 @@
     ]
   },
   {
+    "id": "command-025",
     "name": "ft",
     "command": "ft <pattern> [path]",
     "usage": "ft <pattern> [path]",
@@ -350,6 +375,7 @@
     ]
   },
   {
+    "id": "command-026",
     "name": "glog",
     "command": "git log --oneline --graph --decorate -20",
     "usage": "glog",
@@ -364,6 +390,7 @@
     ]
   },
   {
+    "id": "command-027",
     "name": "gpr",
     "command": "git pull --rebase",
     "usage": "gpr",
@@ -378,6 +405,7 @@
     ]
   },
   {
+    "id": "command-028",
     "name": "gun",
     "command": "git reset HEAD~1 --soft",
     "usage": "gun",
@@ -392,6 +420,7 @@
     ]
   },
   {
+    "id": "command-029",
     "name": "gitcount",
     "command": "gitcount",
     "usage": "gitcount",
@@ -409,6 +438,7 @@
     ]
   },
   {
+    "id": "command-030",
     "name": "gcount",
     "command": "gitcount",
     "usage": "gcount",
@@ -423,6 +453,7 @@
     ]
   },
   {
+    "id": "command-031",
     "name": "fbr",
     "command": "fbr",
     "usage": "fbr",
@@ -441,6 +472,7 @@
     "interactive": true
   },
   {
+    "id": "command-032",
     "name": "weather",
     "command": "curl --http1.1 -fsSL https://wttr.in",
     "usage": "weather",
@@ -455,6 +487,7 @@
     ]
   },
   {
+    "id": "command-033",
     "name": "fkill",
     "command": "fkill [signal]",
     "usage": "fkill [signal]",
@@ -473,6 +506,7 @@
     "interactive": true
   },
   {
+    "id": "command-034",
     "name": "headers",
     "command": "headers <url>",
     "usage": "headers <url>",
@@ -487,6 +521,7 @@
     ]
   },
   {
+    "id": "command-035",
     "name": "fanprofile",
     "command": "fanprofile",
     "usage": "fanprofile",
@@ -503,6 +538,7 @@
     "richOutput": true
   },
   {
+    "id": "command-036",
     "name": "ports",
     "command": "ports",
     "usage": "ports",
@@ -519,6 +555,7 @@
     "richOutput": true
   },
   {
+    "id": "command-037",
     "name": "myip",
     "command": "myip",
     "usage": "myip",
@@ -535,6 +572,7 @@
     "richOutput": true
   },
   {
+    "id": "command-038",
     "name": "path",
     "command": "path",
     "usage": "path",
@@ -549,6 +587,7 @@
     "richOutput": true
   },
   {
+    "id": "command-039",
     "name": "cgm",
     "command": "cgm <command> [credential ...]",
     "usage": "cgm <command> [credential ...]",
@@ -581,6 +620,7 @@
     "richOutput": true
   },
   {
+    "id": "command-040",
     "name": "upkg",
     "command": "upkg [command] [args] [flags]",
     "usage": "upkg [command] [args] [flags]",
@@ -635,6 +675,7 @@
     "richOutput": true
   },
   {
+    "id": "command-041",
     "name": "npkg",
     "command": "npkg <command> [args]",
     "usage": "npkg <command> [args]",
@@ -674,6 +715,7 @@
     ]
   },
   {
+    "id": "command-042",
     "name": "G",
     "command": "| grep",
     "usage": "<command> G <pattern>",
@@ -688,6 +730,7 @@
     ]
   },
   {
+    "id": "command-043",
     "name": "L",
     "command": "| less",
     "usage": "<command> L",
@@ -702,6 +745,7 @@
     ]
   },
   {
+    "id": "command-044",
     "name": "W",
     "command": "| wc -l",
     "usage": "<command> W",
@@ -716,6 +760,7 @@
     ]
   },
   {
+    "id": "command-045",
     "name": "H",
     "command": "| head",
     "usage": "<command> H",
@@ -730,6 +775,7 @@
     ]
   },
   {
+    "id": "command-046",
     "name": "T",
     "command": "| tail",
     "usage": "<command> T",
@@ -744,6 +790,7 @@
     ]
   },
   {
+    "id": "command-047",
     "name": "NE",
     "command": "2>/dev/null",
     "usage": "<command> NE",
@@ -756,6 +803,7 @@
     ]
   },
   {
+    "id": "command-048",
     "name": "NUL",
     "command": ">/dev/null 2>&1",
     "usage": "<command> NUL",
@@ -768,6 +816,7 @@
     ]
   },
   {
+    "id": "command-049",
     "name": "tips",
     "command": "tips",
     "usage": "tips",
@@ -782,6 +831,7 @@
     "richOutput": true
   },
   {
+    "id": "command-050",
     "name": "zhelp",
     "command": "zhelp [--all] [--plain] [query]",
     "usage": "zhelp [--all] [--plain] [query]",

@@ -855,10 +855,18 @@ function main() {
 
   const commands = buildCommands(catalogue);
   const tips = extractTips();
+  const contentCommands = commands.map((command, index) => ({
+    id: `command-${String(index + 1).padStart(3, '0')}`,
+    ...command,
+  }));
+  const contentTips = tips.map((tip, index) => ({
+    id: `tip-${String(index + 1).padStart(3, '0')}`,
+    ...tip,
+  }));
 
   const outputs = [
-    { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(commands) },
-    { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(tips) },
+    { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
+    { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
   ];
 
   if (CHECK_ONLY) {
