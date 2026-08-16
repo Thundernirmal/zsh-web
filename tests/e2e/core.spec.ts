@@ -3,6 +3,28 @@ import { expect, test } from '@playwright/test';
 
 const siteRoutes = ['/', '/commands/', '/tips/', '/404.html'];
 
+test('homepage terminal loads Ghostty WASM and accepts shell input', async ({ page }) => {
+	const errors: string[] = [];
+	page.on('console', (message) => {
+		if (message.type() === 'error') errors.push(message.text());
+	});
+	page.on('pageerror', (error) => errors.push(error.message));
+
+	await page.goto('/');
+	const terminal = page.locator('[data-terminal-ready="true"]');
+	await expect(terminal).toBeVisible();
+	await expect(terminal.locator('canvas')).toHaveCount(1);
+	const input = page.getByLabel('Interactive shell demo input');
+	await expect(terminal).not.toBeFocused();
+	await expect(input).not.toBeFocused();
+	await input.pressSequentially('help');
+	await input.press('Enter');
+	await input.pressSequentially('commands git');
+	await input.press('Enter');
+	await expect(terminal).toHaveAttribute('data-terminal-ready', 'true');
+	expect(errors).toEqual([]);
+});
+
 for (const route of siteRoutes) {
 	test(`${route} has no serious accessibility violations`, async ({ page }) => {
 		await page.emulateMedia({ reducedMotion: 'reduce' });

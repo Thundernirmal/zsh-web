@@ -3,12 +3,15 @@ interface Props {
     featuredTip: string;
     upkgExample: string;
     npkgExample: string;
+    commands: import('@/components/InteractiveTerminal').TerminalCommand[];
+    tips: import('@/components/InteractiveTerminal').TerminalTip[];
 }
 
-const { featuredTip, upkgExample, npkgExample } = Astro.props;
+const { featuredTip, upkgExample, npkgExample, commands, tips } = Astro.props;
 import { Grid2X2Icon, MenuIcon, SquarePlusIcon, XIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TerminalPrompt from '@/components/TerminalPrompt.astro';
+import InteractiveTerminal from '@/components/InteractiveTerminal';
 ---
 
 <figure class="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
@@ -36,7 +39,10 @@ import TerminalPrompt from '@/components/TerminalPrompt.astro';
             </span>
         </CardHeader>
         <CardContent className="overflow-hidden bg-terminal-background p-0">
-            <pre class="overflow-x-auto whitespace-pre-wrap break-words p-4 text-sm leading-6 sm:p-6" translate="no"><code><span class="block"><TerminalPrompt>tips</TerminalPrompt></span><span class="block"><span class="text-primary">tip:</span> <span class="text-muted-foreground">{featuredTip}</span></span><span class="block h-3" aria-hidden="true"></span><span class="block"><TerminalPrompt>{upkgExample}</TerminalPrompt></span><span class="hidden text-muted-foreground sm:block">manager   package    summary</span><span class="hidden sm:block"><span class="text-category-git">dnf</span>       <span class="text-category-search">ripgrep</span>    <span class="text-muted-foreground">Search package names across detected managers</span></span><span class="hidden h-3 sm:block" aria-hidden="true"></span><span class="hidden sm:block"><TerminalPrompt>{npkgExample}</TerminalPrompt></span><span class="hidden text-muted-foreground sm:block">Interactive picker ready with preview metadata</span><span class="block h-3 sm:hidden" aria-hidden="true"></span><span class="block"><TerminalPrompt cursor /></span></code></pre>
+            <InteractiveTerminal client:visible {commands} {tips} {featuredTip} {upkgExample} {npkgExample} />
+            <noscript>
+                <pre class="overflow-x-auto whitespace-pre-wrap break-words p-4 text-sm leading-6 sm:p-6" translate="no"><code><span class="block"><TerminalPrompt>tips</TerminalPrompt></span><span class="block"><span class="text-primary">tip:</span> <span class="text-muted-foreground">{featuredTip}</span></span><span class="block h-3" aria-hidden="true"></span><span class="block"><TerminalPrompt>{upkgExample}</TerminalPrompt></span><span class="hidden text-muted-foreground sm:block">manager   package    summary</span><span class="hidden sm:block"><span class="text-category-git">dnf</span>       <span class="text-category-search">ripgrep</span>    <span class="text-muted-foreground">Search package names across detected managers</span></span><span class="block"><TerminalPrompt cursor /></span></code></pre>
+            </noscript>
         </CardContent>
     </Card>
 </figure>

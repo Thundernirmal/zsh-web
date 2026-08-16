@@ -29,7 +29,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 	</PageHeader>
 
 	<div>
-		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
+		<TerminalHero {featuredTip} {upkgExample} {npkgExample} {commands} {tips} />
 	</div>
 
 	<div class="grid gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 lg:grid-cols-2">
