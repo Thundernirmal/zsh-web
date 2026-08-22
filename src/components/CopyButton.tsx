@@ -39,7 +39,6 @@ export function CopyButton({
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
         textarea.select();
-        // @ts-expect-error fallback for legacy environments
         document.execCommand('copy');
         document.body.removeChild(textarea);
         setCopied(true);

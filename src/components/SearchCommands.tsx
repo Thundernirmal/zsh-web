@@ -1,7 +1,7 @@
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
+import { RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from 'lucide-react';
 
-import { CategoryBadge } from '@/components/CategoryBadge';
+import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
 import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
 import {
@@ -22,6 +22,15 @@ import {
 } from '@/components/ui/empty';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Kbd } from '@/components/ui/kbd';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import {
   Table,
@@ -34,6 +43,7 @@ import {
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useSlashFocus } from '@/hooks/useSlashFocus';
+import { categoryLabels, categoryOrder, type Category } from '@/lib/categories';
 import {
   buildFeatureDetails,
   commandId,
@@ -256,26 +266,40 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [filter, setFilter] = useState<Filter>('all');
+  const [category, setCategory] = useState<string>('all');
   const [expanded, setExpanded] = useState<string[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useSlashFocus(searchRef);
 
+  const availableCategories = useMemo(() => {
+    const present = Array.from(
+      new Set(commands.map((c) => c.category).filter(Boolean) as Category[]),
+    );
+    const known = categoryOrder.filter((cat) => present.includes(cat));
+    const additional = present.filter((cat) => !categoryOrder.includes(cat)).sort();
+    return [...known, ...additional];
+  }, [commands]);
+
   /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nextQuery = params.get('q');
     const nextFilter = params.get('type') as Filter | null;
+    const nextCategory = params.get('cat');
     const nextCommand = params.get('command');
 
     if (nextQuery) setQuery(nextQuery);
     if (nextFilter && validFilters.has(nextFilter)) setFilter(nextFilter);
+    if (nextCategory && (availableCategories as string[]).includes(nextCategory)) {
+      setCategory(nextCategory);
+    }
     if (nextCommand && commands.some((command) => commandId(command) === nextCommand)) {
       setExpanded([nextCommand]);
     }
     setIsMounted(true);
-  }, [commands]);
+  }, [availableCategories, commands]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
@@ -285,10 +309,12 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     else url.searchParams.delete('q');
     if (filter !== 'all') url.searchParams.set('type', filter);
     else url.searchParams.delete('type');
+    if (category !== 'all') url.searchParams.set('cat', category);
+    else url.searchParams.delete('cat');
     if (expanded[0]) url.searchParams.set('command', expanded[0]);
     else url.searchParams.delete('command');
     window.history.replaceState(window.history.state, '', url);
-  }, [expanded, filter, isMounted, query]);
+  }, [category, expanded, filter, isMounted, query]);
 
   const normalizedQuery = useMemo(() => deferredQuery.trim().toLowerCase(), [deferredQuery]);
 
@@ -303,33 +329,55 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   );
 
   const filteredCommands = useMemo(() => {
-    if (normalizedQuery.length === 0 && filter === 'all') return commands;
     return commands.filter((command) => {
       if (filter !== 'all' && command.type !== filter) return false;
+      if (category !== 'all' && command.category !== category) return false;
       if (normalizedQuery.length === 0) return true;
       const text = corpus.get(commandId(command)) ?? '';
       return text.includes(normalizedQuery);
     });
-  }, [commands, corpus, filter, normalizedQuery]);
+  }, [category, commands, corpus, filter, normalizedQuery]);
 
   const counts = useMemo(() => {
-    // single-pass derived counts (avoids 4x filter)
     const acc = { all: 0, alias: 0, global_alias: 0, function: 0 } as Record<Filter, number> & {
       all: number;
     };
-    if (normalizedQuery.length === 0) {
-      acc.all = commands.length;
-      for (const c of commands) acc[c.type as Filter] = (acc[c.type as Filter] ?? 0) + 1;
-      return acc;
-    }
     for (const command of commands) {
-      const text = corpus.get(commandId(command)) ?? '';
-      if (!text.includes(normalizedQuery)) continue;
+      if (category !== 'all' && command.category !== category) continue;
+      if (normalizedQuery.length > 0) {
+        const text = corpus.get(commandId(command)) ?? '';
+        if (!text.includes(normalizedQuery)) continue;
+      }
       acc.all += 1;
       acc[command.type as Filter] = (acc[command.type as Filter] ?? 0) + 1;
     }
     return acc;
-  }, [commands, corpus, normalizedQuery]);
+  }, [category, commands, corpus, normalizedQuery]);
+
+  const categoryCounts = useMemo(() => {
+    const acc: Record<string, number> = { all: 0 };
+    for (const cat of availableCategories) acc[cat] = 0;
+    for (const command of commands) {
+      if (filter !== 'all' && command.type !== filter) continue;
+      if (normalizedQuery.length > 0) {
+        const text = corpus.get(commandId(command)) ?? '';
+        if (!text.includes(normalizedQuery)) continue;
+      }
+      acc.all += 1;
+      if (command.category) {
+        acc[command.category] = (acc[command.category] ?? 0) + 1;
+      }
+    }
+    return acc;
+  }, [availableCategories, commands, corpus, filter, normalizedQuery]);
+
+  const categorySelectItems = [
+    { value: 'all', label: `All Categories (${categoryCounts.all})` },
+    ...availableCategories.map((cat) => ({
+      value: cat,
+      label: `${categoryLabels[cat] ?? formatLabel(cat)} (${categoryCounts[cat] ?? 0})`,
+    })),
+  ];
 
   const filters: Array<{ key: Filter; label: string; count: number }> = [
     { key: 'all', label: 'All', count: counts.all },
@@ -341,9 +389,12 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   const clearSearch = () => {
     setQuery('');
     setFilter('all');
+    setCategory('all');
     setExpanded([]);
     searchRef.current?.focus();
   };
+
+  const hasActiveFilters = query.trim().length > 0 || filter !== 'all' || category !== 'all';
 
   return (
     <section
@@ -382,7 +433,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
           {filteredCommands.length} result{filteredCommands.length === 1 ? '' : 's'}
         </span>
 
-        <div>
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <ToggleGroup
             value={[filter]}
             onValueChange={(values) => {
@@ -409,7 +460,87 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+
+          <div className="w-full sm:w-60">
+            <Select
+              name="command-category"
+              value={category}
+              onValueChange={(value) => {
+                if (!value) return;
+                setCategory(value);
+              }}
+              items={categorySelectItems}
+            >
+              <SelectTrigger
+                className="w-full data-[size=default]:h-11 sm:data-[size=default]:h-7 text-xs"
+                aria-label="Filter commands by category"
+              >
+                <CategoryIcon category={category} className="text-muted-foreground size-3.5" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                <SelectGroup>
+                  <SelectLabel>Command Categories</SelectLabel>
+                  {categorySelectItems.map((item) => (
+                    <SelectItem
+                      key={item.value}
+                      value={item.value}
+                      disabled={categoryCounts[item.value] === 0 && category !== item.value}
+                    >
+                      <CategoryIcon category={item.value} className="text-muted-foreground size-3.5" />
+                      <span className="flex-1">{item.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Active:</span>
+            {query.trim().length > 0 && (
+              <Badge
+                variant="secondary"
+                className="gap-1 cursor-pointer hover:bg-destructive/20"
+                onClick={() => setQuery('')}
+              >
+                Query: “{query.trim()}”
+                <XIcon className="size-3" aria-hidden="true" />
+              </Badge>
+            )}
+            {filter !== 'all' && (
+              <Badge
+                variant="secondary"
+                className="gap-1 cursor-pointer hover:bg-destructive/20"
+                onClick={() => setFilter('all')}
+              >
+                Type: {filters.find((f) => f.key === filter)?.label}
+                <XIcon className="size-3" aria-hidden="true" />
+              </Badge>
+            )}
+            {category !== 'all' && (
+              <Badge
+                variant="secondary"
+                className="gap-1 cursor-pointer hover:bg-destructive/20"
+                onClick={() => setCategory('all')}
+              >
+                Category: {categoryLabels[category] ?? formatLabel(category)}
+                <XIcon className="size-3" aria-hidden="true" />
+              </Badge>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={clearSearch}
+              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Reset all
+            </Button>
+          </div>
+        )}
       </div>
 
       {filteredCommands.length === 0 ? (
