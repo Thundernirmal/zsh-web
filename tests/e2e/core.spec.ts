@@ -17,8 +17,11 @@ for (const route of siteRoutes) {
 
 test('command search, filters, expanded state, and history remain URL synchronized', async ({ page }) => {
 	await page.goto('/commands/');
-	await page.getByRole('searchbox').fill('upkg');
-	await expect(page).toHaveURL(/q=upkg/);
+	const searchbox = page.getByRole('searchbox');
+	await expect.poll(async () => {
+		await searchbox.fill('upkg');
+		return page.url();
+	}).toMatch(/q=upkg/);
 	await page.getByRole('button', { name: /^Functions,/ }).click();
 	await expect(page).toHaveURL(/type=function/);
 	await page.getByRole('button', { name: /upkg/i }).click();
@@ -120,3 +123,23 @@ test('404 page is branded and its recovery links work', async ({ page }) => {
 	await expect(page).toHaveURL(/\/$/);
 	await expect(page.getByRole('heading', { name: "Nirmal's Shell" })).toBeVisible();
 });
+
+test('terminal prompt cursor is aligned inline with the prompt indicator', async ({ page }) => {
+	for (const route of ['/', '/404.html']) {
+		await page.goto(route);
+		const chevron = page.locator('pre code svg.lucide-chevron-right').last();
+		const cursor = page.locator('pre code .bg-category-packages').first();
+		await expect(chevron).toBeVisible();
+		await expect(cursor).toBeVisible();
+
+		const chevronBox = await chevron.boundingBox();
+		const cursorBox = await cursor.boundingBox();
+		expect(chevronBox).not.toBeNull();
+		expect(cursorBox).not.toBeNull();
+
+		const chevronCenter = (chevronBox?.y ?? 0) + (chevronBox?.height ?? 0) / 2;
+		const cursorCenter = (cursorBox?.y ?? 0) + (cursorBox?.height ?? 0) / 2;
+		expect(Math.abs(chevronCenter - cursorCenter)).toBeLessThanOrEqual(1);
+	}
+});
+
