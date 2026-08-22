@@ -2,6 +2,7 @@ import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
 
 import { CategoryBadge } from '@/components/CategoryBadge';
+import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
 import {
   Accordion,
@@ -55,10 +56,17 @@ interface SearchCommandsProps {
 function Example({ example, query }: { example: string; query: string }) {
   const { command, annotation } = splitExample(example);
   return (
-    <div className="grid min-w-0 gap-0.5">
-      <pre className="detail-code" data-detail-code>
-        <code translate="no">{highlightText(command, query)}</code>
-      </pre>
+    <div className="group/example grid min-w-0 gap-0.5">
+      <div className="flex items-center justify-between gap-2">
+        <pre className="detail-code flex-1" data-detail-code>
+          <code translate="no">{highlightText(command, query)}</code>
+        </pre>
+        <CopyButton
+          text={command}
+          label="Copy example"
+          className="size-7 shrink-0 opacity-70 group-hover/example:opacity-100 transition-opacity"
+        />
+      </div>
       {annotation && (
         <span
           className="text-pretty text-base leading-6 text-muted-foreground md:text-sm md:leading-5"
@@ -485,9 +493,16 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                       <Fragment key={detail.label}>
                         {index > 0 && <Separator />}
                         <div className="grid min-w-0 gap-1">
-                          <h3 className="detail-section-heading" data-detail-section-heading>
-                            {detail.label}
-                          </h3>
+                          <div className="flex items-center justify-between">
+                            <h3 className="detail-section-heading" data-detail-section-heading>
+                              {detail.label}
+                            </h3>
+                            <CopyButton
+                              text={detail.value}
+                              label={`Copy ${detail.label}`}
+                              className="size-7 shrink-0"
+                            />
+                          </div>
                           <pre className="detail-code font-semibold" data-detail-code>
                             <code translate="no">{highlightText(detail.value, query)}</code>
                           </pre>
