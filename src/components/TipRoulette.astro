@@ -1,13 +1,19 @@
 ---
 import { RefreshCwIcon } from 'lucide-react';
-import { CategoryIcon, categoryLabels as sharedCategoryLabels } from '@/components/CategoryBadge';
+import { CategoryIcon } from '@/components/CategoryBadge';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
+import { categoryLabels, categoryOrder, categoryTokens } from '@/lib/categories';
 
-const rouletteCategories = Object.keys(sharedCategoryLabels);
+const rouletteCategories = categoryOrder;
 ---
 
-<div class="flex h-full flex-1 flex-col justify-between gap-4" data-tip-roulette>
+<div
+	class="flex h-full flex-1 flex-col justify-between gap-4"
+	data-tip-roulette
+	data-category-labels={JSON.stringify(categoryLabels)}
+	data-category-tokens={JSON.stringify(categoryTokens)}
+>
 	<div class="sr-only" aria-live="polite" aria-atomic="true" data-tip-announcement></div>
 
 	<div class="grid gap-3">
@@ -56,6 +62,8 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 </div>
 
 <script>
+	import { formatLabel } from '@/lib/shell-docs';
+
 	interface ShellTip {
 		text: string;
 		category: string;
@@ -65,43 +73,6 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 
 	let tipsPromise: Promise<ShellTip[]> | undefined;
 	let cleanUpRoulette: (() => void) | undefined;
-
-	// Keep in sync with src/lib/categories.ts
-	const categoryTokens: Record<string, string> = {
-		security: 'safety',
-		files: 'viewing',
-		system: 'network',
-		meta: 'pipe',
-	};
-	const categoryLabels: Record<string, string> = {
-		navigation: 'Navigation',
-		git: 'Git',
-		search: 'Search & Process',
-		utility: 'Utility',
-		packages: 'Package Updates',
-		pipe: 'Pipe Aliases',
-		globbing: 'Globbing',
-		history: 'History',
-		fzf: 'FZF & Zoxide',
-		nix: 'Nix',
-		shell: 'Shell Behavior',
-		network: 'Network',
-		process: 'Process',
-		safety: 'Safety',
-		viewing: 'Viewing',
-		files: 'Files',
-		system: 'System',
-		security: 'Security',
-		meta: 'Meta',
-	};
-
-	// Mirrors src/lib/shell-docs.ts:formatLabel — client script cannot import it directly
-	const formatLabel = (value: string) => value
-		.replace(/_/g, ' ')
-		.split(/[-\s]+/)
-		.filter(Boolean)
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ');
 
 	const loadTips = () => {
 		tipsPromise ??= fetch('/tips.json')
@@ -136,6 +107,9 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 		const actionLabel = root?.querySelector<HTMLElement>('[data-tip-action-label]');
 
 		if (!root || !text || !announcement || !placeholders || !category || !categoryWrapper || !categoryLabel || !source || !sourceWrapper || !availability || !action || !actionLabel) return;
+
+		const categoryLabels: Record<string, string> = JSON.parse(root.dataset.categoryLabels ?? '{}');
+		const categoryTokens: Record<string, string> = JSON.parse(root.dataset.categoryTokens ?? '{}');
 
 		const controller = new AbortController();
 		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');

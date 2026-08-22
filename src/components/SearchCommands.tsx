@@ -297,8 +297,12 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
 
       if (nextQuery) setQuery(nextQuery);
       if (nextFilter && validFilters.has(nextFilter)) setFilter(nextFilter);
-      if (nextCategory) setCategory(nextCategory);
-      if (nextCommand) setExpanded([nextCommand]);
+      if (nextCategory && (availableCategories as string[]).includes(nextCategory)) {
+        setCategory(nextCategory);
+      }
+      if (nextCommand && commands.some((command) => commandId(command) === nextCommand)) {
+        setExpanded([nextCommand]);
+      }
       return;
     }
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -313,7 +317,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     if (expanded[0]) url.searchParams.set('command', expanded[0]);
     else url.searchParams.delete('command');
     window.history.replaceState(window.history.state, '', url);
-  }, [category, expanded, filter, query]);
+  }, [availableCategories, category, commands, expanded, filter, query]);
 
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
@@ -616,7 +620,10 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                     )}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="grid gap-4 pb-4">
+                {/* Detail bodies mount on expand: keeps the static HTML and DOM
+                    budget flat regardless of catalogue size. */}
+                {expanded.includes(commandId(command)) && (
+                  <AccordionContent className="grid gap-4 pb-4">
                   <Separator />
                   <div className="grid gap-2.5">
                     {syntaxDetails.map((detail, index) => (
@@ -704,7 +711,8 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                       <NotesList id={detailId} notes={notes} query={query} />
                     </div>
                   )}
-                </AccordionContent>
+                  </AccordionContent>
+                )}
               </AccordionItem>
             );
           })}

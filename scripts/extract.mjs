@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 if (!process.env.ZSH_CONFIG_DIR && !process.env.HOME) {
   throw new Error('HOME is not set and ZSH_CONFIG_DIR is not configured. Set ZSH_CONFIG_DIR to your zsh config directory.');
@@ -7,7 +8,7 @@ if (!process.env.ZSH_CONFIG_DIR && !process.env.HOME) {
 const ZSH_DIR = process.env.ZSH_CONFIG_DIR
   ? path.resolve(process.env.ZSH_CONFIG_DIR)
   : path.join(process.env.HOME, '.config', 'zsh');
-const SCRIPT_DIR = path.dirname(new URL(import.meta.url).pathname);
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(SCRIPT_DIR, '..', 'src', 'data');
 
 const GUIDE_SOURCE = 'GUIDE.md';

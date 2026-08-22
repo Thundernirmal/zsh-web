@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['.astro/**', 'dist/**', '.playwright-mcp/**', 'playwright-report/**', 'test-results/**'],
+    ignores: ['.astro/**', 'dist/**', '.playwright-mcp/**', 'playwright-report/**', 'test-results/**', '.zsh-config/**'],
   },
   {
     ...js.configs.recommended,

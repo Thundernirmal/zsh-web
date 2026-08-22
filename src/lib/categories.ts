@@ -116,3 +116,15 @@ export const categoryIcons: Record<string, LucideIcon> = {
   security: ShieldCheckIcon,
   meta: WorkflowIcon,
 };
+
+/**
+ * CSS token name for each category (--category-*), derived from categoryStyles
+ * so aliases (security→safety, files→viewing, system→network, meta→pipe)
+ * always stay in lockstep with the styles they reuse.
+ */
+export const categoryTokens: Readonly<Record<string, string>> = Object.fromEntries(
+  categoryOrder.map((category) => [
+    category,
+    /text-category-(\w+)/.exec(categoryStyles[category])?.[1] ?? category,
+  ]),
+);

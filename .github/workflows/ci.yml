@@ -16,6 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check out Zsh config sources
+        uses: actions/checkout@v4
+        with:
+          repository: Thundernirmal/zsh
+          path: .zsh-config
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
@@ -24,13 +30,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify generated data (if zsh checkout available)
-        run: |
-          if [ -d "$HOME/.config/zsh" ] || [ -n "$ZSH_CONFIG_DIR" ]; then
-            npm run sync:check
-          else
-            echo "::notice::No zsh config found — skipping sync:check (build uses committed JSON)"
-          fi
+      - name: Verify generated data against Zsh sources
+        env:
+          ZSH_CONFIG_DIR: ${{ github.workspace }}/.zsh-config
+        run: npm run sync:check
 
       - name: Lint
         run: npm run lint
@@ -40,6 +43,9 @@ jobs:
 
       - name: Astro check + build
         run: npm run build
+
+      - name: Enforce payload and DOM budgets
+        run: npm run budget
 
       - name: Upload dist
         uses: actions/upload-artifact@v4

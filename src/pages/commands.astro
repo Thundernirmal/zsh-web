@@ -48,6 +48,6 @@ const documentedCount = commands.filter((command) =>
 			<StatCard value={documentedCount} label="entries with extracted details" icon={FileCheck2Icon} />
 		</div>
 
-		<SearchCommands client:load commands={commands} />
+		<SearchCommands client:visible commands={commands} />
 	</div>
 </Layout>

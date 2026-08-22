@@ -1,5 +1,10 @@
 import { useEffect, type RefObject } from 'react';
 
+// Command accordion triggers are real buttons; tip rows opt into keyboard
+// navigation by rendering an explicit tabindex attribute (roving focus).
+const NAVIGATION_SELECTOR =
+	'[data-command] button[data-slot="accordion-trigger"], [role="listitem"][tabindex]';
+
 interface UseSlashFocusOptions {
   onClear?: () => void;
   onCloseExpanded?: () => void;
@@ -13,6 +18,38 @@ export function useSlashFocus(
   const onCloseExpanded = options?.onCloseExpanded;
 
   useEffect(() => {
+    const moveListFocus = (event: KeyboardEvent, direction: 1 | -1) => {
+      const triggers = Array.from(
+        document.querySelectorAll<HTMLElement>(NAVIGATION_SELECTOR),
+      );
+      if (triggers.length === 0) return;
+
+      const active = document.activeElement;
+      const currentIndex = triggers.findIndex((t) => t === active || t.contains(active));
+      const nextIndex =
+        direction === 1
+          ? currentIndex < triggers.length - 1
+            ? currentIndex + 1
+            : 0
+          : currentIndex > 0
+            ? currentIndex - 1
+            : triggers.length - 1;
+      const next = triggers[nextIndex];
+      if (!next || next === active) return;
+
+      // Hijack the key only once a valid target is resolved, so untouched
+      // arrow keys keep scrolling the page normally.
+      event.preventDefault();
+      next.focus();
+      if (document.activeElement !== next) return;
+      next.scrollIntoView({
+        block: 'nearest',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+      });
+    };
+
     const handler = (event: KeyboardEvent) => {
       const target = document.activeElement;
       const isInputFocused = target === ref.current;
@@ -55,32 +92,12 @@ export function useSlashFocus(
         return;
       }
 
-      // j / k navigation between list/accordion items when not editing
+      // j / k / arrow navigation between list/accordion items when not editing
       if (!isEditable && !event.metaKey && !event.ctrlKey && !event.altKey) {
         if (event.key === 'j' || event.key === 'ArrowDown') {
-          const triggers = Array.from(
-            document.querySelectorAll<HTMLElement>(
-              '[data-command] button[data-slot="trigger"], [role="listitem"]',
-            ),
-          );
-          if (triggers.length === 0) return;
-          const currentIndex = triggers.findIndex((t) => t === target || t.contains(target));
-          const nextIndex = currentIndex < triggers.length - 1 ? currentIndex + 1 : 0;
-          event.preventDefault();
-          triggers[nextIndex]?.focus();
-          triggers[nextIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          moveListFocus(event, 1);
         } else if (event.key === 'k' || event.key === 'ArrowUp') {
-          const triggers = Array.from(
-            document.querySelectorAll<HTMLElement>(
-              '[data-command] button[data-slot="trigger"], [role="listitem"]',
-            ),
-          );
-          if (triggers.length === 0) return;
-          const currentIndex = triggers.findIndex((t) => t === target || t.contains(target));
-          const prevIndex = currentIndex > 0 ? currentIndex - 1 : triggers.length - 1;
-          event.preventDefault();
-          triggers[prevIndex]?.focus();
-          triggers[prevIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          moveListFocus(event, -1);
         }
       }
     };

@@ -8,8 +8,8 @@
     "esbuild@0.28.1": true
   },
   "engines": {
-    "node": ">=22.13.0",
-    "npm": ">=10.0.0"
+    "node": ">=22.14.0",
+    "npm": ">=10.9.2"
   },
   "scripts": {
     "sync": "node scripts/extract.mjs",
@@ -20,7 +20,8 @@
     "lint:fix": "eslint . --fix",
     "dead-code": "knip --include files,dependencies,unlisted,exports,types,enumMembers,duplicates",
     "build": "npm run check && astro build",
-    "verify": "npm run sync:check && npm run lint && npm run dead-code && npm run build",
+    "budget": "node scripts/check-budget.mjs",
+    "verify": "npm run sync:check && npm run lint && npm run dead-code && npm run build && npm run budget",
     "test:e2e": "npm run build && playwright test",
     "test": "npm run verify && playwright test",
     "preview": "astro preview",

@@ -66,7 +66,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
       const nextQuery = params.get('q');
       const nextFilter = params.get('cat');
       if (nextQuery) setQuery(nextQuery);
-      if (nextFilter) setFilter(nextFilter);
+      if (nextFilter && (availableCategories as string[]).includes(nextFilter)) setFilter(nextFilter);
       return;
     }
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -77,7 +77,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     if (filter !== 'all') url.searchParams.set('cat', filter);
     else url.searchParams.delete('cat');
     window.history.replaceState(window.history.state, '', url);
-  }, [filter, query]);
+  }, [availableCategories, filter, query]);
 
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
@@ -231,9 +231,10 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               <Item
                 key={`${tip.category}:${tip.text}`}
                 role="listitem"
+                tabIndex={-1}
                 variant="outline"
                 size="xs"
-                className="min-w-0 items-start bg-card"
+                className="min-w-0 items-start rounded-xl bg-card outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <ItemContent className="min-w-0 gap-1">
                   <ItemDescription className="line-clamp-none text-pretty">
