@@ -1,6 +1,6 @@
 import { z } from 'astro/zod';
 
-import { categoryOrder } from '@/lib/categories';
+import { categoryOrder } from './categories';
 
 export const shellCommandSchema = z
 	.object({
