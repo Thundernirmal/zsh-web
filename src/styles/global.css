@@ -3,6 +3,11 @@
 @import "@fontsource-variable/outfit/wght.css";
 @import "@fontsource-variable/plus-jakarta-sans/wght.css";
 @import "@fontsource-variable/jetbrains-mono/wght.css";
+
+/* Ensure font-display swap for variable fonts even when preloaded */
+@font-face {
+  font-display: swap;
+}
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
