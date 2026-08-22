@@ -125,6 +125,8 @@ test('404 page is branded and its recovery links work', async ({ page }) => {
 });
 
 test('terminal prompt cursor is aligned inline with the prompt indicator', async ({ page }) => {
+	// motion-safe entrance animations skew boundingBox() while in flight; measure at rest.
+	await page.emulateMedia({ reducedMotion: 'reduce' });
 	for (const route of ['/', '/404.html']) {
 		await page.goto(route);
 		const chevron = page.locator('pre code svg.lucide-chevron-right').last();
