@@ -452,11 +452,15 @@ function describeCondition(condition) {
     return 'Available when the lt alias is available';
   }
 
-  return `Available when ${condition
+  // Fallback: avoid leaking raw shell syntax; keep human-readable and short
+  const cleaned = condition
     .replace(/^if\s+/, '')
     .replace(/;?\s*then$/, '')
     .replace(/^\(\(|\)\)$/g, '')
-    .trim()}`;
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  return cleaned ? `Requires: ${cleaned}` : 'Conditional';
 }
 
 function inferTipSource(condition, text) {
@@ -675,6 +679,7 @@ function extractAliases() {
     });
   }
 
+  // Keep first definition when aliases are redefined conditionally (ls/ll/la fallback chain)
   return dedupeBy(aliases, (alias) => alias.name);
 }
 
@@ -860,14 +865,21 @@ function extractTips() {
   };
 
   for (const [index, rawLine] of readSource(TIPS_SOURCE).split('\n').entries()) {
-    const line = rawLine.trim();
+    const raw = rawLine;
+    const line = raw.trim();
 
-    if (line.startsWith('if ')) {
+    if (/^\s*if\b/.test(raw)) {
       conditionStack.push(line);
       continue;
     }
-
-    if (line === 'fi') {
+    if (/^\s*elif\b/.test(raw) && conditionStack.length > 0) {
+      conditionStack[conditionStack.length - 1] = line;
+      continue;
+    }
+    if (/^\s*else\b/.test(raw)) {
+      continue;
+    }
+    if (/^\s*fi\b/.test(raw) || line.startsWith('fi')) {
       conditionStack.pop();
       continue;
     }
