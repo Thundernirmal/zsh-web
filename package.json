@@ -8,7 +8,7 @@
     "esbuild@0.28.1": true
   },
   "engines": {
-    "node": ">=22.12.0",
+    "node": ">=22.13.0",
     "npm": ">=9.6.5"
   },
   "scripts": {
