@@ -4,6 +4,7 @@ import { RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from 'lucide-react';
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
 import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
+import { SyntaxCode } from '@/components/SyntaxCode';
 import {
   Accordion,
   AccordionContent,
@@ -69,7 +70,7 @@ function Example({ example, query }: { example: string; query: string }) {
     <div className="group/example grid min-w-0 gap-0.5">
       <div className="flex items-center justify-between gap-2">
         <pre className="detail-code flex-1" data-detail-code>
-          <code translate="no">{highlightText(command, query)}</code>
+          <SyntaxCode code={command} query={query} />
         </pre>
         <CopyButton
           text={command}
@@ -128,7 +129,7 @@ function FeatureTable({
             {feature.usage ? (
               <dt>
                 <pre className="detail-code font-semibold" data-detail-code>
-                  <code translate="no">{highlightText(feature.usage, query)}</code>
+                  <SyntaxCode code={feature.usage} query={query} />
                 </pre>
               </dt>
             ) : (
@@ -176,7 +177,7 @@ function FeatureTable({
                 <TableHead scope="row" className="h-auto align-top whitespace-normal py-2">
                   {feature.usage ? (
                     <pre className="detail-code font-semibold">
-                      <code translate="no">{highlightText(feature.usage, query)}</code>
+                      <SyntaxCode code={feature.usage} query={query} />
                     </pre>
                   ) : (
                     <span className="text-muted-foreground">—</span>
@@ -638,7 +639,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                             />
                           </div>
                           <pre className="detail-code font-semibold" data-detail-code>
-                            <code translate="no">{highlightText(detail.value, query)}</code>
+                            <SyntaxCode code={detail.value} query={query} />
                           </pre>
                         </div>
                       </Fragment>
