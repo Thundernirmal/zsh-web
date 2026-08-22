@@ -1,39 +1,54 @@
 ---
 import { RefreshCwIcon } from 'lucide-react';
-import { CategoryIcon, categoryLabels as sharedCategoryLabels } from '@/components/CategoryBadge';
+import { CategoryIcon } from '@/components/CategoryBadge';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
+import { categoryLabels, categoryOrder, categoryTokens } from '@/lib/categories';
 
-const rouletteCategories = Object.keys(sharedCategoryLabels);
+const rouletteCategories = categoryOrder;
 ---
 
-<div class="grid min-h-52 content-start gap-3" data-tip-roulette>
+<div
+	class="flex h-full flex-1 flex-col justify-between gap-4"
+	data-tip-roulette
+	data-category-labels={JSON.stringify(categoryLabels)}
+	data-category-tokens={JSON.stringify(categoryTokens)}
+>
 	<div class="sr-only" aria-live="polite" aria-atomic="true" data-tip-announcement></div>
 
-	<div class="flex min-h-24 items-center border-l-2 border-primary py-2 pl-3">
-		<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
-			Choose Show Random Tip for a shell shortcut.
-		</p>
-	</div>
+	<div class="grid gap-3">
+		<div class="flex min-h-[5.5rem] items-center border-l-2 border-primary py-2 pl-3">
+			<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
+				Choose Show Random Tip to explore shell shortcuts, functions, and keybindings.
+			</p>
+		</div>
 
-	<div class="flex min-h-10 flex-wrap content-center items-center gap-x-1.5 gap-y-1" data-tip-metadata>
-		<span class="contents" data-tip-placeholders aria-hidden="true">
-			<Badge variant="placeholder" data-tip-placeholder-category>Category</Badge>
-			<Badge variant="placeholder" data-tip-placeholder-source>Source</Badge>
-		</span>
-		<span class="inline-flex" data-tip-category-wrapper hidden>
-			<Badge variant="outline" className="roulette-category" data-tip-category>
-				{rouletteCategories.map((category) => (
-					<CategoryIcon category={category} className="hidden" data-icon="inline-start" data-tip-category-icon={category} />
-				))}
-				<CategoryIcon category="all" className="hidden" data-icon="inline-start" data-tip-category-icon="fallback" />
-				<span data-tip-category-label></span>
-			</Badge>
-		</span>
-		<span class="inline-flex" data-tip-source-wrapper hidden>
-			<Badge variant="metadata" data-tip-source></Badge>
-		</span>
-		<span class="basis-full text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
+		<div class="grid gap-1.5" data-tip-metadata>
+			<div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
+				<span class="contents" data-tip-placeholders aria-hidden="true">
+					<Badge variant="placeholder" data-tip-placeholder-category>Category</Badge>
+					<Badge variant="placeholder" data-tip-placeholder-source>Source</Badge>
+				</span>
+				<span class="inline-flex" data-tip-category-wrapper hidden>
+					<Badge variant="outline" className="roulette-category" data-tip-category>
+						{rouletteCategories.map((category) => (
+							<CategoryIcon category={category} className="hidden" data-icon="inline-start" data-tip-category-icon={category} />
+						))}
+						<CategoryIcon category="all" className="hidden" data-icon="inline-start" data-tip-category-icon="fallback" />
+						<span data-tip-category-label></span>
+					</Badge>
+				</span>
+				<span class="inline-flex" data-tip-source-wrapper hidden>
+					<Badge variant="metadata" data-tip-source></Badge>
+				</span>
+			</div>
+			<div class="min-h-10" data-tip-availability-wrapper>
+				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-placeholder-hint>
+					Extracted from <code class="font-mono text-xs text-foreground/80">~/.config/zsh</code> with dependency and availability notes.
+				</span>
+				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
+			</div>
+		</div>
 	</div>
 
 	<button
@@ -47,6 +62,8 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 </div>
 
 <script>
+	import { formatLabel } from '@/lib/shell-docs';
+
 	interface ShellTip {
 		text: string;
 		category: string;
@@ -56,27 +73,6 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 
 	let tipsPromise: Promise<ShellTip[]> | undefined;
 	let cleanUpRoulette: (() => void) | undefined;
-
-	const categoryTokens: Record<string, string> = {
-		security: 'safety',
-		files: 'viewing',
-		system: 'network',
-		meta: 'pipe',
-	};
-	const categoryLabels: Record<string, string> = {
-		search: 'Search & Process',
-		packages: 'Package Updates',
-		pipe: 'Pipe Aliases',
-		fzf: 'FZF & Zoxide',
-		shell: 'Shell Behavior',
-	};
-
-	const formatLabel = (value: string) => value
-		.replace(/_/g, ' ')
-		.split(/[-\s]+/)
-		.filter(Boolean)
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ');
 
 	const loadTips = () => {
 		tipsPromise ??= fetch('/tips.json')
@@ -99,6 +95,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 		const text = root?.querySelector<HTMLElement>('[data-tip-text]');
 		const announcement = root?.querySelector<HTMLElement>('[data-tip-announcement]');
 		const placeholders = root?.querySelector<HTMLElement>('[data-tip-placeholders]');
+		const placeholderHint = root?.querySelector<HTMLElement>('[data-tip-placeholder-hint]');
 		const category = root?.querySelector<HTMLElement>('[data-tip-category]');
 		const categoryWrapper = root?.querySelector<HTMLElement>('[data-tip-category-wrapper]');
 		const categoryLabel = root?.querySelector<HTMLElement>('[data-tip-category-label]');
@@ -110,6 +107,9 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 		const actionLabel = root?.querySelector<HTMLElement>('[data-tip-action-label]');
 
 		if (!root || !text || !announcement || !placeholders || !category || !categoryWrapper || !categoryLabel || !source || !sourceWrapper || !availability || !action || !actionLabel) return;
+
+		const categoryLabels: Record<string, string> = JSON.parse(root.dataset.categoryLabels ?? '{}');
+		const categoryTokens: Record<string, string> = JSON.parse(root.dataset.categoryTokens ?? '{}');
 
 		const controller = new AbortController();
 		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -127,6 +127,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 				?? categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === 'fallback');
 			categoryIcons.forEach((icon) => icon.classList.toggle('hidden', icon !== selectedIcon));
 			placeholders.hidden = true;
+			if (placeholderHint) placeholderHint.hidden = true;
 			categoryWrapper.hidden = false;
 
 			source.textContent = tip.source ? formatLabel(tip.source) : '';
@@ -194,5 +195,5 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 
 	document.addEventListener('astro:page-load', setupRoulette);
 	document.addEventListener('astro:before-swap', () => cleanUpRoulette?.());
-	setupRoulette();
+	if (document.readyState !== 'loading') setupRoulette();
 </script>

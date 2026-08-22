@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
 
-import { CategoryBadge, CategoryIcon, categoryLabels } from "@/components/CategoryBadge"
-import { highlightText } from "@/components/HighlightText"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
+import { highlightText } from '@/components/HighlightText';
+import { Badge } from '@/components/ui/badge';
+import { categoryLabels, categoryOrder, type Category } from '@/lib/categories';
+import { Button } from '@/components/ui/button';
 import {
   Empty,
   EmptyContent,
@@ -12,14 +13,10 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup } from "@/components/ui/item"
-import { Kbd } from "@/components/ui/kbd"
+} from '@/components/ui/empty';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup } from '@/components/ui/item';
+import { Kbd } from '@/components/ui/kbd';
 import {
   Select,
   SelectContent,
@@ -28,132 +25,115 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { formatLabel, type ShellTip } from "@/lib/shell-docs"
+} from '@/components/ui/select';
+import { useSlashFocus } from '@/hooks/useSlashFocus';
+import { formatLabel, type ShellTip } from '@/lib/shell-docs';
 
-const PAGE_SIZE = 24
+const PAGE_SIZE = 24;
 
-const categoryOrder = [
-  "navigation",
-  "git",
-  "search",
-  "utility",
-  "packages",
-  "pipe",
-  "globbing",
-  "history",
-  "fzf",
-  "nix",
-  "shell",
-  "network",
-  "process",
-  "security",
-  "files",
-  "system",
-  "meta",
-]
+function tipSearchText(tip: ShellTip): string {
+  return [tip.text, tip.category, tip.source, tip.availability]
+    .filter(Boolean)
+    .join('\n')
+    .toLowerCase();
+}
 
 export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
-  const [query, setQuery] = useState("")
-  const [filter, setFilter] = useState("all")
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [isMounted, setIsMounted] = useState(false)
-  const searchRef = useRef<HTMLInputElement>(null)
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const isInitialMount = useRef(true);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useSlashFocus(searchRef, {
+    onClear: () => setQuery(''),
+  });
 
   const availableCategories = useMemo(() => {
-    const present = Array.from(new Set(tips.map((tip) => tip.category)))
-    const known = categoryOrder.filter((category) => present.includes(category))
-    const additional = present.filter((category) => !categoryOrder.includes(category)).sort()
-
-    return [...known, ...additional]
-  }, [tips])
+    const present = Array.from(new Set(tips.map((tip) => tip.category as Category)));
+    const known = categoryOrder.filter((category) => present.includes(category));
+    const additional = present
+      .filter((category) => !categoryOrder.includes(category as Category))
+      .sort();
+    return [...known, ...additional];
+  }, [tips]);
 
   /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const nextQuery = params.get("q")
-    const nextFilter = params.get("cat")
-
-    if (nextQuery) setQuery(nextQuery)
-    if (nextFilter && availableCategories.includes(nextFilter)) setFilter(nextFilter)
-    setIsMounted(true)
-  }, [availableCategories])
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      const params = new URLSearchParams(window.location.search);
+      const nextQuery = params.get('q');
+      const nextFilter = params.get('cat');
+      if (nextQuery) setQuery(nextQuery);
+      if (nextFilter && (availableCategories as string[]).includes(nextFilter)) setFilter(nextFilter);
+      return;
+    }
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  useEffect(() => {
-    if (!isMounted) return
-    const url = new URL(window.location.href)
+    const url = new URL(window.location.href);
+    if (query) url.searchParams.set('q', query);
+    else url.searchParams.delete('q');
+    if (filter !== 'all') url.searchParams.set('cat', filter);
+    else url.searchParams.delete('cat');
+    window.history.replaceState(window.history.state, '', url);
+  }, [availableCategories, filter, query]);
 
-    if (query) url.searchParams.set("q", query)
-    else url.searchParams.delete("q")
-    if (filter !== "all") url.searchParams.set("cat", filter)
-    else url.searchParams.delete("cat")
+  const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
-    window.history.replaceState(window.history.state, "", url)
-  }, [filter, isMounted, query])
+  const corpus = useMemo(() => new Map(tips.map((t) => [`${t.category}:${t.text}`, tipSearchText(t)])), [tips]);
 
-  useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      const target = document.activeElement
-      const isEditable =
-        target instanceof HTMLElement &&
-        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+  const filteredTips = useMemo(() => {
+    const nq = normalizedQuery;
+    return tips.filter((tip) => {
+      if (filter !== 'all' && tip.category !== filter) return false;
+      if (!nq) return true;
+      const text = corpus.get(`${tip.category}:${tip.text}`) ?? '';
+      return text.includes(nq);
+    });
+  }, [corpus, filter, normalizedQuery, tips]);
 
-      if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !isEditable) {
-        event.preventDefault()
-        searchRef.current?.focus()
-      }
-    }
-
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [])
-
-  const matchesQuery = useCallback(
-    (tip: ShellTip) => {
-      const normalized = query.trim().toLowerCase()
-      if (!normalized) return true
-      return [tip.text, tip.category, tip.source, tip.availability]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(normalized))
-    },
-    [query],
-  )
-
-  const filteredTips = useMemo(
-    () => tips.filter((tip) => matchesQuery(tip) && (filter === "all" || tip.category === filter)),
-    [filter, matchesQuery, tips],
-  )
-  const visibleTips = filteredTips.slice(0, visibleCount)
+  const visibleTips = useMemo(() => filteredTips.slice(0, visibleCount), [filteredTips, visibleCount]);
 
   const counts = useMemo(() => {
-    const categoryCounts: Record<string, number> = { all: tips.filter(matchesQuery).length }
-    for (const category of availableCategories) {
-      categoryCounts[category] = tips.filter((tip) => tip.category === category && matchesQuery(tip)).length
+    const acc: Record<string, number> = { all: 0 };
+    for (const cat of availableCategories) acc[cat] = 0;
+    if (!normalizedQuery) {
+      acc.all = tips.length;
+      for (const tip of tips) acc[tip.category] = (acc[tip.category] ?? 0) + 1;
+      return acc;
     }
-    return categoryCounts
-  }, [availableCategories, matchesQuery, tips])
+    for (const tip of tips) {
+      const text = corpus.get(`${tip.category}:${tip.text}`) ?? '';
+      if (!text.includes(normalizedQuery)) continue;
+      acc.all += 1;
+      acc[tip.category] = (acc[tip.category] ?? 0) + 1;
+    }
+    return acc;
+  }, [availableCategories, corpus, normalizedQuery, tips]);
 
   const selectItems = [
-    { value: "all", label: `All Categories (${counts.all})` },
+    { value: 'all', label: `All Categories (${counts.all})` },
     ...availableCategories.map((category) => ({
       value: category,
-      label: `${categoryLabels[category] ?? formatLabel(category)} (${counts[category]})`,
+      label: `${categoryLabels[category] ?? formatLabel(category)} (${counts[category] ?? 0})`,
     })),
-  ]
+  ];
 
   const clearSearch = () => {
-    setQuery("")
-    setFilter("all")
-    setVisibleCount(PAGE_SIZE)
-    searchRef.current?.focus()
-  }
+    setQuery('');
+    setFilter('all');
+    setVisibleCount(PAGE_SIZE);
+    searchRef.current?.focus();
+  };
 
   return (
     <section className="grid min-w-0 gap-4 motion-safe:animate-in motion-safe:fade-in" aria-label="Tips search and results">
       <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0">
-          <label htmlFor="tips-search" className="sr-only">Search tips</label>
+          <label htmlFor="tips-search" className="sr-only">
+            Search tips
+          </label>
           <InputGroup className="h-12 sm:h-9">
             <InputGroupAddon align="inline-start">
               <SearchIcon aria-hidden="true" />
@@ -166,21 +146,23 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               placeholder="Search tips…"
               value={query}
               onChange={(event) => {
-                setQuery(event.target.value)
-                setVisibleCount(PAGE_SIZE)
+                setQuery(event.target.value);
+                setVisibleCount(PAGE_SIZE);
               }}
               autoComplete="off"
               spellCheck={false}
             />
             <InputGroupAddon align="inline-end" className="gap-2">
               <span className="hidden text-sm tabular-nums sm:inline" aria-live="polite" aria-atomic="true">
-                {filteredTips.length} tip{filteredTips.length === 1 ? "" : "s"}
+                {filteredTips.length} tip{filteredTips.length === 1 ? '' : 's'}
               </span>
-              <Kbd className="hidden sm:inline-flex" aria-hidden="true">/</Kbd>
+              <Kbd className="hidden sm:inline-flex" aria-hidden="true">
+                /
+              </Kbd>
             </InputGroupAddon>
           </InputGroup>
           <span className="mt-2 block text-sm text-muted-foreground tabular-nums sm:hidden" aria-live="polite" aria-atomic="true">
-            {filteredTips.length} tip{filteredTips.length === 1 ? "" : "s"}
+            {filteredTips.length} tip{filteredTips.length === 1 ? '' : 's'}
           </span>
         </div>
 
@@ -189,13 +171,16 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
             name="tip-category"
             value={filter}
             onValueChange={(value) => {
-              if (!value) return
-              setFilter(value)
-              setVisibleCount(PAGE_SIZE)
+              if (!value) return;
+              setFilter(value);
+              setVisibleCount(PAGE_SIZE);
             }}
             items={selectItems}
           >
-            <SelectTrigger className="w-full data-[size=default]:h-11 sm:data-[size=default]:h-9" aria-label="Filter tips by category">
+            <SelectTrigger
+              className="w-full data-[size=default]:h-11 sm:data-[size=default]:h-9"
+              aria-label="Filter tips by category"
+            >
               <CategoryIcon category={filter} className="text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
@@ -221,10 +206,15 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
       {filteredTips.length === 0 ? (
         <Empty className="min-h-52 gap-3 border p-5">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><SearchXIcon aria-hidden="true" /></EmptyMedia>
-            <EmptyTitle><h2>No Tips Found</h2></EmptyTitle>
+            <EmptyMedia variant="icon">
+              <SearchXIcon aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>
+              <h2>No Tips Found</h2>
+            </EmptyTitle>
             <EmptyDescription>
-              No tips match {query ? <>&ldquo;{query}&rdquo;</> : "the selected category"}. Clear the search and category to see every tip.
+              No tips match {query ? <>“{query}”</> : 'the selected category'}. Clear the search and category to
+              see every tip.
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
@@ -241,9 +231,10 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               <Item
                 key={`${tip.category}:${tip.text}`}
                 role="listitem"
+                tabIndex={-1}
                 variant="outline"
                 size="xs"
-                className="min-w-0 items-start bg-card"
+                className="min-w-0 items-start rounded-xl bg-card outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <ItemContent className="min-w-0 gap-1">
                   <ItemDescription className="line-clamp-none text-pretty">
@@ -262,11 +253,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
           </ItemGroup>
           {visibleTips.length < filteredTips.length && (
             <div className="flex justify-center pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-              >
+              <Button type="button" variant="outline" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
                 Show {Math.min(PAGE_SIZE, filteredTips.length - visibleTips.length)} More Tips
               </Button>
             </div>
@@ -274,5 +261,5 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
         </>
       )}
     </section>
-  )
+  );
 }

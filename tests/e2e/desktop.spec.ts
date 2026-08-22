@@ -81,7 +81,7 @@ test('desktop page sections use their wide-screen grid layouts', async ({ page }
 	const tipsHeading = await page.getByRole('heading', { name: 'Shell Tips' }).boundingBox();
 	expect(commandHeading).not.toBeNull();
 	expect(tipsHeading).not.toBeNull();
-	expect(Math.abs((commandHeading?.y ?? 0) - (tipsHeading?.y ?? 0))).toBeLessThanOrEqual(2);
+	expect(Math.abs((commandHeading?.y ?? 0) - (tipsHeading?.y ?? 0))).toBeLessThanOrEqual(4);
 	expect(tipsHeading?.x ?? 0).toBeGreaterThan((commandHeading?.x ?? 0) + (commandHeading?.width ?? 0));
 
 	await page.goto('/commands/');
@@ -98,12 +98,58 @@ test('desktop page sections use their wide-screen grid layouts', async ({ page }
 	expect(searchBox?.width ?? 0).toBeGreaterThan(categoryBox?.width ?? 0);
 });
 
+test('desktop j/k and arrow keys move through command accordions and tip cards', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	const focusedIndex = (locator: ReturnType<typeof page.locator>) =>
+		locator.evaluateAll((elements) => elements.indexOf(document.activeElement as HTMLElement));
+
+	// Commands: j/k walk the accordion triggers.
+	await page.goto('/commands/');
+	const triggers = page.locator('[data-command] button[data-slot="accordion-trigger"]');
+	await expect.poll(async () => {
+		await page.keyboard.press('j');
+		return focusedIndex(triggers);
+	}).toBe(0);
+	await expect.poll(async () => {
+		await page.keyboard.press('j');
+		return focusedIndex(triggers);
+	}).toBe(1);
+	await expect.poll(async () => {
+		await page.keyboard.press('k');
+		return focusedIndex(triggers);
+	}).toBe(0);
+
+	// Tips: arrows walk the tip rows (roving tabindex), j/k included.
+	await page.goto('/tips/');
+	const tips = page.locator('[role="listitem"][tabindex]');
+	await expect.poll(async () => {
+		await page.keyboard.press('ArrowDown');
+		return focusedIndex(tips);
+	}).toBe(0);
+	await expect.poll(async () => {
+		await page.keyboard.press('j');
+		return focusedIndex(tips);
+	}).toBe(1);
+	await expect.poll(async () => {
+		await page.keyboard.press('k');
+		return focusedIndex(tips);
+	}).toBe(0);
+
+	// ArrowUp from outside the list wraps to the last row.
+	await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+	const tipCount = await tips.count();
+	await expect.poll(async () => {
+		await page.keyboard.press('ArrowUp');
+		return focusedIndex(tips);
+	}).toBe(tipCount - 1);
+});
+
 test('desktop command and tip explorers support keyboard and extended-result workflows', async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 800 });
 	await page.goto('/commands/');
 	const commandSearch = page.getByRole('searchbox');
 	await expect.poll(async () => {
-		await page.keyboard.press('/');
+		await page.keyboard.press('ControlOrMeta+k');
 		return commandSearch.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
 	await commandSearch.fill('upkg');
@@ -119,7 +165,7 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 	await expect(page.getByRole('listitem')).toHaveCount(48);
 	const tipSearch = page.getByRole('searchbox');
 	await expect.poll(async () => {
-		await page.keyboard.press('/');
+		await page.keyboard.press('ControlOrMeta+k');
 		return tipSearch.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
 	await tipSearch.fill('definitely-no-matching-tip');

@@ -2,13 +2,18 @@
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://zsh.nirmalkatariya.com',
-	integrations: [react()],
-	prefetch: true,
+	output: 'static',
+	integrations: [react(), sitemap()],
+	prefetch: {
+		prefetchAll: false,
+		defaultStrategy: 'hover',
+	},
 	vite: {
 		plugins: [tailwindcss()],
 	},

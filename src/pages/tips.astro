@@ -25,6 +25,6 @@ const sourceCount = new Set(tips.map((tip) => tip.source).filter(Boolean)).size;
 			<StatCard value={sourceCount} label="tip sources" icon={Layers3Icon} />
 		</div>
 
-		<TipsExplorer client:load tips={tips} />
+		<TipsExplorer client:visible tips={tips} />
 	</div>
 </Layout>

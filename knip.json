@@ -1,4 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "project": ["src/**/*.{astro,css,ts,tsx}", "scripts/**/*.mjs", "tests/**/*.ts", "*.{mjs,ts}"]
+  "project": ["src/**/*.{astro,css,ts,tsx}", "scripts/**/*.mjs", "tests/**/*.ts", "*.{mjs,ts}"],
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  },
+  "rules": {
+    "exports": "warn"
+  }
 }

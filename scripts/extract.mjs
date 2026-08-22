@@ -1,10 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+if (!process.env.ZSH_CONFIG_DIR && !process.env.HOME) {
+  throw new Error('HOME is not set and ZSH_CONFIG_DIR is not configured. Set ZSH_CONFIG_DIR to your zsh config directory.');
+}
 const ZSH_DIR = process.env.ZSH_CONFIG_DIR
   ? path.resolve(process.env.ZSH_CONFIG_DIR)
-  : path.join(process.env.HOME ?? '/', '.config', 'zsh');
-const DATA_DIR = path.join(process.cwd(), 'src', 'data');
+  : path.join(process.env.HOME, '.config', 'zsh');
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.resolve(SCRIPT_DIR, '..', 'src', 'data');
 
 const GUIDE_SOURCE = 'GUIDE.md';
 const ALIASES_SOURCE = '20-aliases.zsh';
@@ -111,8 +116,28 @@ function serializeJson(data) {
   return `${JSON.stringify(data, null, 2)}\n`;
 }
 
+function slugify(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    || 'item';
+}
+
+function hashString(value) {
+  let h = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    h ^= value.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
 function writeJson(filePath, contents) {
-  fs.writeFileSync(filePath, contents);
+  const tmpPath = `${filePath}.tmp`;
+  fs.writeFileSync(tmpPath, contents);
+  fs.renameSync(tmpPath, filePath);
 }
 
 function isCurrentJson(filePath, contents) {
@@ -428,11 +453,15 @@ function describeCondition(condition) {
     return 'Available when the lt alias is available';
   }
 
-  return `Available when ${condition
+  // Fallback: avoid leaking raw shell syntax; keep human-readable and short
+  const cleaned = condition
     .replace(/^if\s+/, '')
     .replace(/;?\s*then$/, '')
     .replace(/^\(\(|\)\)$/g, '')
-    .trim()}`;
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  return cleaned ? `Requires: ${cleaned}` : 'Conditional';
 }
 
 function inferTipSource(condition, text) {
@@ -651,6 +680,7 @@ function extractAliases() {
     });
   }
 
+  // Keep first definition when aliases are redefined conditionally (ls/ll/la fallback chain)
   return dedupeBy(aliases, (alias) => alias.name);
 }
 
@@ -836,14 +866,21 @@ function extractTips() {
   };
 
   for (const [index, rawLine] of readSource(TIPS_SOURCE).split('\n').entries()) {
-    const line = rawLine.trim();
+    const raw = rawLine;
+    const line = raw.trim();
 
-    if (line.startsWith('if ')) {
+    if (/^\s*if\b/.test(raw)) {
       conditionStack.push(line);
       continue;
     }
-
-    if (line === 'fi') {
+    if (/^\s*elif\b/.test(raw) && conditionStack.length > 0) {
+      conditionStack[conditionStack.length - 1] = line;
+      continue;
+    }
+    if (/^\s*else\b/.test(raw)) {
+      continue;
+    }
+    if (/^\s*fi\b/.test(raw) || line.startsWith('fi')) {
       conditionStack.pop();
       continue;
     }
@@ -903,14 +940,33 @@ function main() {
 
   const commands = buildCommands(catalogue);
   const tips = extractTips();
-  const contentCommands = commands.map((command, index) => ({
-    id: `command-${String(index + 1).padStart(3, '0')}`,
-    ...command,
-  }));
-  const contentTips = tips.map((tip, index) => ({
-    id: `tip-${String(index + 1).padStart(3, '0')}`,
-    ...tip,
-  }));
+  // Stable IDs: commands by slug(name), tips by hash(text) — survives catalogue reorder
+  const seenCommandIds = new Set();
+  const contentCommands = [...commands]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((command) => {
+      const base = slugify(command.name);
+      const slug = base === 'item' ? `item-${hashString(command.name).slice(0, 6)}` : base;
+      let id = `command-${slug}`;
+      let suffix = 2;
+      while (seenCommandIds.has(id)) {
+        id = `command-${slug}-${suffix++}`;
+      }
+      seenCommandIds.add(id);
+      return { id, ...command };
+    });
+  const seenTipIds = new Set();
+  const contentTips = [...tips]
+    .sort((a, b) => a.text.localeCompare(b.text))
+    .map((tip) => {
+      let id = `tip-${hashString(tip.text).slice(0, 8)}`;
+      let suffix = 2;
+      while (seenTipIds.has(id)) {
+        id = `tip-${hashString(`${tip.text}:${suffix++}`).slice(0, 8)}`;
+      }
+      seenTipIds.add(id);
+      return { id, ...tip };
+    });
 
   const outputs = [
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },

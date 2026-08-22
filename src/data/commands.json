@@ -1,45 +1,6 @@
 [
   {
-    "id": "command-001",
-    "name": "..",
-    "command": "cd ..",
-    "usage": "..",
-    "description": "Move up one directory",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh",
-    "examples": [
-      ".."
-    ]
-  },
-  {
-    "id": "command-002",
-    "name": "...",
-    "command": "cd ../..",
-    "usage": "...",
-    "description": "Move up two directories",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh",
-    "examples": [
-      "..."
-    ]
-  },
-  {
-    "id": "command-003",
-    "name": "....",
-    "command": "cd ../../..",
-    "usage": "....",
-    "description": "Move up three directories",
-    "type": "alias",
-    "category": "navigation",
-    "source": "20-aliases.zsh",
-    "examples": [
-      "...."
-    ]
-  },
-  {
-    "id": "command-004",
+    "id": "command-item-280c94",
     "name": "-",
     "command": "cd -",
     "usage": "-",
@@ -52,248 +13,46 @@
     ]
   },
   {
-    "id": "command-005",
-    "name": "z",
-    "command": "z <query>",
-    "usage": "z <query>",
-    "description": "Jump with zoxide",
-    "type": "function",
+    "id": "command-item-a3d4a7",
+    "name": "..",
+    "command": "cd ..",
+    "usage": "..",
+    "description": "Move up one directory",
+    "type": "alias",
     "category": "navigation",
-    "source": "30-zoxide.zsh",
-    "availability": "Available when zoxide is installed",
-    "dependencies": "zoxide",
+    "source": "20-aliases.zsh",
     "examples": [
-      "z projects"
+      ".."
     ]
   },
   {
-    "id": "command-006",
-    "name": "zi",
-    "command": "zi [query]",
-    "usage": "zi [query]",
-    "description": "Pick a zoxide directory",
-    "type": "function",
+    "id": "command-item-0ac31c",
+    "name": "...",
+    "command": "cd ../..",
+    "usage": "...",
+    "description": "Move up two directories",
+    "type": "alias",
     "category": "navigation",
-    "source": "30-zoxide.zsh",
-    "availability": "Available when zoxide is installed and fzf 0.52.0+ is ready",
-    "dependencies": "zoxide and fzf 0.68.0+",
+    "source": "20-aliases.zsh",
     "examples": [
-      "zi projects"
+      "..."
     ]
   },
   {
-    "id": "command-007",
-    "name": "mkcd",
-    "command": "mkcd <directory>",
-    "usage": "mkcd <directory>",
-    "description": "Create a directory and enter it",
-    "type": "function",
+    "id": "command-item-28256a",
+    "name": "....",
+    "command": "cd ../../..",
+    "usage": "....",
+    "description": "Move up three directories",
+    "type": "alias",
     "category": "navigation",
-    "source": "60-functions.zsh",
-    "examples": [
-      "mkcd new-project"
-    ]
-  },
-  {
-    "id": "command-008",
-    "name": "croot",
-    "command": "croot",
-    "usage": "croot",
-    "description": "Enter the Git repository root",
-    "type": "function",
-    "category": "navigation",
-    "source": "60-functions.zsh",
-    "availability": "Available when git is installed",
-    "dependencies": "git",
-    "examples": [
-      "croot"
-    ]
-  },
-  {
-    "id": "command-009",
-    "name": "ls",
-    "command": "lsd",
-    "usage": "ls [path]",
-    "description": "List directory contents",
-    "type": "alias",
-    "category": "files",
     "source": "20-aliases.zsh",
-    "dependencies": "lsd or GNU ls",
     "examples": [
-      "ls"
+      "...."
     ]
   },
   {
-    "id": "command-010",
-    "name": "ll",
-    "command": "lsd -lah --group-dirs=first",
-    "usage": "ll [path]",
-    "description": "List all entries with details",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "lsd or GNU ls",
-    "examples": [
-      "ll"
-    ]
-  },
-  {
-    "id": "command-011",
-    "name": "la",
-    "command": "lsd -A",
-    "usage": "la [path]",
-    "description": "List entries including hidden files",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "lsd or GNU ls",
-    "examples": [
-      "la"
-    ]
-  },
-  {
-    "id": "command-012",
-    "name": "lt",
-    "command": "lsd --tree --depth=3 --group-dirs=first",
-    "usage": "lt [path]",
-    "description": "Show a three-level directory tree",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "lsd or tree",
-    "examples": [
-      "lt"
-    ]
-  },
-  {
-    "id": "command-013",
-    "name": "mkdir",
-    "command": "mkdir -p",
-    "usage": "mkdir <directory> ...",
-    "description": "Create directories, including missing parents",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "mkdir",
-    "examples": [
-      "mkdir new-project/src"
-    ]
-  },
-  {
-    "id": "command-014",
-    "name": "cp",
-    "command": "cp -iv",
-    "usage": "cp <source> <destination>",
-    "description": "Copy verbosely; confirm overwrites",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "cp",
-    "examples": [
-      "cp config.example config.local"
-    ]
-  },
-  {
-    "id": "command-015",
-    "name": "mv",
-    "command": "mv -iv",
-    "usage": "mv <source> <destination>",
-    "description": "Move verbosely; confirm overwrites",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "mv",
-    "examples": [
-      "mv old-name new-name"
-    ]
-  },
-  {
-    "id": "command-016",
-    "name": "rm",
-    "command": "rm -iv",
-    "usage": "rm <path> ...",
-    "description": "Remove verbosely; confirm each path",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "rm",
-    "examples": [
-      "rm unwanted-file"
-    ]
-  },
-  {
-    "id": "command-017",
-    "name": "cat",
-    "command": "bat --style=numbers --paging=never",
-    "usage": "cat <file>",
-    "description": "Print files with bat highlighting",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "bat",
-    "examples": [
-      "cat README.md"
-    ]
-  },
-  {
-    "id": "command-018",
-    "name": "extract",
-    "command": "extract <archive>",
-    "usage": "extract <archive>",
-    "description": "Unpack a supported archive",
-    "type": "function",
-    "category": "files",
-    "source": "60-functions.zsh",
-    "dependencies": "tar; format-specific unpackers when needed",
-    "examples": [
-      "extract archive.tar.gz"
-    ],
-    "optional": [
-      "bunzip2",
-      "unrar",
-      "gunzip",
-      "unzip",
-      "uncompress",
-      "7z"
-    ]
-  },
-  {
-    "id": "command-019",
-    "name": "peek",
-    "command": "peek <file>",
-    "usage": "peek <file>",
-    "description": "Preview a file with bat or cat",
-    "type": "function",
-    "category": "files",
-    "source": "60-functions.zsh",
-    "availability": "Available when bat or cat is installed",
-    "dependencies": "bat or cat",
-    "examples": [
-      "peek README.md"
-    ],
-    "optional": [
-      "bat"
-    ]
-  },
-  {
-    "id": "command-020",
-    "name": "dusage",
-    "command": "dusage [path] [count]",
-    "usage": "dusage [path] [count]",
-    "description": "Rank immediate entries by disk usage",
-    "type": "function",
-    "category": "files",
-    "source": "60-functions.zsh",
-    "availability": "Available when GNU find and du are installed",
-    "dependencies": "GNU du and find",
-    "examples": [
-      "dusage . 10"
-    ],
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "id": "command-021",
+    "id": "command-bigfiles",
     "name": "bigfiles",
     "command": "bigfiles [path] [count]",
     "usage": "bigfiles [path] [count]",
@@ -310,285 +69,21 @@
     "richOutput": true
   },
   {
-    "id": "command-022",
-    "name": "grep",
-    "command": "grep --color=auto",
-    "usage": "grep <pattern> [file ...]",
-    "description": "Search text with automatic colour",
-    "type": "alias",
-    "category": "search",
-    "source": "20-aliases.zsh",
-    "dependencies": "grep with --color=auto support",
-    "examples": [
-      "grep TODO README.md"
-    ]
-  },
-  {
-    "id": "command-023",
-    "name": "diff",
-    "command": "diff --color=auto",
-    "usage": "diff <file-a> <file-b>",
-    "description": "Compare files with automatic colour",
+    "id": "command-cat",
+    "name": "cat",
+    "command": "bat --style=numbers --paging=never",
+    "usage": "cat <file>",
+    "description": "Print files with bat highlighting",
     "type": "alias",
     "category": "files",
     "source": "20-aliases.zsh",
-    "dependencies": "diff with --color=auto support",
+    "dependencies": "bat",
     "examples": [
-      "diff before.txt after.txt"
+      "cat README.md"
     ]
   },
   {
-    "id": "command-024",
-    "name": "ff",
-    "command": "ff <pattern> [path]",
-    "usage": "ff <pattern> [path]",
-    "description": "Find files by name",
-    "type": "function",
-    "category": "search",
-    "source": "60-functions.zsh",
-    "availability": "Available when fd, fdfind, or GNU find is installed",
-    "dependencies": "fd, fdfind, or find",
-    "examples": [
-      "ff config ."
-    ],
-    "optional": [
-      "fd",
-      "fdfind"
-    ]
-  },
-  {
-    "id": "command-025",
-    "name": "ft",
-    "command": "ft <pattern> [path]",
-    "usage": "ft <pattern> [path]",
-    "description": "Search file contents",
-    "type": "function",
-    "category": "search",
-    "source": "60-functions.zsh",
-    "availability": "Available when ripgrep or grep is installed",
-    "dependencies": "rg or grep",
-    "examples": [
-      "ft TODO ."
-    ],
-    "optional": [
-      "rg"
-    ]
-  },
-  {
-    "id": "command-026",
-    "name": "glog",
-    "command": "git log --oneline --graph --decorate -20",
-    "usage": "glog",
-    "description": "Graph the latest 20 commits",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh",
-    "availability": "Available when git is installed",
-    "dependencies": "git",
-    "examples": [
-      "glog"
-    ]
-  },
-  {
-    "id": "command-027",
-    "name": "gpr",
-    "command": "git pull --rebase",
-    "usage": "gpr",
-    "description": "Pull with rebase",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh",
-    "availability": "Available when git is installed",
-    "dependencies": "git",
-    "examples": [
-      "gpr"
-    ]
-  },
-  {
-    "id": "command-028",
-    "name": "gun",
-    "command": "git reset HEAD~1 --soft",
-    "usage": "gun",
-    "description": "Undo the latest commit; keep changes staged",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh",
-    "availability": "Available when git is installed",
-    "dependencies": "git",
-    "examples": [
-      "gun"
-    ]
-  },
-  {
-    "id": "command-029",
-    "name": "gitcount",
-    "command": "gitcount",
-    "usage": "gitcount",
-    "description": "Count non-merge commits by contributor",
-    "type": "function",
-    "category": "git",
-    "source": "60-functions.zsh",
-    "availability": "Available when git is installed",
-    "dependencies": "git",
-    "examples": [
-      "gitcount"
-    ],
-    "notes": [
-      "Alias gcount points to gitcount for compatibility"
-    ]
-  },
-  {
-    "id": "command-030",
-    "name": "gcount",
-    "command": "gitcount",
-    "usage": "gcount",
-    "description": "Alias for gitcount",
-    "type": "alias",
-    "category": "git",
-    "source": "20-aliases.zsh",
-    "availability": "Available when git is installed",
-    "dependencies": "git",
-    "examples": [
-      "gcount"
-    ]
-  },
-  {
-    "id": "command-031",
-    "name": "fbr",
-    "command": "fbr",
-    "usage": "fbr",
-    "description": "Pick a branch; enter its worktree or check it out",
-    "type": "function",
-    "category": "git",
-    "source": "60-functions.zsh",
-    "availability": "Available when git is installed and fzf 0.52.0+ is ready",
-    "dependencies": "git and fzf 0.68.0+",
-    "examples": [
-      "fbr"
-    ],
-    "requires": [
-      "fzf"
-    ],
-    "interactive": true,
-    "plainMode": true
-  },
-  {
-    "id": "command-032",
-    "name": "weather",
-    "command": "curl --http1.1 -fsSL https://wttr.in",
-    "usage": "weather",
-    "description": "Show the default HTTPS forecast",
-    "type": "alias",
-    "category": "system",
-    "source": "20-aliases.zsh",
-    "availability": "Available when curl is installed",
-    "dependencies": "curl",
-    "examples": [
-      "weather"
-    ]
-  },
-  {
-    "id": "command-033",
-    "name": "fkill",
-    "command": "fkill [signal]",
-    "usage": "fkill [signal]",
-    "description": "Pick processes and send a signal",
-    "type": "function",
-    "category": "system",
-    "source": "60-functions.zsh",
-    "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
-    "dependencies": "ps and fzf 0.68.0+",
-    "examples": [
-      "fkill 15"
-    ],
-    "requires": [
-      "fzf"
-    ],
-    "interactive": true
-  },
-  {
-    "id": "command-034",
-    "name": "headers",
-    "command": "headers <url>",
-    "usage": "headers <url>",
-    "description": "Print response headers after redirects",
-    "type": "function",
-    "category": "system",
-    "source": "60-functions.zsh",
-    "availability": "Available when curl is installed",
-    "dependencies": "curl",
-    "examples": [
-      "headers https://example.com"
-    ]
-  },
-  {
-    "id": "command-035",
-    "name": "fanprofile",
-    "command": "fanprofile",
-    "usage": "fanprofile",
-    "description": "Show the laptop performance profile",
-    "type": "function",
-    "category": "system",
-    "source": "60-functions.zsh",
-    "availability": "Available on a supported Linux laptop profile interface",
-    "dependencies": "Linux ACPI or ASUS WMI profile interface",
-    "examples": [
-      "fanprofile"
-    ],
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "id": "command-036",
-    "name": "ports",
-    "command": "ports",
-    "usage": "ports",
-    "description": "Show listening sockets and processes",
-    "type": "function",
-    "category": "system",
-    "source": "60-functions.zsh",
-    "availability": "Available when ss is installed",
-    "dependencies": "ss",
-    "examples": [
-      "ports"
-    ],
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "id": "command-037",
-    "name": "myip",
-    "command": "myip",
-    "usage": "myip",
-    "description": "Show the public IP address",
-    "type": "function",
-    "category": "system",
-    "source": "60-functions.zsh",
-    "availability": "Available when curl is installed",
-    "dependencies": "curl",
-    "examples": [
-      "myip"
-    ],
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "id": "command-038",
-    "name": "path",
-    "command": "path",
-    "usage": "path",
-    "description": "List PATH entries",
-    "type": "function",
-    "category": "system",
-    "source": "60-functions.zsh",
-    "examples": [
-      "path"
-    ],
-    "plainMode": true,
-    "richOutput": true
-  },
-  {
-    "id": "command-039",
+    "id": "command-cgm",
     "name": "cgm",
     "command": "cgm <command> [credential ...]",
     "usage": "cgm <command> [credential ...]",
@@ -621,7 +116,608 @@
     "richOutput": true
   },
   {
-    "id": "command-040",
+    "id": "command-cp",
+    "name": "cp",
+    "command": "cp -iv",
+    "usage": "cp <source> <destination>",
+    "description": "Copy verbosely; confirm overwrites",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "cp",
+    "examples": [
+      "cp config.example config.local"
+    ]
+  },
+  {
+    "id": "command-croot",
+    "name": "croot",
+    "command": "croot",
+    "usage": "croot",
+    "description": "Enter the Git repository root",
+    "type": "function",
+    "category": "navigation",
+    "source": "60-functions.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "croot"
+    ]
+  },
+  {
+    "id": "command-diff",
+    "name": "diff",
+    "command": "diff --color=auto",
+    "usage": "diff <file-a> <file-b>",
+    "description": "Compare files with automatic colour",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "diff with --color=auto support",
+    "examples": [
+      "diff before.txt after.txt"
+    ]
+  },
+  {
+    "id": "command-dusage",
+    "name": "dusage",
+    "command": "dusage [path] [count]",
+    "usage": "dusage [path] [count]",
+    "description": "Rank immediate entries by disk usage",
+    "type": "function",
+    "category": "files",
+    "source": "60-functions.zsh",
+    "availability": "Available when GNU find and du are installed",
+    "dependencies": "GNU du and find",
+    "examples": [
+      "dusage . 10"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "id": "command-extract",
+    "name": "extract",
+    "command": "extract <archive>",
+    "usage": "extract <archive>",
+    "description": "Unpack a supported archive",
+    "type": "function",
+    "category": "files",
+    "source": "60-functions.zsh",
+    "dependencies": "tar; format-specific unpackers when needed",
+    "examples": [
+      "extract archive.tar.gz"
+    ],
+    "optional": [
+      "bunzip2",
+      "unrar",
+      "gunzip",
+      "unzip",
+      "uncompress",
+      "7z"
+    ]
+  },
+  {
+    "id": "command-fanprofile",
+    "name": "fanprofile",
+    "command": "fanprofile",
+    "usage": "fanprofile",
+    "description": "Show the laptop performance profile",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available on a supported Linux laptop profile interface",
+    "dependencies": "Linux ACPI or ASUS WMI profile interface",
+    "examples": [
+      "fanprofile"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "id": "command-fbr",
+    "name": "fbr",
+    "command": "fbr",
+    "usage": "fbr",
+    "description": "Pick a branch; enter its worktree or check it out",
+    "type": "function",
+    "category": "git",
+    "source": "60-functions.zsh",
+    "availability": "Available when git is installed and fzf 0.52.0+ is ready",
+    "dependencies": "git and fzf 0.68.0+",
+    "examples": [
+      "fbr"
+    ],
+    "requires": [
+      "fzf"
+    ],
+    "interactive": true,
+    "plainMode": true
+  },
+  {
+    "id": "command-ff",
+    "name": "ff",
+    "command": "ff <pattern> [path]",
+    "usage": "ff <pattern> [path]",
+    "description": "Find files by name",
+    "type": "function",
+    "category": "search",
+    "source": "60-functions.zsh",
+    "availability": "Available when fd, fdfind, or GNU find is installed",
+    "dependencies": "fd, fdfind, or find",
+    "examples": [
+      "ff config ."
+    ],
+    "optional": [
+      "fd",
+      "fdfind"
+    ]
+  },
+  {
+    "id": "command-fkill",
+    "name": "fkill",
+    "command": "fkill [signal]",
+    "usage": "fkill [signal]",
+    "description": "Pick processes and send a signal",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
+    "dependencies": "ps and fzf 0.68.0+",
+    "examples": [
+      "fkill 15"
+    ],
+    "requires": [
+      "fzf"
+    ],
+    "interactive": true
+  },
+  {
+    "id": "command-ft",
+    "name": "ft",
+    "command": "ft <pattern> [path]",
+    "usage": "ft <pattern> [path]",
+    "description": "Search file contents",
+    "type": "function",
+    "category": "search",
+    "source": "60-functions.zsh",
+    "availability": "Available when ripgrep or grep is installed",
+    "dependencies": "rg or grep",
+    "examples": [
+      "ft TODO ."
+    ],
+    "optional": [
+      "rg"
+    ]
+  },
+  {
+    "id": "command-g",
+    "name": "G",
+    "command": "| grep",
+    "usage": "<command> G <pattern>",
+    "description": "Pipe command output to grep",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when grep is installed",
+    "dependencies": "grep",
+    "examples": [
+      "git log --oneline G fix"
+    ]
+  },
+  {
+    "id": "command-gcount",
+    "name": "gcount",
+    "command": "gitcount",
+    "usage": "gcount",
+    "description": "Alias for gitcount",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gcount"
+    ]
+  },
+  {
+    "id": "command-gitcount",
+    "name": "gitcount",
+    "command": "gitcount",
+    "usage": "gitcount",
+    "description": "Count non-merge commits by contributor",
+    "type": "function",
+    "category": "git",
+    "source": "60-functions.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gitcount"
+    ],
+    "notes": [
+      "Alias gcount points to gitcount for compatibility"
+    ]
+  },
+  {
+    "id": "command-glog",
+    "name": "glog",
+    "command": "git log --oneline --graph --decorate -20",
+    "usage": "glog",
+    "description": "Graph the latest 20 commits",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "glog"
+    ]
+  },
+  {
+    "id": "command-gpr",
+    "name": "gpr",
+    "command": "git pull --rebase",
+    "usage": "gpr",
+    "description": "Pull with rebase",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gpr"
+    ]
+  },
+  {
+    "id": "command-grep",
+    "name": "grep",
+    "command": "grep --color=auto",
+    "usage": "grep <pattern> [file ...]",
+    "description": "Search text with automatic colour",
+    "type": "alias",
+    "category": "search",
+    "source": "20-aliases.zsh",
+    "dependencies": "grep with --color=auto support",
+    "examples": [
+      "grep TODO README.md"
+    ]
+  },
+  {
+    "id": "command-gun",
+    "name": "gun",
+    "command": "git reset HEAD~1 --soft",
+    "usage": "gun",
+    "description": "Undo the latest commit; keep changes staged",
+    "type": "alias",
+    "category": "git",
+    "source": "20-aliases.zsh",
+    "availability": "Available when git is installed",
+    "dependencies": "git",
+    "examples": [
+      "gun"
+    ]
+  },
+  {
+    "id": "command-h",
+    "name": "H",
+    "command": "| head",
+    "usage": "<command> H",
+    "description": "Pipe command output to head",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when head is installed",
+    "dependencies": "head",
+    "examples": [
+      "git log --oneline H"
+    ]
+  },
+  {
+    "id": "command-headers",
+    "name": "headers",
+    "command": "headers <url>",
+    "usage": "headers <url>",
+    "description": "Print response headers after redirects",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when curl is installed",
+    "dependencies": "curl",
+    "examples": [
+      "headers https://example.com"
+    ]
+  },
+  {
+    "id": "command-l",
+    "name": "L",
+    "command": "| less",
+    "usage": "<command> L",
+    "description": "Pipe command output to less",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when less is installed",
+    "dependencies": "less",
+    "examples": [
+      "git diff L"
+    ]
+  },
+  {
+    "id": "command-la",
+    "name": "la",
+    "command": "lsd -A",
+    "usage": "la [path]",
+    "description": "List entries including hidden files",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or GNU ls",
+    "examples": [
+      "la"
+    ]
+  },
+  {
+    "id": "command-ll",
+    "name": "ll",
+    "command": "lsd -lah --group-dirs=first",
+    "usage": "ll [path]",
+    "description": "List all entries with details",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or GNU ls",
+    "examples": [
+      "ll"
+    ]
+  },
+  {
+    "id": "command-ls",
+    "name": "ls",
+    "command": "lsd",
+    "usage": "ls [path]",
+    "description": "List directory contents",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or GNU ls",
+    "examples": [
+      "ls"
+    ]
+  },
+  {
+    "id": "command-lt",
+    "name": "lt",
+    "command": "lsd --tree --depth=3 --group-dirs=first",
+    "usage": "lt [path]",
+    "description": "Show a three-level directory tree",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "lsd or tree",
+    "examples": [
+      "lt"
+    ]
+  },
+  {
+    "id": "command-mkcd",
+    "name": "mkcd",
+    "command": "mkcd <directory>",
+    "usage": "mkcd <directory>",
+    "description": "Create a directory and enter it",
+    "type": "function",
+    "category": "navigation",
+    "source": "60-functions.zsh",
+    "examples": [
+      "mkcd new-project"
+    ]
+  },
+  {
+    "id": "command-mkdir",
+    "name": "mkdir",
+    "command": "mkdir -p",
+    "usage": "mkdir <directory> ...",
+    "description": "Create directories, including missing parents",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "mkdir",
+    "examples": [
+      "mkdir new-project/src"
+    ]
+  },
+  {
+    "id": "command-mv",
+    "name": "mv",
+    "command": "mv -iv",
+    "usage": "mv <source> <destination>",
+    "description": "Move verbosely; confirm overwrites",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "mv",
+    "examples": [
+      "mv old-name new-name"
+    ]
+  },
+  {
+    "id": "command-myip",
+    "name": "myip",
+    "command": "myip",
+    "usage": "myip",
+    "description": "Show the public IP address",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when curl is installed",
+    "dependencies": "curl",
+    "examples": [
+      "myip"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "id": "command-ne",
+    "name": "NE",
+    "command": "2>/dev/null",
+    "usage": "<command> NE",
+    "description": "Suppress stderr for one command",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "examples": [
+      "optional-command NE"
+    ]
+  },
+  {
+    "id": "command-npkg",
+    "name": "npkg",
+    "command": "npkg <command> [args]",
+    "usage": "npkg <command> [args]",
+    "description": "Manage the current Nix profile",
+    "type": "function",
+    "category": "packages",
+    "source": "60-functions.zsh",
+    "availability": "Available when nix is installed",
+    "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
+    "examples": [
+      "npkg add bat",
+      "npkg find nvim",
+      "npkg remove",
+      "npkg outdated",
+      "npkg refresh",
+      "npkg upgrade",
+      "npkg search ripgrep"
+    ],
+    "features": [
+      "add [pkg ...]        Add package(s); with no args opens an fzf picker",
+      "install [pkg ...]    Alias for add",
+      "find [query]         Fuzzy-pick nixpkgs attribute names and add selections",
+      "search <query>       Run a plain nixpkgs search with descriptions",
+      "list                 List packages in the current profile",
+      "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
+      "outdated             Compare installed and evaluated Nix output identities",
+      "refresh              Rebuild the cached nixpkgs attribute index",
+      "upgrade [pkg ...]    Upgrade all packages or only the named ones",
+      "help                 Show this help text"
+    ],
+    "notes": [
+      "Bare install names are expanded to nixpkgs#<name>",
+      "npkg find searches a cached list of nixpkgs attribute names",
+      "npkg refresh and outdated need jq",
+      "Interactive add/find/remove needs jq and fzf 0.68.0+",
+      "Advanced nix flags can be passed through by calling nix directly"
+    ]
+  },
+  {
+    "id": "command-nul",
+    "name": "NUL",
+    "command": ">/dev/null 2>&1",
+    "usage": "<command> NUL",
+    "description": "Suppress stdout and stderr for one command",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "examples": [
+      "noisy-command NUL"
+    ]
+  },
+  {
+    "id": "command-path",
+    "name": "path",
+    "command": "path",
+    "usage": "path",
+    "description": "List PATH entries",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "examples": [
+      "path"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "id": "command-peek",
+    "name": "peek",
+    "command": "peek <file>",
+    "usage": "peek <file>",
+    "description": "Preview a file with bat or cat",
+    "type": "function",
+    "category": "files",
+    "source": "60-functions.zsh",
+    "availability": "Available when bat or cat is installed",
+    "dependencies": "bat or cat",
+    "examples": [
+      "peek README.md"
+    ],
+    "optional": [
+      "bat"
+    ]
+  },
+  {
+    "id": "command-ports",
+    "name": "ports",
+    "command": "ports",
+    "usage": "ports",
+    "description": "Show listening sockets and processes",
+    "type": "function",
+    "category": "system",
+    "source": "60-functions.zsh",
+    "availability": "Available when ss is installed",
+    "dependencies": "ss",
+    "examples": [
+      "ports"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "id": "command-rm",
+    "name": "rm",
+    "command": "rm -iv",
+    "usage": "rm <path> ...",
+    "description": "Remove verbosely; confirm each path",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "rm",
+    "examples": [
+      "rm unwanted-file"
+    ]
+  },
+  {
+    "id": "command-t",
+    "name": "T",
+    "command": "| tail",
+    "usage": "<command> T",
+    "description": "Pipe command output to tail",
+    "type": "global_alias",
+    "category": "meta",
+    "source": "70-globals.zsh",
+    "availability": "Available when tail is installed",
+    "dependencies": "tail",
+    "examples": [
+      "git log --oneline T"
+    ]
+  },
+  {
+    "id": "command-tips",
+    "name": "tips",
+    "command": "tips",
+    "usage": "tips",
+    "description": "Print one short usage tip",
+    "type": "function",
+    "category": "meta",
+    "source": "80-tips.zsh",
+    "examples": [
+      "tips"
+    ],
+    "plainMode": true,
+    "richOutput": true
+  },
+  {
+    "id": "command-upkg",
     "name": "upkg",
     "command": "upkg [command] [args] [flags]",
     "usage": "upkg [command] [args] [flags]",
@@ -676,77 +772,7 @@
     "richOutput": true
   },
   {
-    "id": "command-041",
-    "name": "npkg",
-    "command": "npkg <command> [args]",
-    "usage": "npkg <command> [args]",
-    "description": "Manage the current Nix profile",
-    "type": "function",
-    "category": "packages",
-    "source": "60-functions.zsh",
-    "availability": "Available when nix is installed",
-    "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
-    "examples": [
-      "npkg add bat",
-      "npkg find nvim",
-      "npkg remove",
-      "npkg outdated",
-      "npkg refresh",
-      "npkg upgrade",
-      "npkg search ripgrep"
-    ],
-    "features": [
-      "add [pkg ...]        Add package(s); with no args opens an fzf picker",
-      "install [pkg ...]    Alias for add",
-      "find [query]         Fuzzy-pick nixpkgs attribute names and add selections",
-      "search <query>       Run a plain nixpkgs search with descriptions",
-      "list                 List packages in the current profile",
-      "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
-      "outdated             Compare installed and evaluated Nix output identities",
-      "refresh              Rebuild the cached nixpkgs attribute index",
-      "upgrade [pkg ...]    Upgrade all packages or only the named ones",
-      "help                 Show this help text"
-    ],
-    "notes": [
-      "Bare install names are expanded to nixpkgs#<name>",
-      "npkg find searches a cached list of nixpkgs attribute names",
-      "npkg refresh and outdated need jq",
-      "Interactive add/find/remove needs jq and fzf 0.68.0+",
-      "Advanced nix flags can be passed through by calling nix directly"
-    ]
-  },
-  {
-    "id": "command-042",
-    "name": "G",
-    "command": "| grep",
-    "usage": "<command> G <pattern>",
-    "description": "Pipe command output to grep",
-    "type": "global_alias",
-    "category": "meta",
-    "source": "70-globals.zsh",
-    "availability": "Available when grep is installed",
-    "dependencies": "grep",
-    "examples": [
-      "git log --oneline G fix"
-    ]
-  },
-  {
-    "id": "command-043",
-    "name": "L",
-    "command": "| less",
-    "usage": "<command> L",
-    "description": "Pipe command output to less",
-    "type": "global_alias",
-    "category": "meta",
-    "source": "70-globals.zsh",
-    "availability": "Available when less is installed",
-    "dependencies": "less",
-    "examples": [
-      "git diff L"
-    ]
-  },
-  {
-    "id": "command-044",
+    "id": "command-w",
     "name": "W",
     "command": "| wc -l",
     "usage": "<command> W",
@@ -761,78 +787,71 @@
     ]
   },
   {
-    "id": "command-045",
-    "name": "H",
-    "command": "| head",
-    "usage": "<command> H",
-    "description": "Pipe command output to head",
-    "type": "global_alias",
-    "category": "meta",
-    "source": "70-globals.zsh",
-    "availability": "Available when head is installed",
-    "dependencies": "head",
+    "id": "command-weather",
+    "name": "weather",
+    "command": "curl --http1.1 -fsSL https://wttr.in",
+    "usage": "weather",
+    "description": "Show the default HTTPS forecast",
+    "type": "alias",
+    "category": "system",
+    "source": "20-aliases.zsh",
+    "availability": "Available when curl is installed",
+    "dependencies": "curl",
     "examples": [
-      "git log --oneline H"
+      "weather"
     ]
   },
   {
-    "id": "command-046",
-    "name": "T",
-    "command": "| tail",
-    "usage": "<command> T",
-    "description": "Pipe command output to tail",
-    "type": "global_alias",
-    "category": "meta",
-    "source": "70-globals.zsh",
-    "availability": "Available when tail is installed",
-    "dependencies": "tail",
+    "id": "command-z",
+    "name": "z",
+    "command": "z <query>",
+    "usage": "z <query>",
+    "description": "Jump with zoxide",
+    "type": "function",
+    "category": "navigation",
+    "source": "30-zoxide.zsh",
+    "availability": "Available when zoxide is installed",
+    "dependencies": "zoxide",
     "examples": [
-      "git log --oneline T"
+      "z projects"
     ]
   },
   {
-    "id": "command-047",
-    "name": "NE",
-    "command": "2>/dev/null",
-    "usage": "<command> NE",
-    "description": "Suppress stderr for one command",
-    "type": "global_alias",
-    "category": "meta",
-    "source": "70-globals.zsh",
-    "examples": [
-      "optional-command NE"
-    ]
-  },
-  {
-    "id": "command-048",
-    "name": "NUL",
-    "command": ">/dev/null 2>&1",
-    "usage": "<command> NUL",
-    "description": "Suppress stdout and stderr for one command",
-    "type": "global_alias",
-    "category": "meta",
-    "source": "70-globals.zsh",
-    "examples": [
-      "noisy-command NUL"
-    ]
-  },
-  {
-    "id": "command-049",
-    "name": "tips",
-    "command": "tips",
-    "usage": "tips",
-    "description": "Print one short usage tip",
+    "id": "command-zhelp",
+    "name": "zhelp",
+    "command": "zhelp [--all] [--plain] [query]",
+    "usage": "zhelp [--all] [--plain] [query]",
+    "description": "Find commands and queue an example",
     "type": "function",
     "category": "meta",
-    "source": "80-tips.zsh",
+    "source": "65-help.zsh",
+    "dependencies": "fzf 0.68.0+ for the optional interactive palette",
     "examples": [
-      "tips"
+      "zhelp package"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "features": [
+      "--all       Include unavailable commands",
+      "--plain     Force plain-text output",
+      "-h, --help  Show help"
+    ]
   },
   {
-    "id": "command-050",
+    "id": "command-zi",
+    "name": "zi",
+    "command": "zi [query]",
+    "usage": "zi [query]",
+    "description": "Pick a zoxide directory",
+    "type": "function",
+    "category": "navigation",
+    "source": "30-zoxide.zsh",
+    "availability": "Available when zoxide is installed and fzf 0.52.0+ is ready",
+    "dependencies": "zoxide and fzf 0.68.0+",
+    "examples": [
+      "zi projects"
+    ]
+  },
+  {
+    "id": "command-ztheme",
     "name": "ztheme",
     "command": "ztheme <list|current|show|use|reset|export> [theme]",
     "usage": "ztheme <list|current|show|use|reset|export> [theme]",
@@ -850,25 +869,6 @@
       "use <theme>      Apply a theme to this shell session",
       "reset            Restore defaults and clear any fzf override",
       "export <theme>   Print safe settings for ~/.zshrc"
-    ]
-  },
-  {
-    "id": "command-051",
-    "name": "zhelp",
-    "command": "zhelp [--all] [--plain] [query]",
-    "usage": "zhelp [--all] [--plain] [query]",
-    "description": "Find commands and queue an example",
-    "type": "function",
-    "category": "meta",
-    "source": "65-help.zsh",
-    "dependencies": "fzf 0.68.0+ for the optional interactive palette",
-    "examples": [
-      "zhelp package"
-    ],
-    "features": [
-      "--all       Include unavailable commands",
-      "--plain     Force plain-text output",
-      "-h, --help  Show help"
     ]
   }
 ]

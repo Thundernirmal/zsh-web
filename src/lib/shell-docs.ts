@@ -1,4 +1,4 @@
-import type { z } from 'astro/zod';
+import type { z } from 'zod';
 import type { shellCommandSchema, shellTipSchema } from '@/lib/content-schemas';
 
 export type ShellCommand = z.infer<typeof shellCommandSchema>;
