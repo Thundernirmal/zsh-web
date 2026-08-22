@@ -47,7 +47,9 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  useSlashFocus(searchRef);
+  useSlashFocus(searchRef, {
+    onClear: () => setQuery(''),
+  });
 
   const availableCategories = useMemo(() => {
     const present = Array.from(new Set(tips.map((tip) => tip.category as Category)));

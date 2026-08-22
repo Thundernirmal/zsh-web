@@ -271,7 +271,10 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  useSlashFocus(searchRef);
+  useSlashFocus(searchRef, {
+    onClear: () => setQuery(''),
+    onCloseExpanded: () => setExpanded([]),
+  });
 
   const availableCategories = useMemo(() => {
     const present = Array.from(
