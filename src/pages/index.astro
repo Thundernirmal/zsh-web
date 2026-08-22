@@ -33,7 +33,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 	</div>
 
 	<div class="grid gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 lg:grid-cols-2">
-		<Card size="sm">
+		<Card size="sm" className="flex flex-col">
 				<CardHeader className="gap-2">
 					<CardTitle><h2 class="flex items-center gap-2 text-xl"><SquareTerminalIcon className="size-5 text-primary" aria-hidden="true" />Command Library</h2></CardTitle>
 					<CardDescription>
@@ -53,14 +53,14 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 			</CardFooter>
 		</Card>
 
-		<Card size="sm">
+		<Card size="sm" className="flex flex-col">
 				<CardHeader className="gap-2">
 					<CardTitle><h2 class="flex items-center gap-2 text-xl"><LightbulbIcon className="size-5 text-primary" aria-hidden="true" />Shell Tips</h2></CardTitle>
 					<CardDescription>
 						Review always-on shortcuts and conditional features side by side, with availability notes carried through from the zsh config.
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="flex-1">
+			<CardContent className="flex flex-1 flex-col">
 				<TipRoulette />
 			</CardContent>
 			<CardFooter>

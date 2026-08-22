@@ -7,38 +7,44 @@ import { buttonVariants } from '@/components/ui/button';
 const rouletteCategories = Object.keys(sharedCategoryLabels);
 ---
 
-<div class="grid min-h-52 content-start gap-3" data-tip-roulette>
+<div class="flex h-full flex-1 flex-col justify-between gap-4" data-tip-roulette>
 	<div class="sr-only" aria-live="polite" aria-atomic="true" data-tip-announcement></div>
 
-	<div class="flex min-h-24 items-center border-l-2 border-primary py-2 pl-3">
-		<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
-			Choose Show Random Tip for a shell shortcut.
-		</p>
-	</div>
+	<div class="grid gap-3">
+		<div class="flex min-h-[5.5rem] items-center border-l-2 border-primary py-2 pl-3">
+			<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
+				Choose Show Random Tip for a shell shortcut.
+			</p>
+		</div>
 
-	<div class="flex min-h-10 flex-wrap content-center items-center gap-x-1.5 gap-y-1" data-tip-metadata>
-		<span class="contents" data-tip-placeholders aria-hidden="true">
-			<Badge variant="placeholder" data-tip-placeholder-category>Category</Badge>
-			<Badge variant="placeholder" data-tip-placeholder-source>Source</Badge>
-		</span>
-		<span class="inline-flex" data-tip-category-wrapper hidden>
-			<Badge variant="outline" className="roulette-category" data-tip-category>
-				{rouletteCategories.map((category) => (
-					<CategoryIcon category={category} className="hidden" data-icon="inline-start" data-tip-category-icon={category} />
-				))}
-				<CategoryIcon category="all" className="hidden" data-icon="inline-start" data-tip-category-icon="fallback" />
-				<span data-tip-category-label></span>
-			</Badge>
-		</span>
-		<span class="inline-flex" data-tip-source-wrapper hidden>
-			<Badge variant="metadata" data-tip-source></Badge>
-		</span>
-		<span class="basis-full text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
+		<div class="grid gap-1.5" data-tip-metadata>
+			<div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
+				<span class="contents" data-tip-placeholders aria-hidden="true">
+					<Badge variant="placeholder" data-tip-placeholder-category>Category</Badge>
+					<Badge variant="placeholder" data-tip-placeholder-source>Source</Badge>
+				</span>
+				<span class="inline-flex" data-tip-category-wrapper hidden>
+					<Badge variant="outline" className="roulette-category" data-tip-category>
+						{rouletteCategories.map((category) => (
+							<CategoryIcon category={category} className="hidden" data-icon="inline-start" data-tip-category-icon={category} />
+						))}
+						<CategoryIcon category="all" className="hidden" data-icon="inline-start" data-tip-category-icon="fallback" />
+						<span data-tip-category-label></span>
+					</Badge>
+				</span>
+				<span class="inline-flex" data-tip-source-wrapper hidden>
+					<Badge variant="metadata" data-tip-source></Badge>
+				</span>
+			</div>
+			<div class="min-h-10" data-tip-availability-wrapper>
+				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
+			</div>
+		</div>
 	</div>
 
 	<button
 		type="button"
-		class:list={[buttonVariants({ variant: 'secondary', size: 'lg' }), 'w-full sm:w-auto']}
+		class:list={[buttonVariants({ variant: 'secondary', size: 'lg' }), 'w-full self-start sm:w-auto']}
 		data-tip-action
 	>
 		<RefreshCwIcon data-icon="inline-start" aria-hidden="true" />
