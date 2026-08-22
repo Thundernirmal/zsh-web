@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
 
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
-import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
 import { Badge } from '@/components/ui/badge';
 import { categoryLabels, categoryOrder, type Category } from '@/lib/categories';
@@ -244,10 +243,9 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
                     <p className="text-sm leading-5 text-muted-foreground">{highlightText(tip.availability, query)}</p>
                   )}
                 </ItemContent>
-                <ItemActions className="basis-full flex-wrap items-center justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
+                <ItemActions className="basis-full flex-wrap justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
                   <CategoryBadge category={tip.category} />
                   {tip.source && <Badge variant="metadata">{formatLabel(tip.source)}</Badge>}
-                  <CopyButton text={tip.text} label="Copy tip text" className="size-7" />
                 </ItemActions>
               </Item>
             ))}

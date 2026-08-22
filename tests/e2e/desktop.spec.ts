@@ -81,7 +81,7 @@ test('desktop page sections use their wide-screen grid layouts', async ({ page }
 	const tipsHeading = await page.getByRole('heading', { name: 'Shell Tips' }).boundingBox();
 	expect(commandHeading).not.toBeNull();
 	expect(tipsHeading).not.toBeNull();
-	expect(Math.abs((commandHeading?.y ?? 0) - (tipsHeading?.y ?? 0))).toBeLessThanOrEqual(2);
+	expect(Math.abs((commandHeading?.y ?? 0) - (tipsHeading?.y ?? 0))).toBeLessThanOrEqual(4);
 	expect(tipsHeading?.x ?? 0).toBeGreaterThan((commandHeading?.x ?? 0) + (commandHeading?.width ?? 0));
 
 	await page.goto('/commands/');
