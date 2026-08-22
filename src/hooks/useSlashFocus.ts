@@ -20,16 +20,24 @@ export function useSlashFocus(
         target instanceof HTMLElement &&
         (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
-      // '/' shortcut to focus search
-      if (
+      // '/' or Cmd/Ctrl+K shortcut to focus search
+      const isSlash =
         event.key === '/' &&
         !event.metaKey &&
         !event.ctrlKey &&
         !event.altKey &&
-        !isEditable
-      ) {
+        !isEditable;
+
+      const isCmdOrCtrlK =
+        (event.metaKey || event.ctrlKey) &&
+        (event.key === 'k' || event.key === 'K');
+
+      if (isSlash || isCmdOrCtrlK) {
         event.preventDefault();
         ref.current?.focus();
+        if (isCmdOrCtrlK) {
+          ref.current?.select();
+        }
         return;
       }
 

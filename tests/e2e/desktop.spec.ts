@@ -103,7 +103,7 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 	await page.goto('/commands/');
 	const commandSearch = page.getByRole('searchbox');
 	await expect.poll(async () => {
-		await page.keyboard.press('/');
+		await page.keyboard.press('ControlOrMeta+k');
 		return commandSearch.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
 	await commandSearch.fill('upkg');
@@ -119,7 +119,7 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 	await expect(page.getByRole('listitem')).toHaveCount(48);
 	const tipSearch = page.getByRole('searchbox');
 	await expect.poll(async () => {
-		await page.keyboard.press('/');
+		await page.keyboard.press('ControlOrMeta+k');
 		return tipSearch.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
 	await tipSearch.fill('definitely-no-matching-tip');
