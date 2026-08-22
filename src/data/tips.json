@@ -7,13 +7,6 @@
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
-    "id": "tip-d6cb48b4",
-    "text": "Press Ctrl+P in preview pickers to toggle the preview; use Ctrl+/ to wrap",
-    "category": "utility",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
-  },
-  {
     "id": "tip-3db51df6",
     "text": "Press Ctrl+R to insert a history entry for editing",
     "category": "history",
@@ -98,8 +91,8 @@
     "availability": "Available on a supported Linux laptop profile interface"
   },
   {
-    "id": "tip-e8497f28",
-    "text": "Run fbr to scan aligned branch details and enter or check out the result",
+    "id": "tip-edc6223d",
+    "text": "Run fbr to select a branch, enter its worktree, or check it out",
     "category": "git",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
@@ -322,25 +315,11 @@
     "availability": "Always available"
   },
   {
-    "id": "tip-6190b50a",
-    "text": "Run ztheme use nord to switch dashboard and finder colors for this session",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
     "id": "tip-62c43d49",
     "text": "Start a command with a space to keep it out of saved history",
     "category": "history",
     "source": "core",
     "availability": "Always available"
-  },
-  {
-    "id": "tip-e82e3b5e",
-    "text": "Type in the unfilled fzf input row to filter; use the footer for keys",
-    "category": "utility",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
   },
   {
     "id": "tip-8b3547a2",
@@ -404,12 +383,5 @@
     "category": "fzf",
     "source": "zoxide",
     "availability": "Available when zoxide is installed and fzf is ready"
-  },
-  {
-    "id": "tip-55d00dd9",
-    "text": "Use ZSH_FZF_LAYOUT=roomy for a larger rounded finder with extra spacing",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available"
   }
 ]

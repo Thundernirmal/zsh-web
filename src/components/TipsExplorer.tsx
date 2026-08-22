@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
 
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
@@ -40,6 +40,7 @@ function tipSearchText(tip: ShellTip): string {
 
 export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [filter, setFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isMounted, setIsMounted] = useState(false);
@@ -77,7 +78,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     window.history.replaceState(window.history.state, '', url);
   }, [filter, isMounted, query]);
 
-  const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
+  const normalizedQuery = useMemo(() => deferredQuery.trim().toLowerCase(), [deferredQuery]);
 
   const corpus = useMemo(() => new Map(tips.map((t) => [`${t.category}:${t.text}`, tipSearchText(t)])), [tips]);
 

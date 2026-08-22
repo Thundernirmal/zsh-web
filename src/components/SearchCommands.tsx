@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
 
 import { CategoryBadge } from '@/components/CategoryBadge';
@@ -246,6 +246,7 @@ function NotesList({ id, notes, query }: { id: string; notes: string[]; query: s
 
 export default function SearchCommands({ commands }: SearchCommandsProps) {
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [filter, setFilter] = useState<Filter>('all');
   const [expanded, setExpanded] = useState<string[]>([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -281,7 +282,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     window.history.replaceState(window.history.state, '', url);
   }, [expanded, filter, isMounted, query]);
 
-  const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
+  const normalizedQuery = useMemo(() => deferredQuery.trim().toLowerCase(), [deferredQuery]);
 
   const corpus = useMemo(
     () => new Map(commands.map((c) => [commandId(c), searchableText(c)])),
