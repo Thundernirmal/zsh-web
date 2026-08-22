@@ -105,4 +105,3 @@ export function useSlashFocus(
     return () => window.removeEventListener('keydown', handler);
   }, [onClear, onCloseExpanded, ref]);
 }
-

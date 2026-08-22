@@ -48,5 +48,3 @@ export function CategoryBadge({
     </Badge>
   )
 }
-
-export { categoryLabels }

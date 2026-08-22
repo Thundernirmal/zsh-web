@@ -144,4 +144,3 @@ test('terminal prompt cursor is aligned inline with the prompt indicator', async
 		expect(Math.abs(chevronCenter - cursorCenter)).toBeLessThanOrEqual(1);
 	}
 });
-
