@@ -76,7 +76,7 @@
     "category": "navigation",
     "source": "30-zoxide.zsh",
     "availability": "Available when zoxide is installed and fzf 0.52.0+ is ready",
-    "dependencies": "zoxide and fzf 0.52.0+",
+    "dependencies": "zoxide and fzf 0.68.0+",
     "examples": [
       "zi projects"
     ]
@@ -462,7 +462,7 @@
     "category": "git",
     "source": "60-functions.zsh",
     "availability": "Available when git is installed and fzf 0.52.0+ is ready",
-    "dependencies": "git and fzf 0.52.0+",
+    "dependencies": "git and fzf 0.68.0+",
     "examples": [
       "fbr"
     ],
@@ -497,7 +497,7 @@
     "category": "system",
     "source": "60-functions.zsh",
     "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
-    "dependencies": "ps and fzf 0.52.0+",
+    "dependencies": "ps and fzf 0.68.0+",
     "examples": [
       "fkill 15"
     ],
@@ -685,7 +685,7 @@
     "category": "packages",
     "source": "60-functions.zsh",
     "availability": "Available when nix is installed",
-    "dependencies": "nix; jq and fzf 0.52.0+ for optional workflows",
+    "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
     "examples": [
       "npkg add bat",
       "npkg find nvim",
@@ -711,7 +711,7 @@
       "Bare install names are expanded to nixpkgs#<name>",
       "npkg find searches a cached list of nixpkgs attribute names",
       "npkg refresh and outdated need jq",
-      "Interactive add/find/remove needs jq and fzf 0.52.0+",
+      "Interactive add/find/remove needs jq and fzf 0.68.0+",
       "Advanced nix flags can be passed through by calling nix directly"
     ]
   },
@@ -833,6 +833,27 @@
   },
   {
     "id": "command-050",
+    "name": "ztheme",
+    "command": "ztheme <list|current|show|use|reset|export> [theme]",
+    "usage": "ztheme <list|current|show|use|reset|export> [theme]",
+    "description": "Inspect or switch shared terminal themes",
+    "type": "function",
+    "category": "meta",
+    "source": "functions/ztheme",
+    "examples": [
+      "ztheme use nord"
+    ],
+    "features": [
+      "list             List built-in themes",
+      "current          Show the active session settings",
+      "show [theme]     Show semantic role values",
+      "use <theme>      Apply a theme to this shell session",
+      "reset            Restore defaults and clear any fzf override",
+      "export <theme>   Print safe settings for ~/.zshrc"
+    ]
+  },
+  {
+    "id": "command-051",
     "name": "zhelp",
     "command": "zhelp [--all] [--plain] [query]",
     "usage": "zhelp [--all] [--plain] [query]",
@@ -840,7 +861,7 @@
     "type": "function",
     "category": "meta",
     "source": "65-help.zsh",
-    "dependencies": "fzf 0.52.0+ for the optional interactive palette",
+    "dependencies": "fzf 0.68.0+ for the optional interactive palette",
     "examples": [
       "zhelp package"
     ],

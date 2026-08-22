@@ -14,6 +14,7 @@ const CGM_SOURCE = '62-cgm.zsh';
 const HELP_SOURCE = '65-help.zsh';
 const GLOBALS_SOURCE = '70-globals.zsh';
 const TIPS_SOURCE = '80-tips.zsh';
+const AUTOLOAD_FUNCTIONS_DIR = 'functions';
 const FUNCTION_SOURCES = [FUNCTIONS_SOURCE, CGM_SOURCE, HELP_SOURCE, TIPS_SOURCE];
 const SOURCE_FILES = [
   GUIDE_SOURCE,
@@ -56,6 +57,7 @@ const FUNCTION_DOC_HELPERS = {
   upkg: '_upkg_usage',
   npkg: '_npkg_usage',
   cgm: '_cgm_usage',
+  ztheme: '_ztheme_usage',
   zhelp: '_zsh_help_usage',
 };
 
@@ -696,7 +698,53 @@ function extractFunctions() {
     }
   }
 
+  for (const name of extractAutoloadNames()) {
+    const source = path.join(AUTOLOAD_FUNCTIONS_DIR, name);
+    const filePath = sourcePath(source);
+
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Autoloaded Zsh function not found: ${filePath}`);
+    }
+
+    if (name.startsWith('_')) {
+      continue;
+    }
+
+    const definitions = extractFunctionDefinitions(readSource(source));
+    const docIndex = new Map(definitions.map((definition) => [definition.name, definition]));
+    const definition = docIndex.get(name);
+
+    if (!definition) {
+      throw new Error(`${source}: no function definition found for ${name}`);
+    }
+
+    functions.push({
+      name,
+      type: 'function',
+      source,
+      docs: extractFunctionDocumentation(name, definition, docIndex),
+    });
+  }
+
   return dedupeBy(functions, (command) => command.name);
+}
+
+function extractAutoloadNames() {
+  const names = [];
+
+  for (const source of FUNCTION_SOURCES) {
+    for (const rawLine of readSource(source).split('\n')) {
+      const match = rawLine.match(/\bautoload\s+(.+)$/);
+
+      if (!match) {
+        continue;
+      }
+
+      names.push(...parseShellWords(match[1]).filter((word) => !word.startsWith('-')));
+    }
+  }
+
+  return uniqueList(names);
 }
 
 function getImplementations() {
