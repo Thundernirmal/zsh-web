@@ -50,26 +50,6 @@ export const categoryOrder = [
 
 export type Category = (typeof categoryOrder)[number];
 
-/**
- * Legacy token aliases that map old/extracted categories to a canonical
- * CSS-variable token. Used to avoid unstyled badges when a new category
- * appears before CSS vars are added.
- */
-const categoryTokens: Record<string, string> = {
-  security: "safety",
-  files: "viewing",
-  system: "network",
-  meta: "pipe",
-};
-
-/**
- * Resolve a raw category string to its canonical display token.
- * Keeps global.css variable names stable.
- */
-export function canonicalCategoryToken(category: string): string {
-  return categoryTokens[category] ?? category;
-}
-
 export const categoryLabels: Record<string, string> = {
   navigation: "Navigation",
   git: "Git",
