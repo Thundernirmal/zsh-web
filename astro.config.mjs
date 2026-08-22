@@ -7,8 +7,12 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://zsh.nirmalkatariya.com',
+	output: 'static',
 	integrations: [react()],
-	prefetch: true,
+	prefetch: {
+		prefetchAll: false,
+		defaultStrategy: 'hover',
+	},
 	vite: {
 		plugins: [tailwindcss()],
 	},
