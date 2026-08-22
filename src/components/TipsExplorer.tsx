@@ -42,7 +42,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [isMounted, setIsMounted] = useState(false);
+  const isInitialMount = useRef(true);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useSlashFocus(searchRef, {
@@ -60,24 +60,24 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
 
   /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nextQuery = params.get('q');
-    const nextFilter = params.get('cat');
-    if (nextQuery) setQuery(nextQuery);
-    if (nextFilter) setFilter(nextFilter);
-    setIsMounted(true);
-  }, []);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      const params = new URLSearchParams(window.location.search);
+      const nextQuery = params.get('q');
+      const nextFilter = params.get('cat');
+      if (nextQuery) setQuery(nextQuery);
+      if (nextFilter) setFilter(nextFilter);
+      return;
+    }
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  useEffect(() => {
-    if (!isMounted) return;
     const url = new URL(window.location.href);
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
     if (filter !== 'all') url.searchParams.set('cat', filter);
     else url.searchParams.delete('cat');
     window.history.replaceState(window.history.state, '', url);
-  }, [filter, isMounted, query]);
+  }, [filter, query]);
 
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 

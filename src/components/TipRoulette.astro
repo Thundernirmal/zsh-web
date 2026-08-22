@@ -13,7 +13,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 	<div class="grid gap-3">
 		<div class="flex min-h-[5.5rem] items-center border-l-2 border-primary py-2 pl-3">
 			<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
-				Choose Show Random Tip for a shell shortcut.
+				Choose Show Random Tip to explore shell shortcuts, functions, and keybindings.
 			</p>
 		</div>
 
@@ -37,6 +37,9 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 				</span>
 			</div>
 			<div class="min-h-10" data-tip-availability-wrapper>
+				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-placeholder-hint>
+					Extracted from <code class="font-mono text-xs text-foreground/80">~/.config/zsh</code> with dependency and availability notes.
+				</span>
 				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
 			</div>
 		</div>
@@ -44,7 +47,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 
 	<button
 		type="button"
-		class:list={[buttonVariants({ variant: 'secondary', size: 'lg' }), 'w-full self-start sm:w-auto']}
+		class:list={[buttonVariants({ variant: 'secondary', size: 'lg' }), 'w-full sm:w-auto']}
 		data-tip-action
 	>
 		<RefreshCwIcon data-icon="inline-start" aria-hidden="true" />
@@ -121,6 +124,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 		const text = root?.querySelector<HTMLElement>('[data-tip-text]');
 		const announcement = root?.querySelector<HTMLElement>('[data-tip-announcement]');
 		const placeholders = root?.querySelector<HTMLElement>('[data-tip-placeholders]');
+		const placeholderHint = root?.querySelector<HTMLElement>('[data-tip-placeholder-hint]');
 		const category = root?.querySelector<HTMLElement>('[data-tip-category]');
 		const categoryWrapper = root?.querySelector<HTMLElement>('[data-tip-category-wrapper]');
 		const categoryLabel = root?.querySelector<HTMLElement>('[data-tip-category-label]');
@@ -149,6 +153,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 				?? categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === 'fallback');
 			categoryIcons.forEach((icon) => icon.classList.toggle('hidden', icon !== selectedIcon));
 			placeholders.hidden = true;
+			if (placeholderHint) placeholderHint.hidden = true;
 			categoryWrapper.hidden = false;
 
 			source.textContent = tip.source ? formatLabel(tip.source) : '';

@@ -268,7 +268,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   const [filter, setFilter] = useState<Filter>('all');
   const [category, setCategory] = useState<string>('all');
   const [expanded, setExpanded] = useState<string[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
+  const isInitialMount = useRef(true);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useSlashFocus(searchRef, {
@@ -287,22 +287,22 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
 
   /* eslint-disable react-hooks/set-state-in-effect -- URL parameters only exist after Astro hydrates this static page. */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nextQuery = params.get('q');
-    const nextFilter = params.get('type') as Filter | null;
-    const nextCategory = params.get('cat');
-    const nextCommand = params.get('command');
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      const params = new URLSearchParams(window.location.search);
+      const nextQuery = params.get('q');
+      const nextFilter = params.get('type') as Filter | null;
+      const nextCategory = params.get('cat');
+      const nextCommand = params.get('command');
 
-    if (nextQuery) setQuery(nextQuery);
-    if (nextFilter && validFilters.has(nextFilter)) setFilter(nextFilter);
-    if (nextCategory) setCategory(nextCategory);
-    if (nextCommand) setExpanded([nextCommand]);
-    setIsMounted(true);
-  }, []);
+      if (nextQuery) setQuery(nextQuery);
+      if (nextFilter && validFilters.has(nextFilter)) setFilter(nextFilter);
+      if (nextCategory) setCategory(nextCategory);
+      if (nextCommand) setExpanded([nextCommand]);
+      return;
+    }
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  useEffect(() => {
-    if (!isMounted) return;
     const url = new URL(window.location.href);
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
@@ -313,7 +313,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     if (expanded[0]) url.searchParams.set('command', expanded[0]);
     else url.searchParams.delete('command');
     window.history.replaceState(window.history.state, '', url);
-  }, [category, expanded, filter, isMounted, query]);
+  }, [category, expanded, filter, query]);
 
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
