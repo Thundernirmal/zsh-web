@@ -64,9 +64,9 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     const nextQuery = params.get('q');
     const nextFilter = params.get('cat');
     if (nextQuery) setQuery(nextQuery);
-    if (nextFilter && (availableCategories as string[]).includes(nextFilter)) setFilter(nextFilter);
+    if (nextFilter) setFilter(nextFilter);
     setIsMounted(true);
-  }, [availableCategories]);
+  }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {

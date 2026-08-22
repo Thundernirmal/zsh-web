@@ -295,14 +295,10 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
 
     if (nextQuery) setQuery(nextQuery);
     if (nextFilter && validFilters.has(nextFilter)) setFilter(nextFilter);
-    if (nextCategory && (availableCategories as string[]).includes(nextCategory)) {
-      setCategory(nextCategory);
-    }
-    if (nextCommand && commands.some((command) => commandId(command) === nextCommand)) {
-      setExpanded([nextCommand]);
-    }
+    if (nextCategory) setCategory(nextCategory);
+    if (nextCommand) setExpanded([nextCommand]);
     setIsMounted(true);
-  }, [availableCategories, commands]);
+  }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
