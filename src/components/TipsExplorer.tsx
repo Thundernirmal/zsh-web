@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react"
 
-import { CategoryBadge, CategoryIcon, categoryLabels } from "@/components/CategoryBadge"
+import { CategoryBadge, CategoryIcon } from "@/components/CategoryBadge"
 import { highlightText } from "@/components/HighlightText"
 import { Badge } from "@/components/ui/badge"
+import { categoryLabels, categoryOrder, type Category } from "@/lib/categories"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -33,25 +34,7 @@ import { formatLabel, type ShellTip } from "@/lib/shell-docs"
 
 const PAGE_SIZE = 24
 
-const categoryOrder = [
-  "navigation",
-  "git",
-  "search",
-  "utility",
-  "packages",
-  "pipe",
-  "globbing",
-  "history",
-  "fzf",
-  "nix",
-  "shell",
-  "network",
-  "process",
-  "security",
-  "files",
-  "system",
-  "meta",
-]
+
 
 export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [query, setQuery] = useState("")
@@ -61,9 +44,9 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const searchRef = useRef<HTMLInputElement>(null)
 
   const availableCategories = useMemo(() => {
-    const present = Array.from(new Set(tips.map((tip) => tip.category)))
+    const present = Array.from(new Set(tips.map((tip) => tip.category as Category)))
     const known = categoryOrder.filter((category) => present.includes(category))
-    const additional = present.filter((category) => !categoryOrder.includes(category)).sort()
+    const additional = present.filter((category) => !categoryOrder.includes(category as Category)).sort()
 
     return [...known, ...additional]
   }, [tips])
@@ -75,7 +58,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     const nextFilter = params.get("cat")
 
     if (nextQuery) setQuery(nextQuery)
-    if (nextFilter && availableCategories.includes(nextFilter)) setFilter(nextFilter)
+    if (nextFilter && (availableCategories as string[]).includes(nextFilter)) setFilter(nextFilter)
     setIsMounted(true)
   }, [availableCategories])
   /* eslint-enable react-hooks/set-state-in-effect */

@@ -57,6 +57,7 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 	let tipsPromise: Promise<ShellTip[]> | undefined;
 	let cleanUpRoulette: (() => void) | undefined;
 
+	// Keep in sync with src/lib/categories.ts
 	const categoryTokens: Record<string, string> = {
 		security: 'safety',
 		files: 'viewing',
@@ -64,13 +65,28 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 		meta: 'pipe',
 	};
 	const categoryLabels: Record<string, string> = {
+		navigation: 'Navigation',
+		git: 'Git',
 		search: 'Search & Process',
+		utility: 'Utility',
 		packages: 'Package Updates',
 		pipe: 'Pipe Aliases',
+		globbing: 'Globbing',
+		history: 'History',
 		fzf: 'FZF & Zoxide',
+		nix: 'Nix',
 		shell: 'Shell Behavior',
+		network: 'Network',
+		process: 'Process',
+		safety: 'Safety',
+		viewing: 'Viewing',
+		files: 'Files',
+		system: 'System',
+		security: 'Security',
+		meta: 'Meta',
 	};
 
+	// Mirrors src/lib/shell-docs.ts:formatLabel — client script cannot import it directly
 	const formatLabel = (value: string) => value
 		.replace(/_/g, ' ')
 		.split(/[-\s]+/)
@@ -194,5 +210,5 @@ const rouletteCategories = Object.keys(sharedCategoryLabels);
 
 	document.addEventListener('astro:page-load', setupRoulette);
 	document.addEventListener('astro:before-swap', () => cleanUpRoulette?.());
-	setupRoulette();
+	if (document.readyState !== 'loading') setupRoulette();
 </script>
