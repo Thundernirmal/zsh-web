@@ -59,7 +59,7 @@
     "description": "Rank files recursively by size",
     "type": "function",
     "category": "files",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when GNU find and du are installed",
     "dependencies": "GNU find and du",
     "examples": [
@@ -116,20 +116,6 @@
     "richOutput": true
   },
   {
-    "id": "command-cp",
-    "name": "cp",
-    "command": "cp -iv",
-    "usage": "cp <source> <destination>",
-    "description": "Copy verbosely; confirm overwrites",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "cp",
-    "examples": [
-      "cp config.example config.local"
-    ]
-  },
-  {
     "id": "command-croot",
     "name": "croot",
     "command": "croot",
@@ -137,7 +123,7 @@
     "description": "Enter the Git repository root",
     "type": "function",
     "category": "navigation",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when git is installed",
     "dependencies": "git",
     "examples": [
@@ -166,7 +152,7 @@
     "description": "Rank immediate entries by disk usage",
     "type": "function",
     "category": "files",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when GNU find and du are installed",
     "dependencies": "GNU du and find",
     "examples": [
@@ -183,7 +169,7 @@
     "description": "Unpack a supported archive",
     "type": "function",
     "category": "files",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "dependencies": "tar; format-specific unpackers when needed",
     "examples": [
       "extract archive.tar.gz"
@@ -205,7 +191,7 @@
     "description": "Show the laptop performance profile",
     "type": "function",
     "category": "system",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available on a supported Linux laptop profile interface",
     "dependencies": "Linux ACPI or ASUS WMI profile interface",
     "examples": [
@@ -222,7 +208,7 @@
     "description": "Pick a branch; enter its worktree or check it out",
     "type": "function",
     "category": "git",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when git is installed and fzf 0.52.0+ is ready",
     "dependencies": "git and fzf 0.68.0+",
     "examples": [
@@ -242,7 +228,7 @@
     "description": "Find files by name",
     "type": "function",
     "category": "search",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "dependencies": "fd, fdfind, or find",
     "examples": [
@@ -261,7 +247,7 @@
     "description": "Pick processes and send a signal",
     "type": "function",
     "category": "system",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
     "dependencies": "ps and fzf 0.68.0+",
     "examples": [
@@ -280,7 +266,7 @@
     "description": "Search file contents",
     "type": "function",
     "category": "search",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when ripgrep or grep is installed",
     "dependencies": "rg or grep",
     "examples": [
@@ -328,7 +314,7 @@
     "description": "Count non-merge commits by contributor",
     "type": "function",
     "category": "git",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when git is installed",
     "dependencies": "git",
     "examples": [
@@ -420,7 +406,7 @@
     "description": "Print response headers after redirects",
     "type": "function",
     "category": "system",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
@@ -506,37 +492,9 @@
     "description": "Create a directory and enter it",
     "type": "function",
     "category": "navigation",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "examples": [
       "mkcd new-project"
-    ]
-  },
-  {
-    "id": "command-mkdir",
-    "name": "mkdir",
-    "command": "mkdir -p",
-    "usage": "mkdir <directory> ...",
-    "description": "Create directories, including missing parents",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "mkdir",
-    "examples": [
-      "mkdir new-project/src"
-    ]
-  },
-  {
-    "id": "command-mv",
-    "name": "mv",
-    "command": "mv -iv",
-    "usage": "mv <source> <destination>",
-    "description": "Move verbosely; confirm overwrites",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "mv",
-    "examples": [
-      "mv old-name new-name"
     ]
   },
   {
@@ -547,7 +505,7 @@
     "description": "Show the public IP address",
     "type": "function",
     "category": "system",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
@@ -577,7 +535,7 @@
     "description": "Manage the current Nix profile",
     "type": "function",
     "category": "packages",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when nix is installed",
     "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
     "examples": [
@@ -630,7 +588,7 @@
     "description": "List PATH entries",
     "type": "function",
     "category": "system",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "examples": [
       "path"
     ],
@@ -645,7 +603,7 @@
     "description": "Preview a file with bat or cat",
     "type": "function",
     "category": "files",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when bat or cat is installed",
     "dependencies": "bat or cat",
     "examples": [
@@ -663,7 +621,7 @@
     "description": "Show listening sockets and processes",
     "type": "function",
     "category": "system",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when ss is installed",
     "dependencies": "ss",
     "examples": [
@@ -671,20 +629,6 @@
     ],
     "plainMode": true,
     "richOutput": true
-  },
-  {
-    "id": "command-rm",
-    "name": "rm",
-    "command": "rm -iv",
-    "usage": "rm <path> ...",
-    "description": "Remove verbosely; confirm each path",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "rm",
-    "examples": [
-      "rm unwanted-file"
-    ]
   },
   {
     "id": "command-t",
@@ -709,7 +653,7 @@
     "description": "Print one short usage tip",
     "type": "function",
     "category": "meta",
-    "source": "80-tips.zsh",
+    "source": "lib/tips-catalogue.zsh",
     "examples": [
       "tips"
     ],
@@ -724,7 +668,7 @@
     "description": "Check, search, upgrade, and clean detected managers",
     "type": "function",
     "category": "packages",
-    "source": "60-functions.zsh",
+    "source": "lib/functions-catalogue.zsh",
     "availability": "Available when at least one supported package manager is installed",
     "dependencies": "a supported package manager",
     "examples": [
@@ -824,7 +768,7 @@
     "description": "Find commands and queue an example",
     "type": "function",
     "category": "meta",
-    "source": "65-help.zsh",
+    "source": "lib/help-catalogue.zsh",
     "dependencies": "fzf 0.68.0+ for the optional interactive palette",
     "examples": [
       "zhelp package"
