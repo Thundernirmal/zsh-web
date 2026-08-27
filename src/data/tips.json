@@ -112,8 +112,8 @@
     "availability": "Always available"
   },
   {
-    "id": "tip-b2c955b5",
-    "text": "Run fkill to select processes and send SIGTERM; use 9 only to force",
+    "id": "tip-5bd8461a",
+    "text": "Run fkill TERM to stop selected processes; use fkill 9 only to force",
     "category": "process",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
@@ -367,6 +367,13 @@
     "id": "tip-79c79817",
     "text": "Use *(D) when a glob should include hidden entries",
     "category": "globbing",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "id": "tip-a0dd13a3",
+    "text": "Use command substitutions safely; helper errors stay on stderr",
+    "category": "pipe",
     "source": "core",
     "availability": "Always available"
   },

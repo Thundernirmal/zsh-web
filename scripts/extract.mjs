@@ -14,17 +14,26 @@ const DATA_DIR = path.resolve(SCRIPT_DIR, '..', 'src', 'data');
 const GUIDE_SOURCE = 'GUIDE.md';
 const ALIASES_SOURCE = '20-aliases.zsh';
 const ZOXIDE_SOURCE = '30-zoxide.zsh';
-const FUNCTIONS_SOURCE = '60-functions.zsh';
+// Loader files sourced eagerly by init.zsh; each delegates to a lazily loaded
+// catalogue under lib/. The catalogues hold the real registrations/bodies.
+const FUNCTIONS_LOADER_SOURCE = '60-functions.zsh';
+const HELP_LOADER_SOURCE = '65-help.zsh';
+const TIPS_LOADER_SOURCE = '80-tips.zsh';
+
+const FUNCTIONS_SOURCE = 'lib/functions-catalogue.zsh';
 const CGM_SOURCE = '62-cgm.zsh';
-const HELP_SOURCE = '65-help.zsh';
+const HELP_SOURCE = 'lib/help-catalogue.zsh';
 const GLOBALS_SOURCE = '70-globals.zsh';
-const TIPS_SOURCE = '80-tips.zsh';
+const TIPS_SOURCE = 'lib/tips-catalogue.zsh';
 const AUTOLOAD_FUNCTIONS_DIR = 'functions';
 const FUNCTION_SOURCES = [FUNCTIONS_SOURCE, CGM_SOURCE, HELP_SOURCE, TIPS_SOURCE];
 const SOURCE_FILES = [
   GUIDE_SOURCE,
   ALIASES_SOURCE,
   ZOXIDE_SOURCE,
+  FUNCTIONS_LOADER_SOURCE,
+  HELP_LOADER_SOURCE,
+  TIPS_LOADER_SOURCE,
   ...FUNCTION_SOURCES,
   GLOBALS_SOURCE,
 ];
@@ -761,8 +770,14 @@ function extractFunctions() {
 
 function extractAutoloadNames() {
   const names = [];
+  const declarationSources = [
+    // Autoload declarations live in the eager loader files; catalogue bodies
+    // may also declare their own helpers.
+    FUNCTIONS_LOADER_SOURCE,
+    ...FUNCTION_SOURCES,
+  ];
 
-  for (const source of FUNCTION_SOURCES) {
+  for (const source of declarationSources) {
     for (const rawLine of readSource(source).split('\n')) {
       const match = rawLine.match(/\bautoload\s+(.+)$/);
 
