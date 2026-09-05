@@ -30,6 +30,22 @@ test('command search, filters, expanded state, and history remain URL synchroniz
 	await expect(page.locator('[data-command="upkg"] [data-slot="accordion-content"]')).toBeVisible();
 });
 
+test('function syntax copy hands over a runnable example, not the template', async ({ page }) => {
+	await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+	await page.goto('/commands/?command=function%3Aupkg');
+	const command = page.locator('[data-command="upkg"]');
+	await expect(command.locator('[data-slot="accordion-content"]')).toBeVisible();
+	await expect(command.getByRole('heading', { name: 'Syntax', exact: true })).toBeVisible();
+	await expect(command.getByText('upkg [command] [args] [flags]')).toBeVisible();
+
+	const syntaxCopy = command.getByRole('button', { name: 'Copy example: upkg' });
+	await expect(syntaxCopy).toBeVisible();
+	await expect.poll(async () => {
+		await syntaxCopy.click();
+		return page.evaluate(() => navigator.clipboard.readText());
+	}).toBe('upkg');
+});
+
 test('tip roulette loads its catalogue on demand and honors reduced motion', async ({ page }) => {
 	const requests: string[] = [];
 	await page.route('**/tips.json', async (route) => {

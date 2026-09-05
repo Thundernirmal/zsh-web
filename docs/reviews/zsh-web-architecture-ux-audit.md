@@ -86,6 +86,8 @@ Crucially, **sync verification passes with this contradiction**. Regenerating JS
 
 **Priority:** medium. **Evidence:** live clipboard verification and source.
 
+**Status: fixed** — the function syntax block is now labeled "Syntax" and its copy action hands over the command's first concrete example (annotation stripped), with an explicit "Copy example: …" name; commands without examples would fall back to an explicit "Copy syntax template". Alias blocks keep "Expands To" with a "Copy expansion" action. Per-example copy buttons are preserved, and a clipboard e2e test asserts `upkg` copies the runnable `upkg`, not the template.
+
 Clicking Copy Command for `upkg` copied exactly `upkg [command] [args] [flags]`. This is a syntax template, not a runnable invocation. Sixteen function records contain angle- or square-bracket placeholders in their command field. In Zsh, these characters may trigger globbing or redirection rather than acting as harmless documentation notation.
 
 **Fix:** label this block “Syntax.” Either remove its copy action or explicitly label it “Copy syntax template.” Make the prominent action copy a concrete example. Preserve the existing example-specific copy buttons; they already strip annotations.

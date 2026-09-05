@@ -585,15 +585,44 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             const displayExamples = unmatchedExamples;
             const notes = command.notes ?? [];
             const hasReferenceDetails = hasFeatures || displayExamples.length > 0 || notes.length > 0;
-            const syntaxDetails: Array<{ label: string; value: string }> = [];
+            // Function syntax is a placeholder template, not a runnable command:
+            // the prominent copy action must hand over a concrete example
+            // instead, and only fall back to an explicitly labeled template copy.
+            const firstRunnableExample = command.examples?.length
+              ? splitExample(command.examples[0]).command
+              : undefined;
+            const syntaxDetails: Array<{
+              label: string;
+              value: string;
+              copyText: string;
+              copyLabel: string;
+            }> = [];
             if (command.command) {
-              syntaxDetails.push({
-                label: command.type === 'function' ? 'Command' : 'Expands To',
-                value: command.command,
-              });
+              if (command.type === 'function') {
+                syntaxDetails.push({
+                  label: 'Syntax',
+                  value: command.command,
+                  copyText: firstRunnableExample ?? command.command,
+                  copyLabel: firstRunnableExample
+                    ? `Copy example: ${firstRunnableExample}`
+                    : 'Copy syntax template',
+                });
+              } else {
+                syntaxDetails.push({
+                  label: 'Expands To',
+                  value: command.command,
+                  copyText: command.command,
+                  copyLabel: 'Copy expansion',
+                });
+              }
             }
             if (command.usage && command.usage !== command.command) {
-              syntaxDetails.push({ label: 'Usage', value: command.usage });
+              syntaxDetails.push({
+                label: 'Usage',
+                value: command.usage,
+                copyText: command.usage,
+                copyLabel: 'Copy usage',
+              });
             }
             return (
               <AccordionItem key={commandId(command)} value={commandId(command)} data-command={command.name}>
@@ -635,8 +664,8 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                               {detail.label}
                             </h3>
                             <CopyButton
-                              text={detail.value}
-                              label={`Copy ${detail.label}`}
+                              text={detail.copyText}
+                              label={detail.copyLabel}
                               className="size-7 shrink-0"
                             />
                           </div>
