@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from 'lucide-react';
 
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
@@ -62,6 +62,32 @@ const validFilters = new Set<Filter>(['all', 'alias', 'global_alias', 'function'
 
 interface SearchCommandsProps {
   commands: ShellCommand[];
+}
+
+// Removal controls must be real buttons: a clickable span is invisible to
+// keyboard users and to assistive tech. Rendered as a badge-styled button with
+// a 44px touch target on mobile and an explicit removal name.
+function RemovableFilter({
+  onRemove,
+  removeLabel,
+  children,
+}: {
+  onRemove: () => void;
+  removeLabel: string;
+  children: ReactNode;
+}) {
+  return (
+    <Badge
+      render={<button type="button" />}
+      variant="secondary"
+      onClick={onRemove}
+      aria-label={removeLabel}
+      className="h-11 cursor-pointer gap-1 px-3 hover:bg-destructive/20 sm:h-5 sm:px-2"
+    >
+      {children}
+      <XIcon className="size-3" aria-hidden="true" />
+    </Badge>
+  );
 }
 
 function Example({ example, query }: { example: string; query: string }) {
@@ -504,34 +530,28 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
           <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs text-muted-foreground">
             <span className="font-medium text-foreground">Active:</span>
             {query.trim().length > 0 && (
-              <Badge
-                variant="secondary"
-                className="gap-1 cursor-pointer hover:bg-destructive/20"
-                onClick={() => setQuery('')}
+              <RemovableFilter
+                onRemove={() => setQuery('')}
+                removeLabel={`Remove query filter: ${query.trim()}`}
               >
                 Query: “{query.trim()}”
-                <XIcon className="size-3" aria-hidden="true" />
-              </Badge>
+              </RemovableFilter>
             )}
             {filter !== 'all' && (
-              <Badge
-                variant="secondary"
-                className="gap-1 cursor-pointer hover:bg-destructive/20"
-                onClick={() => setFilter('all')}
+              <RemovableFilter
+                onRemove={() => setFilter('all')}
+                removeLabel={`Remove type filter: ${filters.find((f) => f.key === filter)?.label}`}
               >
                 Type: {filters.find((f) => f.key === filter)?.label}
-                <XIcon className="size-3" aria-hidden="true" />
-              </Badge>
+              </RemovableFilter>
             )}
             {category !== 'all' && (
-              <Badge
-                variant="secondary"
-                className="gap-1 cursor-pointer hover:bg-destructive/20"
-                onClick={() => setCategory('all')}
+              <RemovableFilter
+                onRemove={() => setCategory('all')}
+                removeLabel={`Remove category filter: ${categoryLabels[category] ?? formatLabel(category)}`}
               >
                 Category: {categoryLabels[category] ?? formatLabel(category)}
-                <XIcon className="size-3" aria-hidden="true" />
-              </Badge>
+              </RemovableFilter>
             )}
             <Button
               type="button"

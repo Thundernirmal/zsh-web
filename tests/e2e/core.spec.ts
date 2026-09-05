@@ -24,7 +24,7 @@ test('command search, filters, expanded state, and history remain URL synchroniz
 	}).toMatch(/q=upkg/);
 	await page.getByRole('button', { name: /^Functions,/ }).click();
 	await expect(page).toHaveURL(/type=function/);
-	await page.getByRole('button', { name: /upkg/i }).click();
+	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
 	await expect(page).toHaveURL(/command=function%3Aupkg/);
 	await page.reload();
 	await expect(page.locator('[data-command="upkg"] [data-slot="accordion-content"]')).toBeVisible();
@@ -44,6 +44,29 @@ test('function syntax copy hands over a runnable example, not the template', asy
 		await syntaxCopy.click();
 		return page.evaluate(() => navigator.clipboard.readText());
 	}).toBe('upkg');
+});
+
+test('filter-removal chips are real buttons keyboard users can activate', async ({ page }) => {
+	await page.goto('/commands/?q=git&type=function&cat=git');
+	const queryChip = page.getByRole('button', { name: 'Remove query filter: git' });
+	const typeChip = page.getByRole('button', { name: 'Remove type filter: Functions' });
+	const categoryChip = page.getByRole('button', { name: 'Remove category filter: Git' });
+	// Visibility implies the island hydrated; the chips are React-rendered.
+	await expect(queryChip).toBeVisible();
+	await expect(typeChip).toBeVisible();
+	await expect(categoryChip).toBeVisible();
+
+	await categoryChip.focus();
+	await page.keyboard.press('Enter');
+	await expect(categoryChip).toBeHidden();
+	await typeChip.focus();
+	await page.keyboard.press('Enter');
+	await expect(typeChip).toBeHidden();
+	await queryChip.focus();
+	await page.keyboard.press('Enter');
+	await expect(queryChip).toBeHidden();
+
+	await expect.poll(() => page.url()).toMatch(/\/commands\/?$/);
 });
 
 test('tip roulette loads its catalogue on demand and honors reduced motion', async ({ page }) => {

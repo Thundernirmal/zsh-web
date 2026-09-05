@@ -98,6 +98,8 @@ Clicking Copy Command for `upkg` copied exactly `upkg [command] [args] [flags]`.
 
 **Priority:** medium accessibility defect. **Evidence:** live DOM and source.
 
+**Status: fixed** — the three removal chips are now real `button` elements (Base UI `render`), each with an explicit name ("Remove query/type/category filter: …"), visible focus styles from the badge focus ring, and a 44px touch target on mobile. A keyboard e2e test applies query + type + category filters and removes all three chips with Enter; two pre-existing tests that matched chips only by a loose `/upkg/i` button regex were tightened to the accordion trigger.
+
 The active query chip is a `SPAN`, with no role and `tabIndex=-1`, despite an `onClick` that clears the query. Type and category chips use the same pattern. Keyboard users can use Reset all, but cannot activate the individual removal controls as mouse users can.
 
 **Fix:** render native buttons with names such as “Remove category filter: Git,” visible focus styles and practical touch targets. Test all three chips after applying filters; the existing axe checks inspect default route states and cannot establish that this state is accessible.

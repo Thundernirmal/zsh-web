@@ -154,7 +154,7 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 	}).toBe(true);
 	await commandSearch.fill('upkg');
 	await expect(page.locator('[data-command]')).toHaveCount(1);
-	await page.getByRole('button', { name: /upkg/i }).click();
+	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
 	const command = page.locator('[data-command="upkg"]');
 	await expect(command.locator('[data-slot="accordion-content"]')).toBeVisible();
 	await expect(command.locator('[data-slot="table"]')).toBeVisible();
