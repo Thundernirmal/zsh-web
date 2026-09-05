@@ -112,6 +112,13 @@
     "availability": "Available when fd, fdfind, or GNU find is installed"
   },
   {
+    "id": "tip-ec88a99e",
+    "text": "Run fkill --all to include processes from all users",
+    "category": "process",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
     "id": "tip-5bd8461a",
     "text": "Run fkill TERM to stop selected processes; use fkill 9 only to force",
     "category": "process",

@@ -238,8 +238,8 @@
   {
     "id": "command-fkill",
     "name": "fkill",
-    "command": "fkill [signal]",
-    "usage": "fkill [signal]",
+    "command": "fkill [--all] [signal]",
+    "usage": "fkill [--all] [signal]",
     "description": "Pick processes and send a signal",
     "type": "function",
     "category": "system",
