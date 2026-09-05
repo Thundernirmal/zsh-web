@@ -66,6 +66,7 @@ Individual commands:
 
 | Command | Purpose | Writes tracked files |
 | --- | --- | --- |
+| `npm run test:extract` | Run parser and semantic regression tests | No |
 | `npm run sync` | Validate the Zsh catalogue and regenerate JSON | Yes |
 | `npm run sync:check` | Confirm committed JSON matches the Zsh sources | No |
 | `npm run lint` | Lint JavaScript, TypeScript, React, and Astro | No |

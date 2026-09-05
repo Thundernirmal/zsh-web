@@ -78,7 +78,9 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 			contentType: 'application/json',
 			body: JSON.stringify([
 				{
-					text: 'Use .. to move up one directory',
+					text: 'Run croot to enter the Git repository root',
+                    commandId: 'command-croot',
+                    commandName: 'croot',
 					category: 'navigation',
 					source: 'globals',
 					availability: 'Always available',
@@ -107,6 +109,7 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await page.getByRole('button', { name: 'Show Random Tip' }).click();
 	await expect.poll(() => requests.length).toBe(1);
 	await expect(page.locator('[data-tip-text]')).not.toHaveText(initialText ?? '');
+	await expect(page.getByRole('link', { name: 'Read croot reference', exact: true })).toHaveAttribute('href', '/commands/croot/');
 	await expect(category).toBeVisible();
 	await expect(category).toHaveAttribute('data-category', 'navigation');
 	await expect(placeholders).toBeHidden();
@@ -241,4 +244,45 @@ test('command sharing copies its permanent static reference URL', async ({ page 
 		await copy.click();
 		return page.locator('html').getAttribute('data-copied-text');
 	}).toBe('https://zsh.nirmalkatariya.com/commands/upkg/');
+});
+
+test('copy rejection is visible, retry succeeds, and text stays selectable', async ({ page }) => {
+	await page.addInitScript(() => {
+		let calls = 0;
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => {
+			if (++calls === 1) throw new Error('Clipboard blocked');
+		} } });
+	});
+	await page.goto('/commands/?command=function%3Aupkg');
+	const command = page.locator('[data-command="upkg"]');
+	const copy = command.getByRole('button', { name: 'Copy example: upkg', exact: true });
+	await copy.click();
+	await expect(command.getByRole('status').filter({ hasText: 'Could not copy; select the text manually.' })).toBeVisible();
+	await expect(command.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
+	await copy.click();
+	await expect(command.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toHaveCount(1);
+	await expect(command.getByText('Could not copy; select the text manually.')).toHaveCount(0);
+});
+
+test('tips lead to static command documentation', async ({ page }) => {
+	await page.goto('/tips/?q=croot');
+	const link = page.getByRole('link', { name: 'croot', exact: true });
+	await expect(link).toHaveAttribute('href', '/commands/croot/');
+	await link.click();
+	await expect(page.getByRole('heading', { name: 'croot', level: 1 })).toBeVisible();
+});
+
+test('setup and troubleshooting are reachable from the homepage', async ({ page }) => {
+	await page.goto('/');
+	await page.locator('main').getByRole('link', { name: 'Get Started', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Install the shared configuration' })).toBeVisible();
+	await page.locator('main').getByRole('link', { name: 'Troubleshooting', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
+});
+
+test('mutation cautions accompany examples and subcommand synonyms are concise', async ({ page }) => {
+	await page.goto('/commands/?command=function%3Aupkg');
+	const command = page.locator('[data-command="upkg"]');
+	await expect(command.locator('[data-example-caution]').first()).toBeVisible();
+	await expect(command.getByText('Also known as: check, list', { exact: true }).filter({ visible: true })).toHaveCount(1);
 });

@@ -241,3 +241,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Detail pages lead with a concrete example. Source filenames now appear in details as exact commit-pinned links; Copy link uses the static destination. Removed redundant command statistic cards and displayed source revision/date in the footer.
 - Search matches all query tokens and ranks an exact command name first.
 - Validation: `npm run verify` passed; all 44 desktop/mobile Playwright tests passed, including no-JavaScript reading, near-top/bottom direct links, token search and copied permanent URLs. Command index HTML decreased from 319,406 to 290,224 bytes without raising budgets.
+
+### Stage 3 — task completion
+
+- M6: copy failures display and announce manual-copy guidance; retries clear prior feedback. Success timers and pending results are invalidated on replacement/unmount. Copy controls are at least 44×44px on mobile.
+- Added static Get Started and Troubleshooting pages covering fixed install location, OMZ/compinit order, dependency checks, first commands, fzf, Secret Service and glyphs. The fzf floor comes from the manifest. Homepage actions now precede the terminal illustration; footer navigation exposes setup/help.
+- Tips with an exact leading registered command link that command to its static reference. Roulette offers the same reference after selecting a tip, retaining on-demand catalogue loading.
+- Explicit shell canonical/mutation metadata is parsed without executing shell code. Examples carry adjacent mutation/session cautions. Explicit “Alias for” subcommand rows are grouped as “Also known as” while retaining examples.
+- Added registry metadata tests to `npm run verify`, including rejection of unsupported defaults, categories and command references.
+- Validation: `npm run verify` passed (including two metadata regression tests); all 53 desktop/mobile browser tests passed. The added roulette reference assertion also passed in both projects.

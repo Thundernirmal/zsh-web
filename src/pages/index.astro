@@ -27,6 +27,10 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 			</a>
 		</p>
 	</PageHeader>
+    <div class="flex flex-wrap gap-3">
+      <a href="/commands/" class={buttonVariants({ size: 'lg' })}>Browse Commands</a>
+      <a href="/get-started/" class={buttonVariants({ variant: 'outline', size: 'lg' })}>Get Started</a>
+    </div>
 
 	<div>
 		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
@@ -37,7 +41,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 				<CardHeader className="gap-2">
 					<CardTitle><h2 class="flex items-center gap-2 text-xl"><SquareTerminalIcon className="size-5 text-primary" aria-hidden="true" />Command Library</h2></CardTitle>
 					<CardDescription>
-						Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the live shell sources.
+						Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the committed shell snapshot.
 					</CardDescription>
 			</CardHeader>
 			<CardContent className="grid flex-1 content-start gap-3 leading-6 text-muted-foreground">
@@ -49,7 +53,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 				</p>
 			</CardContent>
 			<CardFooter>
-				<a href="/commands" class={buttonVariants({ size: 'lg' })}>Browse Commands <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
+				<a href="/commands" class={buttonVariants({ size: 'lg' })}>Explore the Reference <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
 			</CardFooter>
 		</Card>
 

@@ -6,6 +6,8 @@ export const shellCommandSchema = z
 	.object({
 		id: z.string().regex(/^command-[a-z0-9_-]+$/),
 		name: z.string().min(1),
+		canonical: z.string().min(1),
+		mutation: z.enum(['read', 'write', 'mixed', 'session']),
 		command: z.string().min(1).optional(),
 		usage: z.string().min(1).optional(),
 		description: z.string().min(1).optional(),
@@ -28,6 +30,8 @@ export const shellTipSchema = z
 	.object({
 		id: z.string().regex(/^tip-[a-z0-9_-]+$/),
 		text: z.string().min(1),
+		commandId: z.string().regex(/^command-[a-z0-9_-]+$/).optional(),
+		commandName: z.string().min(1).optional(),
 		category: z.enum(categoryOrder),
 		source: z.string().min(1).optional(),
 		availability: z.string().min(1).optional(),

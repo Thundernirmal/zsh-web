@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSlashFocus } from '@/hooks/useSlashFocus';
-import { formatLabel, type ShellTip } from '@/lib/shell-docs';
+import { commandHref, formatLabel, type ShellTip } from '@/lib/shell-docs';
 
 const PAGE_SIZE = 24;
 
@@ -238,7 +238,11 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               >
                 <ItemContent className="min-w-0 gap-1">
                   <ItemDescription className="line-clamp-none text-pretty">
-                    {highlightText(tip.text, query)}
+                    {tip.commandId && tip.commandName && tip.text.includes(tip.commandName) ? <>
+                      {highlightText(tip.text.slice(0, tip.text.indexOf(tip.commandName)), query)}
+                      <a className="footer-link" href={commandHref({ id: tip.commandId })}>{tip.commandName}</a>
+                      {highlightText(tip.text.slice(tip.text.indexOf(tip.commandName) + tip.commandName.length), query)}
+                    </> : highlightText(tip.text, query)}
                   </ItemDescription>
                   {tip.availability && (
                     <p className="text-sm leading-5 text-muted-foreground">{highlightText(tip.availability, query)}</p>

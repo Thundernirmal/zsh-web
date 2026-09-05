@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, createContext, useContext } from 'react';
 import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
 import { SyntaxCode } from '@/components/SyntaxCode';
@@ -17,8 +17,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+const ExampleCaution = createContext<string | undefined>(undefined);
+
 function Example({ example, query }: { example: string; query: string }) {
   const { command, annotation } = splitExample(example);
+  const caution = useContext(ExampleCaution);
   return (
     <div className="group/example grid min-w-0 gap-0.5">
       <div className="flex items-center justify-between gap-2">
@@ -31,6 +34,7 @@ function Example({ example, query }: { example: string; query: string }) {
           className="size-7 shrink-0 opacity-70 group-hover/example:opacity-100 transition-opacity"
         />
       </div>
+      {caution && <p className="text-sm leading-6 text-muted-foreground" data-example-caution>{caution}</p>}
       {annotation && (
         <span
           className="text-pretty text-base leading-6 text-muted-foreground md:text-sm md:leading-5"
@@ -91,6 +95,7 @@ function FeatureTable({
             <dd className="grid min-w-0 gap-2.5">
               <p className="detail-body" data-detail-body>
                 {highlightText(feature.description, query)}
+                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: {feature.aliases.join(', ')}</span> : null}
               </p>
               {feature.examples.length > 0 && (
                 <div className="grid min-w-0 gap-1.5">
@@ -138,6 +143,7 @@ function FeatureTable({
                 </TableHead>
                 <TableCell className="align-top whitespace-normal text-pretty leading-6">
                   {highlightText(feature.description, query)}
+                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: {feature.aliases.join(', ')}</span> : null}
                 </TableCell>
                 {hasFeatureExamples && (
                   <TableCell className="align-top whitespace-normal">
@@ -264,7 +270,12 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
               });
             }
 
- return <div className="grid min-w-0 gap-5">
+ const caution = command.mutation === 'write'
+   ? 'Changes files, packages, Git history or running processes. Review the arguments before running.'
+   : command.mutation === 'mixed'
+   ? 'Some subcommands change stored data or packages. Check the selected operation before running.'
+   : command.mutation === 'session' ? 'Changes the current shell session or working directory.' : undefined;
+ return <ExampleCaution value={caution}><div className="grid min-w-0 gap-5">
       {firstRunnableExample && <section className="grid gap-2" aria-label="Runnable example">
         <h3 className="detail-section-heading" data-detail-section-heading>Try an example</h3>
         <Example example={firstRunnableExample} query={query} />
@@ -370,5 +381,5 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
         <CopyButton text={`https://zsh.nirmalkatariya.com${commandHref(command)}`} icon="link" label={`Copy link to ${command.name}`} />
       </div>
 
-</div>;
+</div></ExampleCaution>;
 }

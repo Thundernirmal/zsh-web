@@ -10,7 +10,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       "-"
-    ]
+    ],
+    "canonical": "-",
+    "mutation": "session"
   },
   {
     "id": "command-item-a3d4a7",
@@ -23,7 +25,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       ".."
-    ]
+    ],
+    "canonical": "..",
+    "mutation": "session"
   },
   {
     "id": "command-item-0ac31c",
@@ -36,7 +40,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       "..."
-    ]
+    ],
+    "canonical": "...",
+    "mutation": "session"
   },
   {
     "id": "command-item-28256a",
@@ -49,7 +55,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       "...."
-    ]
+    ],
+    "canonical": "....",
+    "mutation": "session"
   },
   {
     "id": "command-bigfiles",
@@ -65,7 +73,9 @@
     "examples": [
       "bigfiles . 10"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "bigfiles",
+    "mutation": "read"
   },
   {
     "id": "command-cat",
@@ -79,7 +89,9 @@
     "dependencies": "bat",
     "examples": [
       "cat README.md"
-    ]
+    ],
+    "canonical": "cat",
+    "mutation": "read"
   },
   {
     "id": "command-cgm",
@@ -113,7 +125,9 @@
       "Other open shells and already-running processes are not changed.",
       "cgm delete returns nonzero if a current-shell variable cannot be unset."
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "cgm",
+    "mutation": "mixed"
   },
   {
     "id": "command-cgm-check",
@@ -128,7 +142,9 @@
     "dependencies": "secret-tool and gdbus",
     "examples": [
       "cgm check"
-    ]
+    ],
+    "canonical": "cgm",
+    "mutation": "read"
   },
   {
     "id": "command-cgm-env",
@@ -143,7 +159,9 @@
     "dependencies": "secret-tool and a Secret Service provider",
     "examples": [
       "cgm env OPENAI_KEY"
-    ]
+    ],
+    "canonical": "cgm",
+    "mutation": "session"
   },
   {
     "id": "command-cgm-status",
@@ -158,7 +176,9 @@
     "dependencies": "secret-tool",
     "examples": [
       "cgm status"
-    ]
+    ],
+    "canonical": "cgm",
+    "mutation": "read"
   },
   {
     "id": "command-croot",
@@ -173,7 +193,9 @@
     "dependencies": "git",
     "examples": [
       "croot"
-    ]
+    ],
+    "canonical": "croot",
+    "mutation": "session"
   },
   {
     "id": "command-diff",
@@ -187,7 +209,9 @@
     "dependencies": "diff with --color=auto support",
     "examples": [
       "diff before.txt after.txt"
-    ]
+    ],
+    "canonical": "diff",
+    "mutation": "read"
   },
   {
     "id": "command-dusage",
@@ -203,7 +227,9 @@
     "examples": [
       "dusage . 10"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "dusage",
+    "mutation": "read"
   },
   {
     "id": "command-extract",
@@ -225,7 +251,9 @@
       "bunzip2",
       "gunzip",
       "uncompress"
-    ]
+    ],
+    "canonical": "extract",
+    "mutation": "write"
   },
   {
     "id": "command-fanprofile",
@@ -241,7 +269,9 @@
     "examples": [
       "fanprofile"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "fanprofile",
+    "mutation": "read"
   },
   {
     "id": "command-fbr",
@@ -261,7 +291,9 @@
       "fzf"
     ],
     "interactive": true,
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "fbr",
+    "mutation": "session"
   },
   {
     "id": "command-ff",
@@ -280,7 +312,9 @@
     "optional": [
       "fd",
       "fdfind"
-    ]
+    ],
+    "canonical": "ff",
+    "mutation": "read"
   },
   {
     "id": "command-fkill",
@@ -299,7 +333,9 @@
     "requires": [
       "fzf"
     ],
-    "interactive": true
+    "interactive": true,
+    "canonical": "fkill",
+    "mutation": "write"
   },
   {
     "id": "command-ft",
@@ -317,7 +353,9 @@
     ],
     "optional": [
       "rg"
-    ]
+    ],
+    "canonical": "ft",
+    "mutation": "read"
   },
   {
     "id": "command-g",
@@ -332,7 +370,9 @@
     "dependencies": "grep",
     "examples": [
       "git log --oneline G fix"
-    ]
+    ],
+    "canonical": "G",
+    "mutation": "read"
   },
   {
     "id": "command-gcount",
@@ -347,7 +387,9 @@
     "dependencies": "git",
     "examples": [
       "gcount"
-    ]
+    ],
+    "canonical": "gitcount",
+    "mutation": "read"
   },
   {
     "id": "command-gitcount",
@@ -365,7 +407,9 @@
     ],
     "notes": [
       "Alias gcount points to gitcount for compatibility"
-    ]
+    ],
+    "canonical": "gitcount",
+    "mutation": "read"
   },
   {
     "id": "command-glog",
@@ -380,7 +424,9 @@
     "dependencies": "git",
     "examples": [
       "glog"
-    ]
+    ],
+    "canonical": "glog",
+    "mutation": "read"
   },
   {
     "id": "command-gpr",
@@ -395,7 +441,9 @@
     "dependencies": "git",
     "examples": [
       "gpr"
-    ]
+    ],
+    "canonical": "gpr",
+    "mutation": "write"
   },
   {
     "id": "command-grep",
@@ -409,7 +457,9 @@
     "dependencies": "grep with --color=auto support",
     "examples": [
       "grep TODO README.md"
-    ]
+    ],
+    "canonical": "grep",
+    "mutation": "read"
   },
   {
     "id": "command-gun",
@@ -424,7 +474,9 @@
     "dependencies": "git",
     "examples": [
       "gun"
-    ]
+    ],
+    "canonical": "gun",
+    "mutation": "write"
   },
   {
     "id": "command-h",
@@ -439,7 +491,9 @@
     "dependencies": "head",
     "examples": [
       "git log --oneline H"
-    ]
+    ],
+    "canonical": "H",
+    "mutation": "read"
   },
   {
     "id": "command-headers",
@@ -454,7 +508,9 @@
     "dependencies": "curl",
     "examples": [
       "headers https://example.com"
-    ]
+    ],
+    "canonical": "headers",
+    "mutation": "read"
   },
   {
     "id": "command-l",
@@ -469,7 +525,9 @@
     "dependencies": "less",
     "examples": [
       "git diff L"
-    ]
+    ],
+    "canonical": "L",
+    "mutation": "read"
   },
   {
     "id": "command-la",
@@ -483,7 +541,9 @@
     "dependencies": "lsd or GNU ls",
     "examples": [
       "la"
-    ]
+    ],
+    "canonical": "la",
+    "mutation": "read"
   },
   {
     "id": "command-ll",
@@ -497,7 +557,9 @@
     "dependencies": "lsd or GNU ls",
     "examples": [
       "ll"
-    ]
+    ],
+    "canonical": "ll",
+    "mutation": "read"
   },
   {
     "id": "command-ls",
@@ -511,7 +573,9 @@
     "dependencies": "lsd or GNU ls",
     "examples": [
       "ls"
-    ]
+    ],
+    "canonical": "ls",
+    "mutation": "read"
   },
   {
     "id": "command-lt",
@@ -525,7 +589,9 @@
     "dependencies": "lsd or tree",
     "examples": [
       "lt"
-    ]
+    ],
+    "canonical": "lt",
+    "mutation": "read"
   },
   {
     "id": "command-mkcd",
@@ -538,7 +604,9 @@
     "source": "lib/functions-files.zsh",
     "examples": [
       "mkcd new-project"
-    ]
+    ],
+    "canonical": "mkcd",
+    "mutation": "write"
   },
   {
     "id": "command-myip",
@@ -554,7 +622,9 @@
     "examples": [
       "myip"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "myip",
+    "mutation": "read"
   },
   {
     "id": "command-ne",
@@ -567,7 +637,9 @@
     "source": "70-globals.zsh",
     "examples": [
       "optional-command NE"
-    ]
+    ],
+    "canonical": "NE",
+    "mutation": "read"
   },
   {
     "id": "command-npkg",
@@ -607,7 +679,9 @@
       "npkg refresh and outdated need jq",
       "Interactive add/find/remove needs jq and fzf 0.68.0+",
       "Advanced nix flags can be passed through by calling nix directly"
-    ]
+    ],
+    "canonical": "npkg",
+    "mutation": "mixed"
   },
   {
     "id": "command-npkg-remove",
@@ -622,7 +696,9 @@
     "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
     "examples": [
       "npkg remove"
-    ]
+    ],
+    "canonical": "npkg",
+    "mutation": "write"
   },
   {
     "id": "command-nul",
@@ -635,7 +711,9 @@
     "source": "70-globals.zsh",
     "examples": [
       "noisy-command NUL"
-    ]
+    ],
+    "canonical": "NUL",
+    "mutation": "read"
   },
   {
     "id": "command-path",
@@ -649,7 +727,9 @@
     "examples": [
       "path"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "path",
+    "mutation": "read"
   },
   {
     "id": "command-peek",
@@ -667,7 +747,9 @@
     ],
     "optional": [
       "bat"
-    ]
+    ],
+    "canonical": "peek",
+    "mutation": "read"
   },
   {
     "id": "command-ports",
@@ -683,7 +765,9 @@
     "examples": [
       "ports"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "ports",
+    "mutation": "read"
   },
   {
     "id": "command-t",
@@ -698,7 +782,9 @@
     "dependencies": "tail",
     "examples": [
       "git log --oneline T"
-    ]
+    ],
+    "canonical": "T",
+    "mutation": "read"
   },
   {
     "id": "command-tips",
@@ -712,7 +798,9 @@
     "examples": [
       "tips"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "tips",
+    "mutation": "read"
   },
   {
     "id": "command-upkg",
@@ -766,7 +854,9 @@
       "brew upgrades run unprefixed and stay in Homebrew user space",
       "npm upgrades stay user-space only; upkg will not recommend sudo npm"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "upkg",
+    "mutation": "mixed"
   },
   {
     "id": "command-upkg-plan",
@@ -781,7 +871,9 @@
     "dependencies": "a supported package manager",
     "examples": [
       "upkg plan"
-    ]
+    ],
+    "canonical": "upkg",
+    "mutation": "read"
   },
   {
     "id": "command-w",
@@ -796,7 +888,9 @@
     "dependencies": "wc",
     "examples": [
       "git log --oneline W"
-    ]
+    ],
+    "canonical": "W",
+    "mutation": "read"
   },
   {
     "id": "command-weather",
@@ -811,7 +905,9 @@
     "dependencies": "curl",
     "examples": [
       "weather"
-    ]
+    ],
+    "canonical": "weather",
+    "mutation": "read"
   },
   {
     "id": "command-z",
@@ -826,7 +922,9 @@
     "dependencies": "zoxide",
     "examples": [
       "z projects"
-    ]
+    ],
+    "canonical": "z",
+    "mutation": "session"
   },
   {
     "id": "command-zdoctor",
@@ -847,7 +945,9 @@
       "secret-tool",
       "nix"
     ],
-    "terminalAdaptive": true
+    "terminalAdaptive": true,
+    "canonical": "zdoctor",
+    "mutation": "read"
   },
   {
     "id": "command-zhelp",
@@ -866,7 +966,9 @@
       "--all       Include unavailable commands",
       "--plain     Force plain-text output",
       "-h, --help  Show help"
-    ]
+    ],
+    "canonical": "zhelp",
+    "mutation": "read"
   },
   {
     "id": "command-zi",
@@ -881,7 +983,9 @@
     "dependencies": "zoxide and fzf 0.68.0+",
     "examples": [
       "zi projects"
-    ]
+    ],
+    "canonical": "zi",
+    "mutation": "session"
   },
   {
     "id": "command-ztheme",
@@ -902,6 +1006,8 @@
       "use <theme>      Apply a theme to this shell session",
       "reset            Restore defaults and clear any fzf override",
       "export <theme>   Print safe settings for ~/.zshrc"
-    ]
+    ],
+    "canonical": "ztheme",
+    "mutation": "session"
   }
 ]

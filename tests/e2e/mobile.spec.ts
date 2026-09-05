@@ -119,3 +119,17 @@ test('expanded command details use the mobile typography and heading contract', 
 	expect(roleSizes.body).toBeGreaterThanOrEqual(16);
 	expect(roleSizes.code).toBeGreaterThanOrEqual(16);
 });
+
+test('copy controls meet touch target dimensions in expanded references', async ({ page }) => {
+	await page.goto('/commands/?command=function%3Aupkg');
+	const command = page.locator('[data-command="upkg"]');
+	await expect(command.locator('[data-slot="accordion-content"]')).toBeVisible();
+	const buttons = command.getByRole('button', { name: /Copy/ });
+	expect(await buttons.count()).toBeGreaterThan(0);
+	for (const button of await buttons.all()) {
+		if (!(await button.isVisible())) continue;
+		const box = await button.boundingBox();
+		expect(box?.height).toBeGreaterThanOrEqual(44);
+		expect(box?.width).toBeGreaterThanOrEqual(44);
+	}
+});

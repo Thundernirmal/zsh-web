@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { registryMetadata } from './registry-metadata.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1045,7 +1046,8 @@ function main() {
   const catalogue = extractHelpCatalogue();
   validateGuideCoverage(catalogue);
 
-  const commands = buildCommands(catalogue);
+  const metadata = registryMetadata(readSource(HELP_SOURCE), catalogue.map((record) => record.name));
+  const commands = buildCommands(catalogue).map((command) => ({ ...command, ...metadata.get(command.name) }));
   validateCommandSemantics(commands);
   const availabilityByName = new Map(
     commands.filter((command) => command.availability).map((command) => [command.name, command.availability]),
@@ -1076,7 +1078,9 @@ function main() {
         id = `tip-${hashString(`${tip.text}:${suffix++}`).slice(0, 8)}`;
       }
       seenTipIds.add(id);
-      return { id, ...tip };
+      const name = tip.text.match(/^(?:Run|Use)\s+(\S+)/)?.[1];
+      const command = contentCommands.find((item) => item.name === name);
+      return { id, ...tip, ...(command ? { commandId: command.id, commandName: command.name } : {}) };
     });
 
   const git = (...args) => execFileSync('git', ['-C', ZSH_DIR, ...args], { encoding: 'utf8' }).trim();
@@ -1087,7 +1091,8 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 2,
+    schemaVersion: 3,
+    fzfMinimum: FZF_MIN_VERSION,
   };
   const outputs = [
     { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
