@@ -126,6 +126,8 @@ Initial expanded state is empty, and detail bodies are only mounted when that st
 
 **Priority:** medium content-model defect. **Evidence:** source and live fbr details.
 
+**Status: fixed** — the extractor no longer publishes `plainMode`/`richOutput` as command capabilities; `_ui_plain_mode`/`_ui_title_line` references now produce a single `terminalAdaptive` fact, rendered as "Adapts to terminal" (styled in rich terminals, plain otherwise). "Interactive" is labeled "Interactive terminal". Tips in the unconditional pool now quote the referenced command's own availability (croot no longer claims "Always available" while needing git); conditional-pool tips keep their genuine runtime conditions.
+
 The extractor sets `plainMode` when it finds `_ui_plain_mode` anywhere in the inspected body. On `fbr`, that helper controls decoration; the function still requires an interactive terminal and fzf. The live page displays “Interactive” and “Plain Mode” together without explaining the distinction.
 
 Similarly, tip availability is derived from the conditions that include a tip, which are not always the prerequisites for executing the action. For example, the live croot tip says “Always available,” although using it requires Git and a repository context.

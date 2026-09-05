@@ -20,8 +20,7 @@ export const shellCommandSchema = z
 		requires: z.array(z.string().min(1)).optional(),
 		optional: z.array(z.string().min(1)).optional(),
 		interactive: z.boolean().optional(),
-		plainMode: z.boolean().optional(),
-		richOutput: z.boolean().optional(),
+		terminalAdaptive: z.boolean().optional(),
 	})
 	.strict();
 

@@ -65,8 +65,7 @@
     "examples": [
       "bigfiles . 10"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-cat",
@@ -112,8 +111,7 @@
       "Other open shells and already-running processes are not changed.",
       "cgm delete returns nonzero if a current-shell variable cannot be unset."
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-croot",
@@ -158,8 +156,7 @@
     "examples": [
       "dusage . 10"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-extract",
@@ -197,8 +194,7 @@
     "examples": [
       "fanprofile"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-fbr",
@@ -218,7 +214,7 @@
       "fzf"
     ],
     "interactive": true,
-    "plainMode": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-ff",
@@ -511,8 +507,7 @@
     "examples": [
       "myip"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-ne",
@@ -592,8 +587,7 @@
     "examples": [
       "path"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-peek",
@@ -627,8 +621,7 @@
     "examples": [
       "ports"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-t",
@@ -657,8 +650,7 @@
     "examples": [
       "tips"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-upkg",
@@ -712,8 +704,7 @@
       "brew upgrades run unprefixed and stay in Homebrew user space",
       "npm upgrades stay user-space only; upkg will not recommend sudo npm"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true
   },
   {
     "id": "command-w",

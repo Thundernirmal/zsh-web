@@ -39,7 +39,7 @@
     "text": "Run bigfiles [path] [count] to rank files recursively",
     "category": "utility",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when GNU find and du are installed"
   },
   {
     "id": "tip-4c06c3ab",
@@ -67,7 +67,7 @@
     "text": "Run croot to jump to the current Git repository root",
     "category": "git",
     "source": "git",
-    "availability": "Always available"
+    "availability": "Available when git is installed"
   },
   {
     "id": "tip-9d0196ba",
@@ -81,7 +81,7 @@
     "text": "Run dusage [path] [count] to rank immediate entries by size",
     "category": "utility",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when GNU find and du are installed"
   },
   {
     "id": "tip-4c154fc5",
@@ -109,7 +109,7 @@
     "text": "Run ff <pattern> [path] to find files by name",
     "category": "search",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when fd, fdfind, or GNU find is installed"
   },
   {
     "id": "tip-5bd8461a",
@@ -123,42 +123,42 @@
     "text": "Run ft <pattern> [path] to search file contents",
     "category": "search",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when ripgrep or grep is installed"
   },
   {
     "id": "tip-e31adc2b",
     "text": "Run gitcount to count non-merge commits by contributor",
     "category": "git",
     "source": "git",
-    "availability": "Always available"
+    "availability": "Available when git is installed"
   },
   {
     "id": "tip-dada1bd8",
     "text": "Run glog to see the latest 20 commits as a graph",
     "category": "git",
     "source": "git",
-    "availability": "Always available"
+    "availability": "Available when git is installed"
   },
   {
     "id": "tip-c86755d9",
     "text": "Run gpr to pull the current branch with rebase",
     "category": "git",
     "source": "git",
-    "availability": "Always available"
+    "availability": "Available when git is installed"
   },
   {
     "id": "tip-27a63973",
     "text": "Run gun to undo the latest commit but keep changes staged",
     "category": "git",
     "source": "git",
-    "availability": "Always available"
+    "availability": "Available when git is installed"
   },
   {
     "id": "tip-2ee3ef22",
     "text": "Run headers <url> to follow redirects and print HTTP headers",
     "category": "network",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when curl is installed"
   },
   {
     "id": "tip-b498d6a4",
@@ -186,7 +186,7 @@
     "text": "Run myip to show your public IP address",
     "category": "network",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when curl is installed"
   },
   {
     "id": "tip-c5aa1f04",
@@ -249,14 +249,14 @@
     "text": "Run peek <file> for a quick file preview",
     "category": "viewing",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when bat or cat is installed"
   },
   {
     "id": "tip-67773123",
     "text": "Run ports to show listening sockets and their processes",
     "category": "network",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when ss is installed"
   },
   {
     "id": "tip-1d0d10fa",
@@ -312,7 +312,7 @@
     "text": "Run weather for a concise HTTPS forecast",
     "category": "network",
     "source": "core",
-    "availability": "Always available"
+    "availability": "Available when curl is installed"
   },
   {
     "id": "tip-8186d8d0",

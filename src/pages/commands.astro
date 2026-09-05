@@ -23,8 +23,7 @@ const hasExtractedDetails = (command: ShellCommand) => {
 		command.availability,
 		command.dependencies,
 		command.interactive,
-		command.plainMode,
-		command.richOutput,
+		command.terminalAdaptive,
 	];
 
 	return listFields.some((items) => hasItems(items)) || flagFields.some(Boolean);

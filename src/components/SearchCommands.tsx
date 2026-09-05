@@ -669,14 +669,23 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                   </div>
 
                   {(command.interactive ||
-                    command.plainMode ||
-                    command.richOutput ||
+                    command.terminalAdaptive ||
                     command.requires?.length ||
                     command.optional?.length) && (
                     <div className="flex flex-wrap gap-1.5">
-                      {command.interactive && <Badge variant="metadata">Interactive</Badge>}
-                      {command.plainMode && <Badge variant="metadata">Plain Mode</Badge>}
-                      {command.richOutput && <Badge variant="metadata">Rich Output</Badge>}
+                      {command.interactive && (
+                        <Badge variant="metadata" title="Must run in an interactive shell">
+                          Interactive terminal
+                        </Badge>
+                      )}
+                      {command.terminalAdaptive && (
+                        <Badge
+                          variant="metadata"
+                          title="Styled output when the terminal supports it; plain output otherwise"
+                        >
+                          Adapts to terminal
+                        </Badge>
+                      )}
                       {command.requires?.map((requirement) => (
                         <Badge key={`${commandId(command)}:requires:${requirement}`} variant="metadata">
                           Requires {formatLabel(requirement)}

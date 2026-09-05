@@ -683,8 +683,11 @@ function extractFunctionDocumentation(name, definition, docIndex) {
     requires: maybeList(dependencies.requires),
     optional: maybeList(dependencies.optional),
     interactive: inspectedBody.includes('requires an interactive terminal') || undefined,
-    plainMode: inspectedBody.includes('_ui_plain_mode') || undefined,
-    richOutput: inspectedBody.includes('_ui_title_line') || undefined,
+    // References to UI helpers describe rendering, not a selectable mode: the
+    // command styles output in rich terminals and degrades to plain otherwise.
+    terminalAdaptive:
+      (inspectedBody.includes('_ui_plain_mode') || inspectedBody.includes('_ui_title_line')) ||
+      undefined,
   };
 }
 
@@ -871,8 +874,7 @@ function buildCommands(catalogue) {
       requires: docs.requires,
       optional: docs.optional,
       interactive: docs.interactive,
-      plainMode: docs.plainMode,
-      richOutput: docs.richOutput,
+      terminalAdaptive: docs.terminalAdaptive,
     };
   });
 }
@@ -903,19 +905,33 @@ function parseTipLiteral(text) {
   return words.length === 1 ? words[0] : undefined;
 }
 
-function extractTips() {
+// Base-pool tips sit outside every condition, so the pool alone cannot vouch
+// for them. The catalogue phrases actions as "Run <command> …" or
+// "Use <command> …"; when that exact token is a catalogue command, the tip's
+// action needs what the command needs. Mentions elsewhere in the tip text
+// (piped targets, alternatives) are deliberately ignored.
+function referencedCommandAvailability(text, availabilityByName) {
+  const action = text.match(/^(?:Run|Use)\s+(\S+)/);
+  return action ? availabilityByName.get(action[1]) : undefined;
+}
+
+function extractTips(availabilityByName) {
   const tipRecords = [];
   let inTipPool = false;
   const conditionStack = [];
 
   const addTip = (text) => {
     const condition = conditionStack.join(' && ');
+    // Conditional pools already gate their tips on real runtime checks; only
+    // unconditional tips need the referenced command's requirements.
+    const commandAvailability =
+      conditionStack.length === 0 ? referencedCommandAvailability(text, availabilityByName) : undefined;
 
     tipRecords.push({
       text,
       category: inferTipCategory(text),
       source: inferTipSource(condition, text),
-      availability: describeCondition(condition) ?? 'Always available',
+      availability: commandAvailability ?? describeCondition(condition) ?? 'Always available',
     });
   };
 
@@ -994,7 +1010,10 @@ function main() {
 
   const commands = buildCommands(catalogue);
   validateCommandSemantics(commands);
-  const tips = extractTips();
+  const availabilityByName = new Map(
+    commands.filter((command) => command.availability).map((command) => [command.name, command.availability]),
+  );
+  const tips = extractTips(availabilityByName);
   // Stable IDs: commands by slug(name), tips by hash(text) — survives catalogue reorder
   const seenCommandIds = new Set();
   const contentCommands = [...commands]
