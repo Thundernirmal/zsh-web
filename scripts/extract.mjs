@@ -476,6 +476,11 @@ function describeCondition(condition) {
     return 'Available when fzf is installed in an interactive shell';
   }
 
+  const globalAliasMatch = condition.match(/\$\{\+\s*galiases\[([A-Za-z])\]\s*\}/);
+  if (globalAliasMatch) {
+    return `Available when the ${globalAliasMatch[1]} global alias is defined`;
+  }
+
   if (condition.includes('alias lt')) {
     return 'Available when the lt alias is available';
   }

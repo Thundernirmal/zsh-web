@@ -35,6 +35,13 @@
     "availability": "Always available"
   },
   {
+    "id": "tip-89c2915a",
+    "text": "Quote a global alias such as 'H' to keep it literal",
+    "category": "globbing",
+    "source": "core",
+    "availability": "Available when the G global alias is defined"
+  },
+  {
     "id": "tip-bed222ea",
     "text": "Run bigfiles [path] [count] to rank files recursively",
     "category": "utility",
@@ -389,14 +396,14 @@
     "text": "Use G, L, or W to pipe to grep, less, or wc -l",
     "category": "pipe",
     "source": "globals",
-    "availability": "Always available"
+    "availability": "Available when the G global alias is defined"
   },
   {
     "id": "tip-18cc1341",
     "text": "Use NE to hide stderr or NUL to hide all output",
     "category": "pipe",
     "source": "globals",
-    "availability": "Always available"
+    "availability": "Available when the G global alias is defined"
   },
   {
     "id": "tip-5e8dc39f",
