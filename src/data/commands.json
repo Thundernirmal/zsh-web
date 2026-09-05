@@ -209,7 +209,7 @@
     "type": "function",
     "category": "git",
     "source": "lib/functions-catalogue.zsh",
-    "availability": "Available when git is installed and fzf 0.52.0+ is ready",
+    "availability": "Available when git is installed and fzf 0.68.0+ is ready",
     "dependencies": "git and fzf 0.68.0+",
     "examples": [
       "fbr"
@@ -248,7 +248,7 @@
     "type": "function",
     "category": "system",
     "source": "lib/functions-catalogue.zsh",
-    "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
+    "availability": "Available when ps is installed and fzf 0.68.0+ is ready",
     "dependencies": "ps and fzf 0.68.0+",
     "examples": [
       "fkill 15"
@@ -788,7 +788,7 @@
     "type": "function",
     "category": "navigation",
     "source": "30-zoxide.zsh",
-    "availability": "Available when zoxide is installed and fzf 0.52.0+ is ready",
+    "availability": "Available when zoxide is installed and fzf 0.68.0+ is ready",
     "dependencies": "zoxide and fzf 0.68.0+",
     "examples": [
       "zi projects"

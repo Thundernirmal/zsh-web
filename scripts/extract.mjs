@@ -13,6 +13,7 @@ const DATA_DIR = path.resolve(SCRIPT_DIR, '..', 'src', 'data');
 
 const GUIDE_SOURCE = 'GUIDE.md';
 const ALIASES_SOURCE = '20-aliases.zsh';
+const FZF_SOURCE = '40-fzf.zsh';
 const ZOXIDE_SOURCE = '30-zoxide.zsh';
 // Loader files sourced eagerly by init.zsh; each delegates to a lazily loaded
 // catalogue under lib/. The catalogues hold the real registrations/bodies.
@@ -30,6 +31,7 @@ const FUNCTION_SOURCES = [FUNCTIONS_SOURCE, CGM_SOURCE, HELP_SOURCE, TIPS_SOURCE
 const SOURCE_FILES = [
   GUIDE_SOURCE,
   ALIASES_SOURCE,
+  FZF_SOURCE,
   ZOXIDE_SOURCE,
   FUNCTIONS_LOADER_SOURCE,
   HELP_LOADER_SOURCE,
@@ -44,17 +46,33 @@ if (unknownArguments.length > 0) {
   throw new Error(`Unknown extractor argument${unknownArguments.length === 1 ? '' : 's'}: ${unknownArguments.join(', ')}`);
 }
 
+// Single authoritative floor for every fuzzy picker: 40-fzf.zsh hard-blocks
+// older builds, so availability text must quote the same version it enforces.
+function extractFzfMinVersion() {
+  const source = readSource(FZF_SOURCE);
+  const match = source.match(/typeset\s+-gr\s+_FZF_MIN_VERSION='([0-9]+\.[0-9]+\.[0-9]+)'/);
+
+  if (!match) {
+    throw new Error(`${FZF_SOURCE}: could not read the _FZF_MIN_VERSION declaration`);
+  }
+
+  return match[1];
+}
+
+const FZF_MIN_VERSION = extractFzfMinVersion();
+const FZF_MIN_LABEL = `fzf ${FZF_MIN_VERSION}+`;
+
 const HELP_CHECK_AVAILABILITY = {
   zoxide: 'Available when zoxide is installed',
-  'zoxide-fzf': 'Available when zoxide is installed and fzf 0.52.0+ is ready',
+  'zoxide-fzf': `Available when zoxide is installed and ${FZF_MIN_LABEL} is ready`,
   peek: 'Available when bat or cat is installed',
   disk: 'Available when GNU find and du are installed',
   'file-search': 'Available when fd, fdfind, or GNU find is installed',
   'text-search': 'Available when ripgrep or grep is installed',
   git: 'Available when git is installed',
-  'git-fzf': 'Available when git is installed and fzf 0.52.0+ is ready',
+  'git-fzf': `Available when git is installed and ${FZF_MIN_LABEL} is ready`,
   curl: 'Available when curl is installed',
-  'process-fzf': 'Available when ps is installed and fzf 0.52.0+ is ready',
+  'process-fzf': `Available when ps is installed and ${FZF_MIN_LABEL} is ready`,
   'fan-profile': 'Available on a supported Linux laptop profile interface',
   ss: 'Available when ss is installed',
   'secret-tool': 'Available when secret-tool and a Secret Service provider are available',
@@ -859,6 +877,27 @@ function buildCommands(catalogue) {
   });
 }
 
+// Availability and dependency strings quote the same shell floor; anything
+// else reproduces the contradictory guidance this check exists to prevent.
+function validateCommandSemantics(commands) {
+  for (const command of commands) {
+    for (const field of ['availability', 'dependencies']) {
+      const value = command[field];
+      if (!value) {
+        continue;
+      }
+
+      const quotedFloors = value.match(/fzf\s+\d+\.\d+(?:\.\d+)?\+/g) ?? [];
+      const mismatched = quotedFloors.filter((label) => label !== FZF_MIN_LABEL);
+      if (mismatched.length > 0) {
+        throw new Error(
+          `${HELP_SOURCE}: ${command.name} ${field} quotes ${mismatched.join(', ')}; the authoritative floor is ${FZF_MIN_LABEL} from ${FZF_SOURCE}`,
+        );
+      }
+    }
+  }
+}
+
 function parseTipLiteral(text) {
   const words = parseShellWords(text.trim());
   return words.length === 1 ? words[0] : undefined;
@@ -954,6 +993,7 @@ function main() {
   validateGuideCoverage(catalogue);
 
   const commands = buildCommands(catalogue);
+  validateCommandSemantics(commands);
   const tips = extractTips();
   // Stable IDs: commands by slug(name), tips by hash(text) — survives catalogue reorder
   const seenCommandIds = new Set();
