@@ -58,7 +58,7 @@ import { formatLabel, type ShellCommand } from '@/lib/shell-docs';
 
 type Filter = 'all' | ShellCommand['type'];
 
-const validFilters = new Set<Filter>(['all', 'alias', 'global_alias', 'function']);
+const validFilters = new Set<Filter>(['all', 'alias', 'global_alias', 'function', 'action']);
 
 interface SearchCommandsProps {
   commands: ShellCommand[];
@@ -368,7 +368,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   }, [category, commands, corpus, filter, normalizedQuery]);
 
   const counts = useMemo(() => {
-    const acc = { all: 0, alias: 0, global_alias: 0, function: 0 } as Record<Filter, number> & {
+    const acc = { all: 0, alias: 0, global_alias: 0, function: 0, action: 0 } as Record<Filter, number> & {
       all: number;
     };
     for (const command of commands) {
@@ -413,6 +413,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     { key: 'alias', label: 'Aliases', count: counts.alias },
     { key: 'global_alias', label: 'Globals', count: counts.global_alias },
     { key: 'function', label: 'Functions', count: counts.function },
+    { key: 'action', label: 'Actions', count: counts.action },
   ];
 
   const clearSearch = () => {
@@ -462,7 +463,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
           {filteredCommands.length} result{filteredCommands.length === 1 ? '' : 's'}
         </span>
 
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <ToggleGroup
             value={[filter]}
             onValueChange={(values) => {
@@ -618,7 +619,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
               copyLabel: string;
             }> = [];
             if (command.command) {
-              if (command.type === 'function') {
+              if ((command.type === 'function' || command.type === 'action')) {
                 syntaxDetails.push({
                   label: 'Syntax',
                   value: command.command,

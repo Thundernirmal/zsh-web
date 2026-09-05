@@ -16,10 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read pinned shell revision
+        id: shell
+        run: echo "commit=$(node -p "require('./src/data/source.json').commit")" >> "$GITHUB_OUTPUT"
+
       - name: Check out Zsh config sources
         uses: actions/checkout@v4
         with:
           repository: Thundernirmal/zsh
+          ref: ${{ steps.shell.outputs.commit }}
           path: .zsh-config
 
       - uses: actions/setup-node@v4

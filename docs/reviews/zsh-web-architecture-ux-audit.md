@@ -211,3 +211,24 @@ Pin the intended shell commit in a manifest and create a deliberate update mecha
 5. **Strengthen assurance:** budget JS/fonts, test expanded/filter/error states, and add Safari/Firefox plus real mobile checks. The existing accessibility test only fails critical/serious axe results on initial routes; expand state coverage and assess moderate findings deliberately.
 
 Preserve the existing static framework, deterministic builds, semantic theme tokens, accessible primitive choices, reduced-motion handling and lazy homepage tips. The project needs more reliable documentation semantics and smoother task completion, not a new stack.
+
+## Remediation after the shell architecture rewrite
+
+The original observations above remain historical evidence. The earlier H1, M1,
+M2 and M5 fixes are retained and revalidated against the rewritten shell.
+
+### Ordered implementation stages
+
+1. **Source contract and reproducible sync.** Adapt registry parsing, domain implementation discovery, action records and GUIDE coverage together; regenerate data and pin CI to the source manifest. This must precede UI work because command counts, kinds and source paths changed.
+2. **Reference access and navigation (M3/M4).** Build static command pages, source links and sharing destinations together, then finish deep-link landing and search. This avoids building a second temporary link scheme.
+3. **Task completion (M6 and UX recommendations).** Finish clipboard feedback/touch targets, setup and troubleshooting, homepage actions and tip-to-reference connections using the stage 2 destinations.
+4. **Assurance (M7).** Measure and gate the finished routes and expanded states; extend accessibility/browser coverage. Record external/manual checks separately from automated evidence.
+
+### Stage 1 — source contract
+
+- Registry records now come from `lib/command-registry.zsh`; public function documentation comes from the actual domain files, while help/tips retain their lazy catalogues.
+- Added the shell's action kind and Secret Service health requirement. GUIDE validation checks runnable action syntax rather than synthetic palette IDs.
+- Autoload parsing now recognizes declarations instead of matching quoted diagnostic prose.
+- Generated snapshot: 53 commands and 70 tips from shell commit `a7950424c421258bebe5ef1d4decfc443778e11c`.
+- `src/data/source.json` records the clean source commit, deterministic source date and schema version. CI checks out that revision; README documents deliberate updates.
+- Validation: `npm run verify` passed; all 34 desktop/mobile Playwright tests passed. Added action rendering coverage, corrected the two-result upkg expectation, wrapped type controls at narrow landscape widths, and made the URL test poll keyboard hydration before filling.

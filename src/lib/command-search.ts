@@ -14,6 +14,8 @@ export function typeVariant(type: string): 'alias' | 'global' | 'function' | 'me
   if (type === 'alias') return 'alias';
   if (type === 'global_alias') return 'global';
   if (type === 'function') return 'function';
+  // Actions document one subcommand of a parent function; the neutral
+  // metadata styling keeps them visually distinct from whole commands.
   return 'metadata';
 }
 

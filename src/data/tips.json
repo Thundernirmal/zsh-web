@@ -14,8 +14,8 @@
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
-    "id": "tip-3db51df6",
-    "text": "Press Ctrl+R to insert a history entry for editing",
+    "id": "tip-ab70dc06",
+    "text": "Press Ctrl+R to insert history; Ctrl+P toggles its preview and ? stays searchable",
     "category": "history",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
@@ -35,18 +35,18 @@
     "availability": "Always available"
   },
   {
-    "id": "tip-89c2915a",
-    "text": "Quote a global alias such as 'H' to keep it literal",
-    "category": "globbing",
-    "source": "core",
-    "availability": "Available when the G global alias is defined"
-  },
-  {
     "id": "tip-bed222ea",
     "text": "Run bigfiles [path] [count] to rank files recursively",
     "category": "utility",
     "source": "core",
     "availability": "Available when GNU find and du are installed"
+  },
+  {
+    "id": "tip-df6027a4",
+    "text": "Run cgm check to ping Secret Service without retrieving values",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool"
   },
   {
     "id": "tip-4c06c3ab",
@@ -65,6 +65,13 @@
   {
     "id": "tip-72352423",
     "text": "Run cgm set OPENAI_KEY to store a credential securely",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool"
+  },
+  {
+    "id": "tip-ef8420e0",
+    "text": "Run cgm status to check which saved names are exported in this shell",
     "category": "security",
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool"
@@ -91,8 +98,15 @@
     "availability": "Available when GNU find and du are installed"
   },
   {
-    "id": "tip-4c154fc5",
-    "text": "Run extract <archive> to unpack a supported archive",
+    "id": "tip-9f02f72a",
+    "text": "Run extract --destination existing-dir archive.tar.gz to choose where to unpack",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "id": "tip-917f81b8",
+    "text": "Run extract --keep file.gz to preserve the compressed input",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
@@ -329,10 +343,24 @@
     "availability": "Available when curl is installed"
   },
   {
+    "id": "tip-8b1a163c",
+    "text": "Run zdoctor to diagnose setup and integration status",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
     "id": "tip-8186d8d0",
     "text": "Run zhelp to find a command and queue an editable example",
     "category": "shell",
     "source": "help",
+    "availability": "Always available"
+  },
+  {
+    "id": "tip-5ebf7f0e",
+    "text": "Run ztheme current to preview glyphs; Nerd Font icons require ZSH_UI_GLYPHS=nerd",
+    "category": "utility",
+    "source": "core",
     "availability": "Always available"
   },
   {
@@ -360,6 +388,13 @@
     "id": "tip-8b3547a2",
     "text": "Use - to return to the previous directory",
     "category": "navigation",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "id": "tip-567991ae",
+    "text": "Use --help with a general helper to see usage before doing any work",
+    "category": "utility",
     "source": "core",
     "availability": "Always available"
   },
@@ -392,6 +427,20 @@
     "availability": "Always available"
   },
   {
+    "id": "tip-26969a72",
+    "text": "Use ff --no-ignore or ft --hidden --no-ignore to broaden a search",
+    "category": "search",
+    "source": "core",
+    "availability": "Available when fd, fdfind, or GNU find is installed"
+  },
+  {
+    "id": "tip-4ab6efb8",
+    "text": "Use ft --fixed-strings to search literal text",
+    "category": "search",
+    "source": "core",
+    "availability": "Available when ripgrep or grep is installed"
+  },
+  {
     "id": "tip-6335df34",
     "text": "Use G, L, or W to pipe to grep, less, or wc -l",
     "category": "pipe",
@@ -403,6 +452,13 @@
     "text": "Use NE to hide stderr or NUL to hide all output",
     "category": "pipe",
     "source": "globals",
+    "availability": "Available when the G global alias is defined"
+  },
+  {
+    "id": "tip-c4aecacd",
+    "text": "Use quotes around 'H' to keep a global alias literal",
+    "category": "globbing",
+    "source": "core",
     "availability": "Available when the G global alias is defined"
   },
   {

@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,13 +24,17 @@ const TIPS_LOADER_SOURCE = '80-tips.zsh';
 
 const FUNCTIONS_SOURCE = 'lib/functions-catalogue.zsh';
 const CGM_SOURCE = '62-cgm.zsh';
-const HELP_SOURCE = 'lib/help-catalogue.zsh';
+const HELP_SOURCE = 'lib/command-registry.zsh';
 const GLOBALS_SOURCE = '70-globals.zsh';
 const TIPS_SOURCE = 'lib/tips-catalogue.zsh';
 const AUTOLOAD_FUNCTIONS_DIR = 'functions';
-const FUNCTION_SOURCES = [FUNCTIONS_SOURCE, CGM_SOURCE, HELP_SOURCE, TIPS_SOURCE];
+const FUNCTION_SOURCES = [
+  FUNCTIONS_SOURCE, CGM_SOURCE, 'lib/help-catalogue.zsh', TIPS_SOURCE,
+  ...['common', 'files', 'system', 'git', 'upkg', 'upkg-backends', 'nix'].map((domain) => `lib/functions-${domain}.zsh`),
+];
 const SOURCE_FILES = [
   GUIDE_SOURCE,
+  HELP_SOURCE,
   ALIASES_SOURCE,
   FZF_SOURCE,
   ZOXIDE_SOURCE,
@@ -75,6 +80,7 @@ const HELP_CHECK_AVAILABILITY = {
   'process-fzf': `Available when ps is installed and ${FZF_MIN_LABEL} is ready`,
   'fan-profile': 'Available on a supported Linux laptop profile interface',
   ss: 'Available when ss is installed',
+  'secret-health': 'Available when secret-tool, gdbus and a Secret Service provider are available',
   'secret-tool': 'Available when secret-tool and a Secret Service provider are available',
   'package-manager': 'Available when at least one supported package manager is installed',
   nix: 'Available when nix is installed',
@@ -299,7 +305,7 @@ function extractHelpCatalogue() {
 
     const [, name, category, summary, usage, example, dependencies, kind, check] = words;
 
-    if (kind !== 'alias' && kind !== 'function') {
+    if (kind !== 'alias' && kind !== 'function' && kind !== 'action') {
       throw new Error(`${HELP_SOURCE}:${index + 1}: unsupported command kind ${kind}`);
     }
 
@@ -334,7 +340,7 @@ function extractHelpCatalogue() {
 function validateGuideCoverage(catalogue) {
   const guide = readSource(GUIDE_SOURCE);
   const missing = catalogue
-    .map((record) => record.name)
+    .map((record) => record.kind === 'action' ? record.example.split(/\s+/).slice(0, 2).join(' ') : record.name)
     .filter((name) => {
       const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return !new RegExp('`' + escapedName + '(?:`|\\s)').test(guide);
@@ -805,7 +811,7 @@ function extractAutoloadNames() {
 
   for (const source of declarationSources) {
     for (const rawLine of readSource(source).split('\n')) {
-      const match = rawLine.match(/\bautoload\s+(.+)$/);
+      const match = rawLine.match(/^(?:\s*|.*\|\|\s*)autoload\s+(.+)$/);
 
       if (!match) {
         continue;
@@ -848,6 +854,32 @@ function buildCommands(catalogue) {
   }
 
   return catalogue.map((help) => {
+    // Actions document one subcommand of a parent function; the shell itself
+    // resolves them through the first word of their example (65-help.zsh).
+    if (help.kind === 'action') {
+      const parentName = help.example.split(/\s+/)[0];
+      const parent = implementations.get(parentName);
+
+      if (!parent || parent.type !== 'function') {
+        throw new Error(
+          `${HELP_SOURCE}: action ${help.name} needs a parent function, found ${parent?.type ?? 'nothing'} for ${parentName}`,
+        );
+      }
+
+      return {
+        name: help.name,
+        command: help.usage,
+        usage: help.usage,
+        description: help.description,
+        type: 'action',
+        category: help.category,
+        source: parent.source,
+        availability: HELP_CHECK_AVAILABILITY[help.check],
+        dependencies: help.dependencies === 'none' ? undefined : help.dependencies,
+        examples: maybeList([help.example]),
+      };
+    }
+
     const implementation = implementations.get(help.name);
 
     if (!implementation) {
@@ -1047,7 +1079,18 @@ function main() {
       return { id, ...tip };
     });
 
+  const git = (...args) => execFileSync('git', ['-C', ZSH_DIR, ...args], { encoding: 'utf8' }).trim();
+  if (git('status', '--porcelain', '--untracked-files=no')) {
+    throw new Error('Commit tracked shell changes before syncing a reproducible snapshot.');
+  }
+  const manifest = {
+    repository: 'https://github.com/Thundernirmal/zsh',
+    commit: git('rev-parse', 'HEAD'),
+    sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
+    schemaVersion: 2,
+  };
   const outputs = [
+    { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
   ];

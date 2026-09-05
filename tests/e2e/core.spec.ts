@@ -19,9 +19,11 @@ test('command search, filters, expanded state, and history remain URL synchroniz
 	await page.goto('/commands/');
 	const searchbox = page.getByRole('searchbox');
 	await expect.poll(async () => {
-		await searchbox.fill('upkg');
-		return page.url();
-	}).toMatch(/q=upkg/);
+		await page.keyboard.press('ControlOrMeta+k');
+		return searchbox.evaluate((element) => element === document.activeElement);
+	}).toBe(true);
+	await searchbox.fill('upkg');
+	await expect(page).toHaveURL(/q=upkg/);
 	await page.getByRole('button', { name: /^Functions,/ }).click();
 	await expect(page).toHaveURL(/type=function/);
 	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
@@ -182,4 +184,13 @@ test('terminal prompt cursor is aligned inline with the prompt indicator', async
 		const cursorCenter = (cursorBox?.y ?? 0) + (cursorBox?.height ?? 0) / 2;
 		expect(Math.abs(chevronCenter - cursorCenter)).toBeLessThanOrEqual(1);
 	}
+});
+
+test('rewritten shell actions expose their own syntax and parent source', async ({ page }) => {
+	await page.goto('/commands/?type=action');
+	await expect.poll(() => page.locator('[data-command="upkg"]').count()).toBe(0);
+	const action = page.locator('[data-command="upkg-plan"]');
+	await action.locator('[data-slot="accordion-trigger"]').click();
+	await expect(action.getByText('upkg plan [--only <list>]', { exact: true })).toBeVisible();
+	await expect(action.getByRole('button', { name: 'Copy example: upkg plan', exact: true })).toBeVisible();
 });

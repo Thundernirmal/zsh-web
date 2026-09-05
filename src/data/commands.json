@@ -59,7 +59,7 @@
     "description": "Rank files recursively by size",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when GNU find and du are installed",
     "dependencies": "GNU find and du",
     "examples": [
@@ -98,6 +98,8 @@
     "features": [
       "set <name>          Securely store or replace one credential",
       "list                List saved names without retrieving values",
+      "status              Show saved names and current-shell loaded state",
+      "check               Check Secret Service availability without retrieving values",
       "env <name ...>      Load selected credentials into this shell",
       "env --all           Load every saved credential into this shell",
       "unset <name ...>    Remove selected variables from this shell",
@@ -114,6 +116,51 @@
     "terminalAdaptive": true
   },
   {
+    "id": "command-cgm-check",
+    "name": "cgm-check",
+    "command": "cgm check",
+    "usage": "cgm check",
+    "description": "Check Secret Service health without values",
+    "type": "action",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool, gdbus and a Secret Service provider are available",
+    "dependencies": "secret-tool and gdbus",
+    "examples": [
+      "cgm check"
+    ]
+  },
+  {
+    "id": "command-cgm-env",
+    "name": "cgm-env",
+    "command": "cgm env <name ...>",
+    "usage": "cgm env <name ...>",
+    "description": "Load credentials into this shell",
+    "type": "action",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool and a Secret Service provider are available",
+    "dependencies": "secret-tool and a Secret Service provider",
+    "examples": [
+      "cgm env OPENAI_KEY"
+    ]
+  },
+  {
+    "id": "command-cgm-status",
+    "name": "cgm-status",
+    "command": "cgm status",
+    "usage": "cgm status",
+    "description": "Check exported credential names",
+    "type": "action",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool and a Secret Service provider are available",
+    "dependencies": "secret-tool",
+    "examples": [
+      "cgm status"
+    ]
+  },
+  {
     "id": "command-croot",
     "name": "croot",
     "command": "croot",
@@ -121,7 +168,7 @@
     "description": "Enter the Git repository root",
     "type": "function",
     "category": "navigation",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-git.zsh",
     "availability": "Available when git is installed",
     "dependencies": "git",
     "examples": [
@@ -150,7 +197,7 @@
     "description": "Rank immediate entries by disk usage",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when GNU find and du are installed",
     "dependencies": "GNU du and find",
     "examples": [
@@ -161,23 +208,23 @@
   {
     "id": "command-extract",
     "name": "extract",
-    "command": "extract <archive>",
-    "usage": "extract <archive>",
+    "command": "extract [--keep] [--destination <dir>] <archive>",
+    "usage": "extract [--keep] [--destination <dir>] <archive>",
     "description": "Unpack a supported archive",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "dependencies": "tar; format-specific unpackers when needed",
     "examples": [
       "extract archive.tar.gz"
     ],
     "optional": [
-      "bunzip2",
-      "unrar",
-      "gunzip",
       "unzip",
-      "uncompress",
-      "7z"
+      "unrar",
+      "7z",
+      "bunzip2",
+      "gunzip",
+      "uncompress"
     ]
   },
   {
@@ -188,7 +235,7 @@
     "description": "Show the laptop performance profile",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available on a supported Linux laptop profile interface",
     "dependencies": "Linux ACPI or ASUS WMI profile interface",
     "examples": [
@@ -204,7 +251,7 @@
     "description": "Pick a branch; enter its worktree or check it out",
     "type": "function",
     "category": "git",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-git.zsh",
     "availability": "Available when git is installed and fzf 0.68.0+ is ready",
     "dependencies": "git and fzf 0.68.0+",
     "examples": [
@@ -219,12 +266,12 @@
   {
     "id": "command-ff",
     "name": "ff",
-    "command": "ff <pattern> [path]",
-    "usage": "ff <pattern> [path]",
+    "command": "ff [options] <pattern> [path]",
+    "usage": "ff [options] <pattern> [path]",
     "description": "Find files by name",
     "type": "function",
     "category": "search",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "dependencies": "fd, fdfind, or find",
     "examples": [
@@ -243,7 +290,7 @@
     "description": "Pick processes and send a signal",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when ps is installed and fzf 0.68.0+ is ready",
     "dependencies": "ps and fzf 0.68.0+",
     "examples": [
@@ -257,12 +304,12 @@
   {
     "id": "command-ft",
     "name": "ft",
-    "command": "ft <pattern> [path]",
-    "usage": "ft <pattern> [path]",
+    "command": "ft [options] <pattern> [path]",
+    "usage": "ft [options] <pattern> [path]",
     "description": "Search file contents",
     "type": "function",
     "category": "search",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when ripgrep or grep is installed",
     "dependencies": "rg or grep",
     "examples": [
@@ -310,7 +357,7 @@
     "description": "Count non-merge commits by contributor",
     "type": "function",
     "category": "git",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-git.zsh",
     "availability": "Available when git is installed",
     "dependencies": "git",
     "examples": [
@@ -402,7 +449,7 @@
     "description": "Print response headers after redirects",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
@@ -488,7 +535,7 @@
     "description": "Create a directory and enter it",
     "type": "function",
     "category": "navigation",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "examples": [
       "mkcd new-project"
     ]
@@ -501,7 +548,7 @@
     "description": "Show the public IP address",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
@@ -530,7 +577,7 @@
     "description": "Manage the current Nix profile",
     "type": "function",
     "category": "packages",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-nix.zsh",
     "availability": "Available when nix is installed",
     "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
     "examples": [
@@ -563,6 +610,21 @@
     ]
   },
   {
+    "id": "command-npkg-remove",
+    "name": "npkg-remove",
+    "command": "npkg remove [package ...]",
+    "usage": "npkg remove [package ...]",
+    "description": "Remove packages from the Nix profile",
+    "type": "action",
+    "category": "packages",
+    "source": "lib/functions-nix.zsh",
+    "availability": "Available when nix is installed",
+    "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
+    "examples": [
+      "npkg remove"
+    ]
+  },
+  {
     "id": "command-nul",
     "name": "NUL",
     "command": ">/dev/null 2>&1",
@@ -583,7 +645,7 @@
     "description": "List PATH entries",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "examples": [
       "path"
     ],
@@ -597,7 +659,7 @@
     "description": "Preview a file with bat or cat",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when bat or cat is installed",
     "dependencies": "bat or cat",
     "examples": [
@@ -615,7 +677,7 @@
     "description": "Show listening sockets and processes",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when ss is installed",
     "dependencies": "ss",
     "examples": [
@@ -660,7 +722,7 @@
     "description": "Check, search, upgrade, and clean detected managers",
     "type": "function",
     "category": "packages",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-upkg.zsh",
     "availability": "Available when at least one supported package manager is installed",
     "dependencies": "a supported package manager",
     "examples": [
@@ -707,6 +769,21 @@
     "terminalAdaptive": true
   },
   {
+    "id": "command-upkg-plan",
+    "name": "upkg-plan",
+    "command": "upkg plan [--only <list>]",
+    "usage": "upkg plan [--only <list>]",
+    "description": "Preview upgrades",
+    "type": "action",
+    "category": "packages",
+    "source": "lib/functions-upkg.zsh",
+    "availability": "Available when at least one supported package manager is installed",
+    "dependencies": "a supported package manager",
+    "examples": [
+      "upkg plan"
+    ]
+  },
+  {
     "id": "command-w",
     "name": "W",
     "command": "| wc -l",
@@ -724,12 +801,12 @@
   {
     "id": "command-weather",
     "name": "weather",
-    "command": "curl --http1.1 -fsSL https://wttr.in",
+    "command": "weather",
     "usage": "weather",
     "description": "Show the default HTTPS forecast",
-    "type": "alias",
+    "type": "function",
     "category": "system",
-    "source": "20-aliases.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
@@ -750,6 +827,27 @@
     "examples": [
       "z projects"
     ]
+  },
+  {
+    "id": "command-zdoctor",
+    "name": "zdoctor",
+    "command": "zdoctor [--network] [--secrets]",
+    "usage": "zdoctor [--network] [--secrets]",
+    "description": "Diagnose setup and integration status",
+    "type": "function",
+    "category": "meta",
+    "source": "lib/functions-system.zsh",
+    "examples": [
+      "zdoctor"
+    ],
+    "optional": [
+      "fzf",
+      "fd",
+      "zoxide",
+      "secret-tool",
+      "nix"
+    ],
+    "terminalAdaptive": true
   },
   {
     "id": "command-zhelp",

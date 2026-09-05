@@ -9,7 +9,7 @@ export const shellCommandSchema = z
 		command: z.string().min(1).optional(),
 		usage: z.string().min(1).optional(),
 		description: z.string().min(1).optional(),
-		type: z.enum(['alias', 'global_alias', 'function']),
+		type: z.enum(['alias', 'global_alias', 'function', 'action']),
 		category: z.enum(categoryOrder).optional(),
 		source: z.string().min(1).optional(),
 		availability: z.string().min(1).optional(),
