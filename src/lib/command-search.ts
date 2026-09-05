@@ -180,3 +180,7 @@ export function matchingDetailSections(command: ShellCommand, query: string): st
 }
 
 export { splitExample };
+
+export function matchesQuery(text: string, query: string): boolean {
+  return query.trim().toLowerCase().split(/\s+/).every((token) => text.includes(token));
+}

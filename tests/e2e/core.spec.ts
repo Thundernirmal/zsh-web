@@ -194,3 +194,51 @@ test('rewritten shell actions expose their own syntax and parent source', async 
 	await expect(action.getByText('upkg plan [--only <list>]', { exact: true })).toBeVisible();
 	await expect(action.getByRole('button', { name: 'Copy example: upkg plan', exact: true })).toBeVisible();
 });
+
+for (const name of ['cat', 'ztheme']) {
+	test(`direct links land on ${name} and focus its trigger`, async ({ page }) => {
+		const kind = name === 'cat' ? 'alias' : 'function';
+		await page.goto(`/commands/?command=${kind}%3A${name}`);
+		const trigger = page.locator(`[data-command="${name}"] [data-slot="accordion-trigger"]`);
+		await expect(trigger).toBeFocused();
+		await expect.poll(() => trigger.evaluate((element) => {
+			const top = element.getBoundingClientRect().top;
+			return top >= 0 && top < window.innerHeight;
+		})).toBe(true);
+	});
+}
+
+test('full command reference works with JavaScript disabled', async ({ browser }) => {
+	const context = await browser.newContext({ javaScriptEnabled: false });
+	const page = await context.newPage();
+	await page.goto('/commands/');
+	await page.getByRole('link', { name: 'Read upkg reference', exact: true }).click();
+	await expect(page).toHaveURL(/\/commands\/upkg\/$/);
+	await expect(page.getByRole('heading', { level: 1, name: 'upkg' })).toBeVisible();
+	await expect(page.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Notes', exact: true })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'lib/functions-upkg.zsh', exact: true })).toHaveAttribute('href', /\/blob\/[a-f0-9]{40}\/lib\/functions-upkg.zsh$/);
+	await context.close();
+});
+
+test('search matches separate tokens and ranks exact command names first', async ({ page }) => {
+	await page.goto('/commands/?q=upkg');
+	await expect.poll(() => page.locator('[data-command]').count()).toBe(2);
+	await expect(page.locator('[data-command]').first()).toHaveAttribute('data-command', 'upkg');
+	await page.getByRole('searchbox').fill('upgrade managers');
+	await expect(page.locator('[data-command="upkg"]')).toBeVisible();
+});
+
+test('command sharing copies its permanent static reference URL', async ({ page }) => {
+	await page.addInitScript(() => {
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (text: string) => {
+			document.documentElement.dataset.copiedText = text;
+		} } });
+	});
+	await page.goto('/commands/?command=function%3Aupkg');
+	const copy = page.getByRole('button', { name: 'Copy link to upkg', exact: true });
+	await expect.poll(async () => {
+		await copy.click();
+		return page.locator('html').getAttribute('data-copied-text');
+	}).toBe('https://zsh.nirmalkatariya.com/commands/upkg/');
+});

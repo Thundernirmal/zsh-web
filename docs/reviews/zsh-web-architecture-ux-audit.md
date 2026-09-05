@@ -232,3 +232,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Generated snapshot: 53 commands and 70 tips from shell commit `a7950424c421258bebe5ef1d4decfc443778e11c`.
 - `src/data/source.json` records the clean source commit, deterministic source date and schema version. CI checks out that revision; README documents deliberate updates.
 - Validation: `npm run verify` passed; all 34 desktop/mobile Playwright tests passed. Added action rendering coverage, corrected the two-result upkg expectation, wrapped type controls at narrow landscape widths, and made the URL test poll keyboard hydration before filling.
+
+### Stage 2 — readable reference and navigation
+
+- M3: restored query links scroll once to the expanded command with header clearance and focus its trigger. Conflicting filters are cleared only when they would hide the direct target; normal search does not move focus or scroll.
+- M4: all 53 commands now have static detail routes, command-specific metadata and ordinary links in the search list. JavaScript-disabled readers receive the full example, syntax, requirements, options and notes.
+- Extracted `CommandDetails` from the search island so static pages and expanded results share one presentation. Existing search/tips `client:visible` policies are preserved.
+- Detail pages lead with a concrete example. Source filenames now appear in details as exact commit-pinned links; Copy link uses the static destination. Removed redundant command statistic cards and displayed source revision/date in the footer.
+- Search matches all query tokens and ranks an exact command name first.
+- Validation: `npm run verify` passed; all 44 desktop/mobile Playwright tests passed, including no-JavaScript reading, near-top/bottom direct links, token search and copied permanent URLs. Command index HTML decreased from 319,406 to 290,224 bytes without raising budgets.

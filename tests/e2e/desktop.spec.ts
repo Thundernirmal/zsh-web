@@ -85,9 +85,7 @@ test('desktop page sections use their wide-screen grid layouts', async ({ page }
 	expect(tipsHeading?.x ?? 0).toBeGreaterThan((commandHeading?.x ?? 0) + (commandHeading?.width ?? 0));
 
 	await page.goto('/commands/');
-	for (const label of ['total commands', 'custom functions', 'entries with extracted details']) {
-		await expect(page.getByText(label, { exact: true })).toBeVisible();
-	}
+	await expect(page.getByRole('link', { name: 'Read upkg reference', exact: true })).toHaveAttribute('href', '/commands/upkg/');
 
 	await page.goto('/tips/');
 	const searchBox = await page.getByRole('searchbox').boundingBox();

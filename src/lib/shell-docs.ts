@@ -12,3 +12,7 @@ export function formatLabel(value: string) {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
+
+export function commandHref(command: Pick<ShellCommand, 'id'>) {
+  return `/commands/${command.id.replace(/^command-/, '')}/`;
+}

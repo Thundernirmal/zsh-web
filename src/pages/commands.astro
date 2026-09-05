@@ -2,50 +2,19 @@
 import Layout from '../layouts/Layout.astro';
 import SearchCommands from '../components/SearchCommands.tsx';
 import PageHeader from '../components/PageHeader.astro';
-import StatCard from '../components/StatCard.astro';
-import { BracesIcon, FileCheck2Icon, SquareTerminalIcon } from 'lucide-react';
 import { getCollection } from 'astro:content';
-import type { ShellCommand } from '@/lib/shell-docs';
 
 const commands = (await getCollection('commands')).map(({ data }) => data);
-const functionCount = commands.filter((command) => command.type === 'function').length;
-const hasItems = (items?: string[]) => (items?.length ?? 0) > 0;
-const hasExtractedDetails = (command: ShellCommand) => {
-	const listFields = [
-		command.features,
-		command.examples,
-		command.notes,
-		command.requires,
-		command.optional,
-	];
-	const flagFields = [
-		command.usage,
-		command.availability,
-		command.dependencies,
-		command.interactive,
-		command.terminalAdaptive,
-	];
-
-	return listFields.some((items) => hasItems(items)) || flagFields.some(Boolean);
-};
-const documentedCount = commands.filter((command) =>
-	hasExtractedDetails(command),
-).length;
 ---
 
 <Layout title="Commands" description={`Search ${commands.length} aliases, global aliases, and functions extracted from Nirmal's Zsh config.`}>
 	<PageHeader title="Command Reference">
 		<p>
-			{commands.length} live entries synced from <span class="font-medium text-primary">Nirmal's Shell</span>, with usage docs and feature notes extracted directly from the zsh sources.
+			{commands.length} documented entries from <span class="font-medium text-primary">Nirmal's Shell</span>, with usage docs and feature notes extracted directly from the zsh sources.
 		</p>
 	</PageHeader>
 
 	<div class="grid gap-4">
-		<div class="hidden grid-cols-1 gap-2.5 motion-safe:animate-in motion-safe:fade-in sm:grid sm:grid-cols-3">
-			<StatCard value={commands.length} label="total commands" icon={SquareTerminalIcon} />
-			<StatCard value={functionCount} label="custom functions" icon={BracesIcon} />
-			<StatCard value={documentedCount} label="entries with extracted details" icon={FileCheck2Icon} />
-		</div>
 
 		<SearchCommands client:visible commands={commands} />
 	</div>
