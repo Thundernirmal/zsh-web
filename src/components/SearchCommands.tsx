@@ -427,7 +427,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                     </span>
                   </AccordionTrigger>
                   <a
-                    className="mt-1 inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground underline-offset-4 transition-colors before:content-['Docs_↗'] hover:bg-muted hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:mt-3 sm:h-6 sm:px-2.5 sm:before:content-['Reference_↗']"
+                    className="command-reference-link"
                     href={commandHref(command)}
                     aria-label={`Read ${command.name} reference`}
                     title={`Read ${command.name} reference`}

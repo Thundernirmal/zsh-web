@@ -290,6 +290,26 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
 });
 
+test('reading links are visually distinct without hover', async ({ page }) => {
+	await page.goto('/get-started/');
+	const inlineLink = page.getByRole('link', { name: 'zdoctor', exact: true });
+	const navigationLink = page.getByRole('link', { name: 'Browse Commands', exact: true });
+	for (const link of [inlineLink, navigationLink]) {
+		const styles = await link.evaluate((element) => {
+			const style = getComputedStyle(element);
+			const parentStyle = getComputedStyle(element.parentElement as HTMLElement);
+			return {
+				color: style.color,
+				parentColor: parentStyle.color,
+				decoration: style.textDecorationLine,
+			};
+		});
+		expect(styles.decoration).toContain('underline');
+		expect(styles.color).not.toBe(styles.parentColor);
+	}
+	expect((await inlineLink.boundingBox())?.height ?? Infinity).toBeLessThanOrEqual(32);
+});
+
 test('mixed commands show one command-level mutation caution and concise subcommand synonyms', async ({ page }) => {
 	await page.goto('/commands/?command=function%3Aupkg');
 	const command = page.locator('[data-command="upkg"]');

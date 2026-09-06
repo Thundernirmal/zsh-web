@@ -240,7 +240,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
                   <ItemDescription className="line-clamp-none text-pretty">
                     {tip.commandId && tip.commandName && tip.text.includes(tip.commandName) ? <>
                       {highlightText(tip.text.slice(0, tip.text.indexOf(tip.commandName)), query)}
-                      <a className="footer-link" href={commandHref({ id: tip.commandId })}>{tip.commandName}</a>
+                      <a className="text-link" href={commandHref({ id: tip.commandId })}>{tip.commandName}</a>
                       {highlightText(tip.text.slice(tip.text.indexOf(tip.commandName) + tip.commandName.length), query)}
                     </> : highlightText(tip.text, query)}
                   </ItemDescription>

@@ -240,8 +240,17 @@
     padding-block-end: calc(1.5rem + env(safe-area-inset-bottom));
   }
 
+  .text-link,
   .footer-link {
-    @apply inline-flex min-h-11 items-center rounded-sm underline-offset-4 hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:min-h-6;
+    @apply rounded-sm font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-[color,text-decoration-color] hover:text-foreground hover:decoration-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
+  }
+
+  .footer-link {
+    @apply inline-flex min-h-11 items-center sm:min-h-6;
+  }
+
+  .command-reference-link {
+    @apply mt-1 inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-border bg-background px-2 text-xs font-medium whitespace-nowrap text-foreground transition-[color,background-color,border-color,box-shadow,transform,text-decoration-color] before:content-['Docs_↗'] hover:bg-muted hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:translate-y-px sm:mt-3 sm:h-6 sm:before:content-['Reference_↗'];
   }
 
   .roulette-category {

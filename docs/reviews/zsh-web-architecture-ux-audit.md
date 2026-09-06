@@ -294,6 +294,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Regression coverage first reproduced a 125px desktop collapsed row. The fixed desktop row measures 81px; at 390px it measures 135px while preserving the touch target and keeping the link within the trigger row.
 - Validation: `npm run verify` passed with a 1,108-element command index and no budget increase. The browser matrix passed **123 tests** with two expected non-Chromium clipboard-permission skips. Mobile WebKit ran serially through the existing temporary launcher, and the clipboard failure test now polls the `client:visible` island's keyboard behavior before interacting.
 
+### Stage 8 — visible link affordances
+
+- Replaced hover-only inline-link styling with a shared persistent accent and underline treatment. Prose links no longer inherit the 44px footer-link height, while grouped footer/navigation links retain their larger mobile target.
+- Homepage, Get Started, Troubleshooting and tip links now advertise navigation before hover. The roulette reference uses shadcn's outline button variant on a semantic anchor; the repeated compact command links use the same semantic outline treatment through a shared class to avoid duplicating the full variant string 53 times.
+- Added browser coverage for persistent underline/color contrast and normal prose line height. `npm run verify` passed, including source synchronization, all 59 pages and budgets; shared command-link CSS reduced the command index to 304,956 raw bytes with 1,108 elements. The browser matrix passed **127 tests** with two expected non-Chromium clipboard-permission skips. Desktop Get Started and mobile command rows were visually reviewed.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.
