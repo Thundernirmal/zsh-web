@@ -110,7 +110,7 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await page.getByRole('button', { name: 'Show Random Tip' }).click();
 	await expect.poll(() => requests.length).toBe(1);
 	await expect(page.locator('[data-tip-text]')).not.toHaveText(initialText ?? '');
-	await expect(page.getByRole('link', { name: 'Read croot reference', exact: true })).toHaveAttribute('href', '/commands/croot/');
+	await expect(page.locator('[data-tip-reference]')).toHaveCount(0);
 	await expect(category).toBeVisible();
 	await expect(category).toHaveAttribute('data-category', 'navigation');
 	await expect(placeholders).toBeHidden();

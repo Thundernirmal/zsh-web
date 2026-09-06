@@ -312,6 +312,11 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Every snippet has a visible copy action with success and failure feedback. Terminal cards show a colored `$` prompt while copying only the runnable command; the configuration card preserves its exact multiline contents.
 - `npm run verify` passed, including source synchronization, all 59 pages and budgets; Get Started remains within budget at 36,677 raw bytes and 206 elements. Browser coverage checks labels, prompt semantics, all five controls, exact clipboard output, failure fallback and mobile targets. The final matrix passed **139 tests** with two expected non-Chromium clipboard-permission skips, and the page was visually reviewed at desktop and mobile widths.
 
+### Stage 11 — focused homepage tip roulette
+
+- Removed the per-tip command Reference link from the homepage Shell Tips roulette and its client-side command-route coupling. The roulette now stays focused on the tip, metadata and random-tip action.
+- Updated the existing lazy-loading and reduced-motion browser regression to require that the obsolete reference control is absent. `npm run verify` passed, including source synchronization, all 59 pages and budgets; the homepage now contains 310 elements, 55,640 raw HTML bytes and 7,206 gzip JavaScript bytes. The browser matrix passed **139 tests** with two expected non-Chromium clipboard-permission skips.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.

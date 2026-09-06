@@ -23,7 +23,6 @@ const rouletteCategories = categoryOrder;
 			</p>
 		</div>
 
-		<a class:list={[buttonVariants({ variant: 'outline' }), 'w-fit']} data-tip-reference href="/commands/" hidden>Read Command Reference</a>
 		<div class="grid gap-1.5" data-tip-metadata>
 			<div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
 				<span class="contents" data-tip-placeholders aria-hidden="true">
@@ -63,15 +62,13 @@ const rouletteCategories = categoryOrder;
 </div>
 
 <script>
-	import { commandHref, formatLabel } from '@/lib/shell-docs';
+	import { formatLabel } from '@/lib/shell-docs';
 
 	interface ShellTip {
 		text: string;
 		category: string;
 		source?: string;
 		availability?: string;
-		commandId?: string;
-		commandName?: string;
 	}
 
 	let tipsPromise: Promise<ShellTip[]> | undefined;
@@ -96,7 +93,6 @@ const rouletteCategories = categoryOrder;
 
 		const root = document.querySelector<HTMLElement>('[data-tip-roulette]');
 		const text = root?.querySelector<HTMLElement>('[data-tip-text]');
-		const reference = root?.querySelector<HTMLAnchorElement>('[data-tip-reference]');
 		const announcement = root?.querySelector<HTMLElement>('[data-tip-announcement]');
 		const placeholders = root?.querySelector<HTMLElement>('[data-tip-placeholders]');
 		const placeholderHint = root?.querySelector<HTMLElement>('[data-tip-placeholder-hint]');
@@ -123,12 +119,6 @@ const rouletteCategories = categoryOrder;
 
 		const showTip = (tip: ShellTip, announce = false) => {
 			text.textContent = tip.text;
-            if (reference) {
-              reference.hidden = !tip.commandId;
-              reference.textContent = tip.commandName ? `Read ${tip.commandName} reference` : '';
-              if (tip.commandId) reference.href = commandHref({ id: tip.commandId });
-              else reference.removeAttribute('href');
-            }
 			const token = categoryTokens[tip.category] ?? tip.category;
 			category.style.setProperty('--roulette-category', `var(--category-${token})`);
 			category.dataset.category = tip.category;
