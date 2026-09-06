@@ -2,6 +2,8 @@
 
 **Completed:** 5 September 2026. Live observations began 4 September.
 
+**Remediation completed:** 6 September 2026; staged changes and verification are recorded below.
+
 **Website:** https://zsh.nirmalkatariya.com/
 
 **Source reviewed:** `Thundernirmal/zsh-web` at `803a8df179a9870cdf9ac91f3cd5f8ea954d6d49`.
@@ -110,6 +112,8 @@ The active query chip is a `SPAN`, with no role and `tabIndex=-1`, despite an `o
 
 **Priority:** medium. **Evidence:** live reproduction.
 
+**Status: fixed** — Fixed in remediation stage 2: legacy query links scroll to and focus their command; permanent static URLs are now available.
+
 Opening the ztheme link expanded the correct command but left the page at `scrollY=0`. The trigger was at approximately **4,178px from the viewport top**, while the viewport height was **936px**. The recipient sees the top of the full list, not the command they were sent.
 
 **Fix:** after initial URL restoration and rendering, scroll the selected command into view with header offset. Avoid moving focus on every search keystroke; deliberate direct-link navigation can focus a suitable heading. Test near-top and near-bottom commands.
@@ -119,6 +123,8 @@ Opening the ztheme link expanded the correct command but left the page at `scrol
 ### M4 — Essential reference content requires JavaScript
 
 **Priority:** medium resilience/accessibility issue; high architectural value to fix. **Evidence:** source.
+
+**Status: fixed** — Fixed in remediation stage 2: every command has a full static detail route, linked from the index and readable without JavaScript.
 
 Initial expanded state is empty, and detail bodies are only mounted when that state includes the command ID. Static HTML therefore contains summaries but not the reference bodies. If JavaScript fails or is disabled, users cannot open the actual command documentation. Browser Find cannot reveal content that has never been mounted; `hiddenUntilFound` does not solve that absence.
 
@@ -144,6 +150,8 @@ Similarly, tip availability is derived from the conditions that include a tip, w
 
 **Priority:** medium usability issue. **Evidence:** source; failure was not injected live.
 
+**Status: fixed** — Fixed in remediation stage 3: copy rejection has visible/announced manual-copy guidance, retry coverage and timer cleanup.
+
 When the Clipboard API rejects, the catch handler simply clears the success state. There is no error, retry guidance or manual-copy fallback, so the button appears to do nothing.
 
 **Fix:** announce “Could not copy; select the text manually,” preserve selectable text and optionally provide a retry. Test success and rejection. Clear pending feedback timers when unmounting or starting a new copy.
@@ -153,6 +161,8 @@ When the Clipboard API rejects, the catch handler simply clears the success stat
 ### M7 — The performance gate omits JavaScript and fonts
 
 **Priority:** medium verification gap. **Evidence:** budget script.
+
+**Status: fixed** — Fixed in remediation stage 4: transitive asset budgets, expanded DOM limits and constrained loading/search checks supplement the original HTML gate.
 
 The budget measures raw/gzipped HTML and opening tags for three routes. It does not count external JavaScript, CSS, fonts, hydrated DOM growth or interaction cost. The site can therefore pass while shipping a larger React/UI bundle. Three font families are imported, with two globally preloaded and the mono font additionally preloaded on home.
 
@@ -250,3 +260,26 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Explicit shell canonical/mutation metadata is parsed without executing shell code. Examples carry adjacent mutation/session cautions. Explicit “Alias for” subcommand rows are grouped as “Also known as” while retaining examples.
 - Added registry metadata tests to `npm run verify`, including rejection of unsupported defaults, categories and command references.
 - Validation: `npm run verify` passed (including two metadata regression tests); all 53 desktop/mobile browser tests passed. The added roulette reference assertion also passed in both projects.
+
+### Stage 4 — assurance
+
+- M7: route budgets now follow local island entrypoints, shared/dynamic JavaScript imports, stylesheets and font URLs, counting each asset once per route. JS/CSS use gzip bytes; fonts use already-compressed file bytes. Every static command page also has HTML/DOM limits. Existing index limits were not raised.
+- Baseline before final assurance changes: command index 139,649 bytes gzip JS; tips 127,601; homepage 7,294; command details 87,240. Shared CSS 19,139 gzip bytes; conservative reachable font total 188,744 bytes. New limits leave approximately 15% headroom; fonts are retained on that measured basis.
+- Added a Chromium run at 4× CPU slowdown, 100ms latency and 200KB/s download, measuring initial useful reference links, real search completion and expanded DOM after opening upkg/npkg/cgm. Timing results are test attachments, not production Web Vitals.
+- Added Firefox and mobile WebKit projects, strict expanded/filter-state axe checks and 200% text sizing at a 320px viewport. Actual OS clipboard assertions remain Chromium-only; mocked failure/retry/sharing runs across engines.
+- Parsing and fzf semantic validation now have standalone, source-independent regression fixtures; asset traversal has a missing-file/deduplication fixture. CI runs these tests as well as pinned sync and the expanded browser matrix.
+- Expanded-state testing uncovered and fixed invalid separators directly inside mobile definition-list groups and intrinsic grid widths overflowing enlarged examples. Tests wait for fonts/transition completion before measuring or making the next navigation.
+- Validation: `npm run verify` passed, including five parser/metadata/asset tests and all 59 static pages. The complete browser matrix passed **119 tests**, with two expected skips for non-Chromium OS clipboard permissions and no retries/flaky results. WebKit used the installed browser binary with dependencies unpacked into `/tmp` and a temporary launcher; CI uses `playwright install --with-deps`. No system packages were installed locally.
+- The final focused performance run measured **893ms** to useful reference content and **81ms** for search. Expanded DOM was **1,652** elements for upkg, **1,423** for npkg and **1,358** for cgm; the 2,200-element gate checks the maximum across those separate accordion states. Local timing depends on host load and is not a production latency promise.
+- Final command-index transfer graph: **139,673** gzip JS bytes, **19,144** gzip CSS bytes, **188,744** conservative font bytes. Command index HTML remains below the original limits: **294,871** raw bytes, **20,090** gzip bytes and **1,055** elements.
+- Visually inspected mobile command-reference and setup pages. Source config remained clean at the pinned revision throughout remediation.
+
+
+### Remaining optional work and external verification
+
+All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.
+
+- Physical-device Safari, assistive-technology sessions and actual browser 400% zoom remain manual checks. Automated mobile WebKit, 320px reflow and 200% text sizing are covered but are not substitutes for those checks.
+- The optional light theme and build-generated CSP hashes are not included. Existing policies are preserved; deployed headers/status codes and production performance were not re-audited.
+- The shell registry now supplies canonical command and mutation facts. A complete upstream export of capability modes, runtime context and per-example semantics remains a longer-term architectural recommendation. Parsing/semantic helpers and shared detail rendering were separated without a wholesale extractor rewrite.
+- No deployment or push was performed in this session.

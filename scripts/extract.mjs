@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -208,84 +209,6 @@ function maybeList(values) {
 
 function normalizeCategory(category) {
   return category.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
-
-function parseShellWords(line) {
-  const words = [];
-  let current = '';
-  let quote = null;
-  let started = false;
-
-  const pushCurrent = () => {
-    if (!started) {
-      return;
-    }
-
-    words.push(current);
-    current = '';
-    started = false;
-  };
-
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index];
-
-    if (quote === "'") {
-      if (char === "'") {
-        quote = null;
-      } else {
-        current += char;
-      }
-      continue;
-    }
-
-    if (quote === '"') {
-      if (char === '"') {
-        quote = null;
-      } else if (char === '\\' && index + 1 < line.length) {
-        index += 1;
-        current += line[index];
-      } else {
-        current += char;
-      }
-      continue;
-    }
-
-    if (/\s/.test(char)) {
-      pushCurrent();
-      continue;
-    }
-
-    if (char === '#') {
-      if (!started) {
-        break;
-      }
-      current += char;
-      continue;
-    }
-
-    if (char === "'" || char === '"') {
-      quote = char;
-      started = true;
-      continue;
-    }
-
-    if (char === '\\' && index + 1 < line.length) {
-      index += 1;
-      current += line[index];
-      started = true;
-      continue;
-    }
-
-    current += char;
-    started = true;
-  }
-
-  if (quote) {
-    throw new Error(`Unterminated ${quote} quote in: ${line}`);
-  }
-
-  pushCurrent();
-  return words;
 }
 
 function extractHelpCatalogue() {
@@ -919,25 +842,6 @@ function buildCommands(catalogue) {
 
 // Availability and dependency strings quote the same shell floor; anything
 // else reproduces the contradictory guidance this check exists to prevent.
-function validateCommandSemantics(commands) {
-  for (const command of commands) {
-    for (const field of ['availability', 'dependencies']) {
-      const value = command[field];
-      if (!value) {
-        continue;
-      }
-
-      const quotedFloors = value.match(/fzf\s+\d+\.\d+(?:\.\d+)?\+/g) ?? [];
-      const mismatched = quotedFloors.filter((label) => label !== FZF_MIN_LABEL);
-      if (mismatched.length > 0) {
-        throw new Error(
-          `${HELP_SOURCE}: ${command.name} ${field} quotes ${mismatched.join(', ')}; the authoritative floor is ${FZF_MIN_LABEL} from ${FZF_SOURCE}`,
-        );
-      }
-    }
-  }
-}
-
 function parseTipLiteral(text) {
   const words = parseShellWords(text.trim());
   return words.length === 1 ? words[0] : undefined;
@@ -1048,7 +952,7 @@ function main() {
 
   const metadata = registryMetadata(readSource(HELP_SOURCE), catalogue.map((record) => record.name));
   const commands = buildCommands(catalogue).map((command) => ({ ...command, ...metadata.get(command.name) }));
-  validateCommandSemantics(commands);
+  validateCommandSemantics(commands, FZF_MIN_VERSION);
   const availabilityByName = new Map(
     commands.filter((command) => command.availability).map((command) => [command.name, command.availability]),
   );

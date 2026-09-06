@@ -1,3 +1,4 @@
+import { routeAssets } from './route-assets.mjs';
 import { gzipSync } from 'node:zlib';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,10 +10,23 @@ const BUDGETS = {
   'commands/index.html': { rawBytes: 350_000, gzipBytes: 23_000, elements: 1_200 },
   'tips/index.html': { rawBytes: 140_000, gzipBytes: 16_500, elements: 500 },
   'index.html': { rawBytes: 62_000, gzipBytes: 10_500, elements: 350 },
+  'get-started/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
+  'troubleshooting/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
 };
 
 const DIST_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 
+// Measured after the reference/guide changes, with approximately 15% headroom.
+// Font transfer is already compressed WOFF/WOFF2; all reachable subsets count.
+const ASSET_BUDGETS = {
+  'index.html': { jsGzip: 9_000, cssGzip: 23_000, fontBytes: 220_000 },
+  'commands/index.html': { jsGzip: 162_000, cssGzip: 23_000, fontBytes: 220_000 },
+  'tips/index.html': { jsGzip: 148_000, cssGzip: 23_000, fontBytes: 220_000 },
+};
+const detailBudget = { rawBytes: 160_000, gzipBytes: 18_000, elements: 900 };
+for (const entry of fs.existsSync(path.join(DIST_DIR, 'commands')) ? fs.readdirSync(path.join(DIST_DIR, 'commands'), { withFileTypes: true }) : []) {
+  if (entry.isDirectory()) BUDGETS[`commands/${entry.name}/index.html`] = detailBudget;
+}
 let failures = 0;
 
 for (const [file, budget] of Object.entries(BUDGETS)) {
@@ -28,15 +42,20 @@ for (const [file, budget] of Object.entries(BUDGETS)) {
   const gzipBytes = gzipSync(html).length;
   const elements = (html.match(/<[a-zA-Z]/g) ?? []).length;
 
-  for (const metric of ['rawBytes', 'gzipBytes', 'elements']) {
-    const measured = { rawBytes, gzipBytes, elements }[metric];
-    const limit = budget[metric];
+  const assets = routeAssets(DIST_DIR, file);
+  const assetBudget = ASSET_BUDGETS[file] ?? { jsGzip: file.startsWith('commands/') ? 102_000 : 8_000, cssGzip: 23_000, fontBytes: 220_000 };
+  const metrics = { rawBytes, gzipBytes, elements, ...assets };
+  const limits = { ...budget, ...assetBudget };
+  for (const metric of Object.keys(metrics)) {
+    const measured = metrics[metric];
+    const limit = limits[metric];
     if (measured > limit) {
       console.error(`✗ ${file} ${metric}: ${measured.toLocaleString()} exceeds budget ${limit.toLocaleString()}`);
       failures += 1;
-    } else {
-      console.log(`✓ ${file} ${metric}: ${measured.toLocaleString()} / ${limit.toLocaleString()}`);
     }
+  }
+  if (!file.startsWith('commands/') || file === 'commands/index.html' || file === 'commands/upkg/index.html') {
+    console.log(`${file}: ${JSON.stringify(metrics)}`);
   }
 }
 

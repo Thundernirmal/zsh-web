@@ -23,8 +23,8 @@ function Example({ example, query }: { example: string; query: string }) {
   const { command, annotation } = splitExample(example);
   const caution = useContext(ExampleCaution);
   return (
-    <div className="group/example grid min-w-0 gap-0.5">
-      <div className="flex items-center justify-between gap-2">
+    <div className="group/example grid min-w-0 grid-cols-[minmax(0,1fr)] gap-0.5">
+      <div className="flex min-w-0 items-center justify-between gap-2">
         <pre className="detail-code flex-1" data-detail-code>
           <SyntaxCode code={command} query={query} />
         </pre>
@@ -110,7 +110,7 @@ function FeatureTable({
                 </div>
               )}
             </dd>
-            {index < features.length - 1 && <Separator className="mt-1" />}
+            {index < features.length - 1 && <dd><Separator className="mt-1" /></dd>}
           </div>
         ))}
       </dl>
@@ -193,7 +193,7 @@ function ExampleList({
       </div>
       <ul className="grid">
         {examples.map((example, index) => (
-          <li key={example} className="grid gap-2 pt-2.5 first:pt-0">
+          <li key={example} className="grid min-w-0 gap-2 pt-2.5 first:pt-0">
             <Example example={example} query={query} />
             {index < examples.length - 1 && <Separator />}
           </li>
@@ -275,8 +275,8 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
    : command.mutation === 'mixed'
    ? 'Some subcommands change stored data or packages. Check the selected operation before running.'
    : command.mutation === 'session' ? 'Changes the current shell session or working directory.' : undefined;
- return <ExampleCaution value={caution}><div className="grid min-w-0 gap-5">
-      {firstRunnableExample && <section className="grid gap-2" aria-label="Runnable example">
+ return <ExampleCaution value={caution}><div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
+      {firstRunnableExample && <section className="grid min-w-0 gap-2" aria-label="Runnable example">
         <h3 className="detail-section-heading" data-detail-section-heading>Try an example</h3>
         <Example example={firstRunnableExample} query={query} />
       </section>}

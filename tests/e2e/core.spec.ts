@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html'];
+const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/troubleshooting/'];
 
 for (const route of siteRoutes) {
 	test(`${route} has no serious accessibility violations`, async ({ page }) => {
@@ -32,7 +32,8 @@ test('command search, filters, expanded state, and history remain URL synchroniz
 	await expect(page.locator('[data-command="upkg"] [data-slot="accordion-content"]')).toBeVisible();
 });
 
-test('function syntax copy hands over a runnable example, not the template', async ({ page }) => {
+test('function syntax copy hands over a runnable example, not the template', async ({ page, browserName }) => {
+	test.skip(browserName !== 'chromium', 'System clipboard permissions are Chromium-only; mocked failure/retry and share coverage runs on all engines.');
 	await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.goto('/commands/?command=function%3Aupkg');
 	const command = page.locator('[data-command="upkg"]');
@@ -142,12 +143,15 @@ test('client-side route transitions complete without console errors', async ({ p
 	page.on('pageerror', (error) => errors.push(error.message));
 
 	await page.goto('/');
+	await page.evaluate(() => document.fonts.ready);
 	await page.getByRole('link', { name: 'Commands', exact: true }).click();
 	await expect(page).toHaveURL(/\/commands\/?$/);
 	await expect(page.getByRole('heading', { name: 'Command Reference' })).toBeVisible();
+	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	await page.getByRole('link', { name: 'Tips', exact: true }).click();
 	await expect(page).toHaveURL(/\/tips\/?$/);
 	await expect(page.getByRole('heading', { name: 'Shell Tips', level: 1 })).toBeVisible();
+	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	await page.locator('header a[href="/"]:visible').first().click();
 	await expect(page).toHaveURL(/\/$/);
 	await expect(page.getByRole('heading', { name: "Nirmal's Shell", level: 1 })).toBeVisible();
@@ -173,19 +177,17 @@ test('terminal prompt cursor is aligned inline with the prompt indicator', async
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	for (const route of ['/', '/404.html']) {
 		await page.goto(route);
+		await page.evaluate(() => document.fonts.ready);
 		const chevron = page.locator('pre code svg.lucide-chevron-right').last();
 		const cursor = page.locator('pre code .bg-category-packages').first();
 		await expect(chevron).toBeVisible();
 		await expect(cursor).toBeVisible();
 
-		const chevronBox = await chevron.boundingBox();
-		const cursorBox = await cursor.boundingBox();
-		expect(chevronBox).not.toBeNull();
-		expect(cursorBox).not.toBeNull();
-
-		const chevronCenter = (chevronBox?.y ?? 0) + (chevronBox?.height ?? 0) / 2;
-		const cursorCenter = (cursorBox?.y ?? 0) + (cursorBox?.height ?? 0) / 2;
-		expect(Math.abs(chevronCenter - cursorCenter)).toBeLessThanOrEqual(1);
+        await expect.poll(async () => page.evaluate(() => {
+          const chevron = Array.from(document.querySelectorAll('pre code svg.lucide-chevron-right')).at(-1)?.getBoundingClientRect();
+          const cursor = document.querySelector('pre code .bg-category-packages')?.getBoundingClientRect();
+          return chevron && cursor ? Math.abs(chevron.y + chevron.height / 2 - cursor.y - cursor.height / 2) : Infinity;
+        })).toBeLessThanOrEqual(1);
 	}
 });
 
@@ -258,6 +260,7 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 	const copy = command.getByRole('button', { name: 'Copy example: upkg', exact: true });
 	await copy.click();
 	await expect(command.getByRole('status').filter({ hasText: 'Could not copy; select the text manually.' })).toBeVisible();
+	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 	await expect(command.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
 	await copy.click();
 	await expect(command.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toHaveCount(1);
@@ -274,8 +277,10 @@ test('tips lead to static command documentation', async ({ page }) => {
 
 test('setup and troubleshooting are reachable from the homepage', async ({ page }) => {
 	await page.goto('/');
+	await page.evaluate(() => document.fonts.ready);
 	await page.locator('main').getByRole('link', { name: 'Get Started', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Install the shared configuration' })).toBeVisible();
+	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	await page.locator('main').getByRole('link', { name: 'Troubleshooting', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
 });
@@ -285,4 +290,21 @@ test('mutation cautions accompany examples and subcommand synonyms are concise',
 	const command = page.locator('[data-command="upkg"]');
 	await expect(command.locator('[data-example-caution]').first()).toBeVisible();
 	await expect(command.getByText('Also known as: check, list', { exact: true }).filter({ visible: true })).toHaveCount(1);
+});
+
+test('filtered and expanded reference states have no accessibility violations', async ({ page }) => {
+	await page.goto('/commands/?q=upkg&type=function&cat=packages&command=function%3Aupkg');
+	await expect(page.locator('[data-command="upkg"] [data-slot="accordion-content"]')).toBeVisible();
+	const results = await new AxeBuilder({ page }).analyze();
+	expect(results.violations).toEqual([]);
+});
+
+test('reference text reflows at 200% sizing and a 320px viewport', async ({ page }) => {
+	await page.setViewportSize({ width: 320, height: 800 });
+	await page.goto('/commands/upkg/');
+	await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+	await expect(page.getByRole('heading', { level: 1, name: 'upkg' })).toBeVisible();
+	const widths = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
+	expect(widths.content).toBeLessThanOrEqual(widths.viewport);
+	await expect(page.locator('main').getByRole('link', { name: 'lib/functions-upkg.zsh', exact: true })).toBeVisible();
 });

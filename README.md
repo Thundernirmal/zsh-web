@@ -54,13 +54,15 @@ Run the complete static and browser test suite before committing:
 npm test
 ```
 
+Install browser binaries once with `npx playwright install chromium firefox webkit` (CI also installs OS dependencies with `--with-deps`).
+
 For the faster static validation gate without Playwright:
 
 ```bash
 npm run verify
 ```
 
-`npm run verify` verifies that generated data matches the current Zsh sources, runs ESLint and accessibility rules, checks for unused files, dependencies, and exports, runs Astro/TypeScript diagnostics, and produces the static site. `npm test` additionally runs shared behavior and accessibility checks plus dedicated desktop and mobile Playwright suites.
+`npm run verify` verifies that generated data matches the current Zsh sources, runs ESLint and accessibility rules, checks for unused files, dependencies, and exports, runs Astro/TypeScript diagnostics, produces the static site, and enforces route HTML/DOM plus transitive JS/CSS/font budgets. `npm run budget` counts all reachable font subsets conservatively, rather than assuming a particular browser font selection. `npm test` additionally runs shared behavior and accessibility checks plus desktop Chromium/Firefox and mobile Chromium/WebKit Playwright suites. Browser tests include expanded/filter/error states, 320px reflow at 200% text sizing, and a Chromium CPU/network-constrained performance check. Physical-device Safari remains a manual release check.
 
 Individual commands:
 
