@@ -322,6 +322,11 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Replaced the paired Browse Commands/Get Started actions below the homepage introduction with one primary Get Started button. Command discovery remains available through the header and the Command Library card, while the top action now presents one clear next step.
 - Updated the motion regression to verify the single destination, the absence of the former Browse Commands action and the existing reduced-motion behavior. `npm run verify` passed, including source synchronization, all 59 pages and budgets; the homepage now contains 309 elements and 54,768 raw HTML bytes. The final browser matrix passed **139 tests** with two expected non-Chromium clipboard-permission skips.
 
+### Stage 13 — mobile browser chrome theming
+
+- Kept the existing Catppuccin `theme-color` and added explicit dark `color-scheme` metadata so supporting mobile browsers can match their surrounding controls to the site from initial page load.
+- Applied the same `#1e1e2e` background to the root canvas as the body, covering viewport safe-area and overscroll surfaces. Browser regression coverage verifies both metadata values and both computed canvas colors. `npm run verify` passed, including source synchronization, all 59 pages and budgets. All **143 browser checks** passed across Chrome, Firefox, mobile Chrome and mobile WebKit after one unrelated tip-navigation transition assertion passed on immediate isolated retry; two non-Chromium clipboard-permission checks remain expected skips.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.

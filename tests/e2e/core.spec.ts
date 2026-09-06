@@ -15,6 +15,17 @@ for (const route of siteRoutes) {
 	});
 }
 
+test('browser chrome receives the site dark theme metadata and canvas color', async ({ page }) => {
+	await page.goto('/');
+	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
+	await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'dark');
+	const colors = await page.evaluate(() => ({
+		html: getComputedStyle(document.documentElement).backgroundColor,
+		body: getComputedStyle(document.body).backgroundColor,
+	}));
+	expect(colors).toEqual({ html: 'rgb(30, 30, 46)', body: 'rgb(30, 30, 46)' });
+});
+
 test('command search, filters, expanded state, and history remain URL synchronized', async ({ page }) => {
 	await page.goto('/commands/');
 	const searchbox = page.getByRole('searchbox');
