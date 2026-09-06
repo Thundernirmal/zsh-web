@@ -300,6 +300,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Homepage, Get Started, Troubleshooting and tip links now advertise navigation before hover. The roulette reference uses shadcn's outline button variant on a semantic anchor; the repeated compact command links use the same semantic outline treatment through a shared class to avoid duplicating the full variant string 53 times.
 - Added browser coverage for persistent underline/color contrast and normal prose line height. `npm run verify` passed, including source synchronization, all 59 pages and budgets; shared command-link CSS reduced the command index to 304,956 raw bytes with 1,108 elements. The browser matrix passed **127 tests** with two expected non-Chromium clipboard-permission skips. Desktop Get Started and mobile command rows were visually reviewed.
 
+### Stage 9 — motion consistency
+
+- Homepage Browse Commands/Get Started actions and the Get Started/Troubleshooting guide bodies now use the same fade-and-rise entrance as the existing page headers, terminal, cards and interactive explorers.
+- Motion remains gated by `prefers-reduced-motion`; the regression test first reproduced the missing homepage animation and covers both normal and reduced preferences.
+- `npm run verify` passed, including source synchronization, all 59 pages and budgets. The focused motion test passed in desktop Chrome and mobile WebKit for normal and reduced-motion preferences.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.

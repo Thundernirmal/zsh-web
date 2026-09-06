@@ -5,7 +5,7 @@ import source from '@/data/source.json';
 ---
 <Layout title="Troubleshooting" description="Resolve missing Zsh commands, completion, fzf, Secret Service and terminal glyph issues.">
   <PageHeader title="Troubleshooting"><p>Start with <code>zdoctor</code> and the dependency checker.</p></PageHeader>
-  <div class="grid max-w-prose gap-8 text-base leading-7">
+  <div class="grid max-w-prose gap-8 text-base leading-7 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
     <section class="grid gap-3"><h2 class="text-xl font-semibold">A command or completion is missing</h2>
       <p>Check that the repository is at <code>~/.config/zsh</code> and your <code>~/.zshrc</code> sources <code>init.zsh</code> after Oh My Zsh. Run <code>compinit</code> before loading the shared modules. Use <code>zhelp --all --plain</code> to inspect unavailable commands and their requirements.</p>
       <p><code>npkg</code> needs Nix; <code>cgm</code> is only defined when <code>secret-tool</code> is installed. Restart your shell after installing them.</p>

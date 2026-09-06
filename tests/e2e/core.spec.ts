@@ -290,6 +290,21 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
 });
 
+test('homepage actions and guide content follow the site motion preference', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	await page.goto('/');
+	const homeActions = page.getByRole('link', { name: 'Browse Commands', exact: true }).locator('..');
+	expect(await homeActions.evaluate((element) => getComputedStyle(element).animationName)).not.toBe('none');
+
+	await page.goto('/get-started/');
+	const guideContent = page.locator('main > .max-w-prose');
+	expect(await guideContent.evaluate((element) => getComputedStyle(element).animationName)).not.toBe('none');
+
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.reload();
+	expect(await guideContent.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
+});
+
 test('reading links are visually distinct without hover', async ({ page }) => {
 	await page.goto('/get-started/');
 	const inlineLink = page.getByRole('link', { name: 'zdoctor', exact: true });

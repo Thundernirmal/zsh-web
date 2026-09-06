@@ -27,7 +27,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 			</a>
 		</p>
 	</PageHeader>
-    <div class="flex flex-wrap gap-3">
+    <div class="flex flex-wrap gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
       <a href="/commands/" class={buttonVariants({ size: 'lg' })}>Browse Commands</a>
       <a href="/get-started/" class={buttonVariants({ variant: 'outline', size: 'lg' })}>Get Started</a>
     </div>
