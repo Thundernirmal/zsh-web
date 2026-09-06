@@ -233,6 +233,7 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 2. **Reference access and navigation (M3/M4).** Build static command pages, source links and sharing destinations together, then finish deep-link landing and search. This avoids building a second temporary link scheme.
 3. **Task completion (M6 and UX recommendations).** Finish clipboard feedback/touch targets, setup and troubleshooting, homepage actions and tip-to-reference connections using the stage 2 destinations.
 4. **Assurance (M7).** Measure and gate the finished routes and expanded states; extend accessibility/browser coverage. Record external/manual checks separately from automated evidence.
+5. **Deliberate source updates.** Package the independently dispatchable snapshot-update workflow separately from assurance to preserve one concern per commit; it depends on the completed validation gates.
 
 ### Stage 1 — source contract
 
@@ -274,6 +275,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Final command-index transfer graph: **139,673** gzip JS bytes, **19,144** gzip CSS bytes, **188,744** conservative font bytes. Command index HTML remains below the original limits: **294,871** raw bytes, **20,090** gzip bytes and **1,055** elements.
 - Visually inspected mobile command-reference and setup pages. Source config remained clean at the pinned revision throughout remediation.
 
+
+### Stage 5 — deliberate source updates
+
+- Added a manually dispatched **Update shell snapshot** workflow. It checks out a selected shell ref, regenerates the pinned snapshot, runs `npm test`, and exports the generated changes as a downloadable patch artifact for local review and application. An unchanged snapshot produces an empty patch.
+- The workflow has read-only repository permissions and does not push branches, create PRs, merge or deploy. Automatic approval review rejected the proposed repository-write/PR-creation capability, so this safer patch-export workflow replaces it.
+- Validation: workflow YAML parsed locally and all embedded run blocks passed `bash -n`. The underlying sync, static and browser commands passed in stages 1–4. Hosted dispatch was not exercised. PR creation remains a manual step after reviewing the exported patch.
 
 ### Remaining optional work and external verification
 
