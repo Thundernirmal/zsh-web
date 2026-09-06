@@ -306,6 +306,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Motion remains gated by `prefers-reduced-motion`; the regression test first reproduced the missing homepage animation and covers both normal and reduced preferences.
 - `npm run verify` passed, including source synchronization, all 59 pages and budgets. The focused motion test passed in desktop Chrome and mobile WebKit for normal and reduced-motion preferences.
 
+### Stage 10 — copyable setup snippets
+
+- Replaced the five bare Get Started code blocks with one reusable, compact shadcn card pattern. Its aligned toolbar says “Run in terminal” or “Add to ~/.zshrc”, measures 36px on desktop and retains a 44px mobile target, and shares its 12px gutter with the code.
+- Every snippet has a visible copy action with success and failure feedback. Terminal cards show a colored `$` prompt while copying only the runnable command; the configuration card preserves its exact multiline contents.
+- `npm run verify` passed, including source synchronization, all 59 pages and budgets; Get Started remains within budget at 36,677 raw bytes and 206 elements. Browser coverage checks labels, prompt semantics, all five controls, exact clipboard output, failure fallback and mobile targets. The final matrix passed **139 tests** with two expected non-Chromium clipboard-permission skips, and the page was visually reviewed at desktop and mobile widths.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.

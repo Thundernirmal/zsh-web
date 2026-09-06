@@ -1,6 +1,7 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import PageHeader from '@/components/PageHeader.astro';
+import ShellSnippet from '@/components/ShellSnippet.astro';
 import source from '@/data/source.json';
 const guide = `${source.repository}/blob/${source.commit}/GUIDE.md`;
 ---
@@ -10,21 +11,21 @@ const guide = `${source.repository}/blob/${source.commit}/GUIDE.md`;
     <section class="grid gap-3">
       <h2 class="text-xl font-semibold">Install the shared configuration</h2>
       <p>Your machine-local <code>~/.zshrc</code> owns Oh My Zsh, Starship, PATH and completion initialization. The shared modules load from <code>~/.config/zsh</code>. Clone into an empty target directory:</p>
-      <pre class="detail-code">git clone https://github.com/Thundernirmal/zsh.git "$HOME/.config/zsh"</pre>
+      <ShellSnippet code={'git clone https://github.com/Thundernirmal/zsh.git "$HOME/.config/zsh"'} copyLabel="Copy clone command" />
       <p>Add this to <code>~/.zshrc</code> after Oh My Zsh if the shared aliases should override framework defaults:</p>
-      <pre class="detail-code">{'if [ -r "$HOME/.config/zsh/init.zsh" ]; then\n  source "$HOME/.config/zsh/init.zsh"\nfi'}</pre>
+      <ShellSnippet code={'if [ -r "$HOME/.config/zsh/init.zsh" ]; then\n  source "$HOME/.config/zsh/init.zsh"\nfi'} copyLabel="Copy Zsh configuration" kind="config" />
       <p>Without a framework, initialize completion before that snippet:</p>
-      <pre class="detail-code">autoload -Uz compinit &amp;&amp; compinit -i</pre>
+      <ShellSnippet code="autoload -Uz compinit && compinit -i" copyLabel="Copy completion command" />
     </section>
     <section class="grid gap-3">
       <h2 class="text-xl font-semibold">Check your tools</h2>
       <p>The intended setup uses Zsh, git, curl, ss, lsd, zoxide and fzf. Every fuzzy picker requires stable fzf {source.fzfMinimum} or newer. Optional tools enable extra workflows; each command reference lists its requirements.</p>
-      <pre class="detail-code">$HOME/.config/zsh/scripts/check-deps.sh</pre>
+      <ShellSnippet code="$HOME/.config/zsh/scripts/check-deps.sh" copyLabel="Copy dependency check command" />
       <p>Restart your shell after installing dependencies. The configuration loads heavy command domains on first use.</p>
     </section>
     <section class="grid gap-3">
       <h2 class="text-xl font-semibold">Find your first command</h2>
-      <pre class="detail-code">zdoctor</pre>
+      <ShellSnippet code="zdoctor" copyLabel="Copy zdoctor command" />
       <p><a class="text-link" href="/commands/zdoctor/">zdoctor</a> diagnoses setup and integration status. Then run <code>zhelp --plain</code> to browse commands or <code>zhelp package</code> to find package workflows. The interactive palette queues an editable example.</p>
       <p><a class="footer-link" href="/commands/">Browse Commands</a> · <a class="footer-link" href="/troubleshooting/">Troubleshooting</a></p>
     </section>

@@ -305,6 +305,61 @@ test('homepage actions and guide content follow the site motion preference', asy
 	expect(await guideContent.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
 });
 
+test('getting started distinguishes and copies terminal commands and configuration', async ({ page }) => {
+	await page.addInitScript(() => {
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (text: string) => {
+			document.documentElement.dataset.copiedText = text;
+		} } });
+	});
+	await page.goto('/get-started/');
+	const snippets = page.locator('[data-shell-snippet]');
+	await expect(snippets).toHaveCount(5);
+	await expect(page.getByText('Run in terminal', { exact: true })).toHaveCount(4);
+	await expect(page.getByText('Add to ~/.zshrc', { exact: true })).toHaveCount(1);
+	await expect(snippets.filter({ hasText: 'git clone' }).locator('[data-shell-prompt]')).toHaveText('$');
+	await expect(snippets.filter({ hasText: 'source "$HOME/.config/zsh/init.zsh"' }).locator('[data-shell-prompt]')).toHaveCount(0);
+	const copyButtons = snippets.getByRole('button', { name: /^Copy/ });
+	await expect(copyButtons).toHaveCount(5);
+	if ((page.viewportSize()?.width ?? 0) < 640) {
+		for (const button of await copyButtons.all()) {
+			const box = await button.boundingBox();
+			expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+			expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+		}
+	}
+
+	const cloneSnippet = snippets.filter({ hasText: 'git clone' });
+	const copyClone = cloneSnippet.getByRole('button', { name: 'Copy clone command', exact: true });
+	await expect(cloneSnippet).toHaveAttribute('data-copy-ready', 'true');
+	await copyClone.click();
+	await expect(page.locator('html')).toHaveAttribute(
+		'data-copied-text',
+		'git clone https://github.com/Thundernirmal/zsh.git "$HOME/.config/zsh"',
+	);
+	await expect(cloneSnippet.getByRole('status')).toHaveText('Copied to clipboard');
+
+	const configSnippet = snippets.filter({ hasText: 'source "$HOME/.config/zsh/init.zsh"' });
+	await configSnippet.getByRole('button', { name: 'Copy Zsh configuration', exact: true }).click();
+	await expect(page.locator('html')).toHaveAttribute(
+		'data-copied-text',
+		'if [ -r "$HOME/.config/zsh/init.zsh" ]; then\n  source "$HOME/.config/zsh/init.zsh"\nfi',
+	);
+	await expect(configSnippet.getByRole('button', { name: 'Copied to clipboard', exact: true })).toBeVisible();
+});
+
+test('getting started reports a blocked clipboard and keeps the command selectable', async ({ page }) => {
+	await page.addInitScript(() => {
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => {
+			throw new Error('Clipboard blocked');
+		} } });
+	});
+	await page.goto('/get-started/');
+	const zdoctorSnippet = page.locator('[data-shell-snippet]').filter({ hasText: 'zdoctor' });
+	await zdoctorSnippet.getByRole('button', { name: 'Copy zdoctor command', exact: true }).click();
+	await expect(zdoctorSnippet.getByRole('status')).toHaveText('Could not copy; select the snippet manually.');
+	await expect(zdoctorSnippet.getByText('zdoctor', { exact: true })).toBeVisible();
+});
+
 test('reading links are visually distinct without hover', async ({ page }) => {
 	await page.goto('/get-started/');
 	const inlineLink = page.getByRole('link', { name: 'zdoctor', exact: true });
