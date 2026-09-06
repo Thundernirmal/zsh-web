@@ -293,8 +293,10 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 test('homepage actions and guide content follow the site motion preference', async ({ page }) => {
 	await page.emulateMedia({ reducedMotion: 'no-preference' });
 	await page.goto('/');
-	const homeActions = page.getByRole('link', { name: 'Browse Commands', exact: true }).locator('..');
-	expect(await homeActions.evaluate((element) => getComputedStyle(element).animationName)).not.toBe('none');
+	const homeAction = page.locator('main').getByRole('link', { name: 'Get Started', exact: true });
+	await expect(homeAction).toHaveAttribute('href', '/get-started/');
+	await expect(page.locator('main').getByRole('link', { name: 'Browse Commands', exact: true })).toHaveCount(0);
+	expect(await homeAction.locator('..').evaluate((element) => getComputedStyle(element).animationName)).not.toBe('none');
 
 	await page.goto('/get-started/');
 	const guideContent = page.locator('main > .max-w-prose');

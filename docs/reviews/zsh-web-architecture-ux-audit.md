@@ -317,6 +317,11 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Removed the per-tip command Reference link from the homepage Shell Tips roulette and its client-side command-route coupling. The roulette now stays focused on the tip, metadata and random-tip action.
 - Updated the existing lazy-loading and reduced-motion browser regression to require that the obsolete reference control is absent. `npm run verify` passed, including source synchronization, all 59 pages and budgets; the homepage now contains 310 elements, 55,640 raw HTML bytes and 7,206 gzip JavaScript bytes. The browser matrix passed **139 tests** with two expected non-Chromium clipboard-permission skips.
 
+### Stage 12 — single homepage call to action
+
+- Replaced the paired Browse Commands/Get Started actions below the homepage introduction with one primary Get Started button. Command discovery remains available through the header and the Command Library card, while the top action now presents one clear next step.
+- Updated the motion regression to verify the single destination, the absence of the former Browse Commands action and the existing reduced-motion behavior. `npm run verify` passed, including source synchronization, all 59 pages and budgets; the homepage now contains 309 elements and 54,768 raw HTML bytes. The final browser matrix passed **139 tests** with two expected non-Chromium clipboard-permission skips.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.
