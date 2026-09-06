@@ -258,7 +258,7 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - M6: copy failures display and announce manual-copy guidance; retries clear prior feedback. Success timers and pending results are invalidated on replacement/unmount. Copy controls are at least 44×44px on mobile.
 - Added static Get Started and Troubleshooting pages covering fixed install location, OMZ/compinit order, dependency checks, first commands, fzf, Secret Service and glyphs. The fzf floor comes from the manifest. Homepage actions now precede the terminal illustration; footer navigation exposes setup/help.
 - Tips with an exact leading registered command link that command to its static reference. Roulette offers the same reference after selecting a tip, retaining on-demand catalogue loading.
-- Explicit shell canonical/mutation metadata is parsed without executing shell code. Examples carry adjacent mutation/session cautions. Explicit “Alias for” subcommand rows are grouped as “Also known as” while retaining examples.
+- Explicit shell canonical/mutation metadata is parsed without executing shell code. Command details surface mutation/session cautions. Explicit “Alias for” subcommand rows are grouped as “Also known as” while retaining examples.
 - Added registry metadata tests to `npm run verify`, including rejection of unsupported defaults, categories and command references.
 - Validation: `npm run verify` passed (including two metadata regression tests); all 53 desktop/mobile browser tests passed. The added roulette reference assertion also passed in both projects.
 
@@ -281,6 +281,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Added a manually dispatched **Update shell snapshot** workflow. It checks out a selected shell ref, regenerates the pinned snapshot, runs `npm test`, and exports the generated changes as a downloadable patch artifact for local review and application. An unchanged snapshot produces an empty patch.
 - The workflow has read-only repository permissions and does not push branches, create PRs, merge or deploy. Automatic approval review rejected the proposed repository-write/PR-creation capability, so this safer patch-export workflow replaces it.
 - Validation: workflow YAML parsed locally and all embedded run blocks passed `bash -n`. The underlying sync, static and browser commands passed in stages 1–4. Hosted dispatch was not exercised. PR creation remains a manual step after reviewing the exported patch.
+
+### Stage 6 — command-level mutation cautions
+
+- **P2 fixed:** write, mixed and session cautions render once at command level. They no longer repeat beneath every example or imply that read-only `upkg` operations such as `search`, `outdated` and `plan` each mutate packages.
+- Regression coverage first reproduced the missing single command-level caution, then confirmed that the warning occurs once while the read-only subcommand examples remain unlabelled.
+- Validation: `npm run verify` passed, including source synchronization, all 59 static pages and the unchanged payload/DOM budgets. The affected regression passed in Chromium, Firefox and WebKit across desktop and mobile projects.
 
 ### Remaining optional work and external verification
 

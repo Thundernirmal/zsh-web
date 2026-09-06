@@ -285,10 +285,12 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
 });
 
-test('mutation cautions accompany examples and subcommand synonyms are concise', async ({ page }) => {
+test('mixed commands show one command-level mutation caution and concise subcommand synonyms', async ({ page }) => {
 	await page.goto('/commands/?command=function%3Aupkg');
 	const command = page.locator('[data-command="upkg"]');
-	await expect(command.locator('[data-example-caution]').first()).toBeVisible();
+	await expect(command.locator('[data-command-caution]')).toHaveCount(1);
+	await expect(command.locator('[data-example-caution]')).toHaveCount(0);
+	await expect(command.getByText('Some subcommands change stored data or packages. Check the selected operation before running.', { exact: true })).toHaveCount(1);
 	await expect(command.getByText('Also known as: check, list', { exact: true }).filter({ visible: true })).toHaveCount(1);
 });
 

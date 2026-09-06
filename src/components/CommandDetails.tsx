@@ -1,4 +1,4 @@
-import { Fragment, createContext, useContext } from 'react';
+import { Fragment } from 'react';
 import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
 import { SyntaxCode } from '@/components/SyntaxCode';
@@ -17,11 +17,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-const ExampleCaution = createContext<string | undefined>(undefined);
-
 function Example({ example, query }: { example: string; query: string }) {
   const { command, annotation } = splitExample(example);
-  const caution = useContext(ExampleCaution);
   return (
     <div className="group/example grid min-w-0 grid-cols-[minmax(0,1fr)] gap-0.5">
       <div className="flex min-w-0 items-center justify-between gap-2">
@@ -34,7 +31,6 @@ function Example({ example, query }: { example: string; query: string }) {
           className="size-7 shrink-0 opacity-70 group-hover/example:opacity-100 transition-opacity"
         />
       </div>
-      {caution && <p className="text-sm leading-6 text-muted-foreground" data-example-caution>{caution}</p>}
       {annotation && (
         <span
           className="text-pretty text-base leading-6 text-muted-foreground md:text-sm md:leading-5"
@@ -275,7 +271,7 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
    : command.mutation === 'mixed'
    ? 'Some subcommands change stored data or packages. Check the selected operation before running.'
    : command.mutation === 'session' ? 'Changes the current shell session or working directory.' : undefined;
- return <ExampleCaution value={caution}><div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
+ return <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
       {firstRunnableExample && <section className="grid min-w-0 gap-2" aria-label="Runnable example">
         <h3 className="detail-section-heading" data-detail-section-heading>Try an example</h3>
         <Example example={firstRunnableExample} query={query} />
@@ -322,6 +318,15 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
                       </dl>
                     )}
                   </div>
+
+                  {caution && (
+                    <p
+                      className="border-l-2 border-primary pl-3 text-sm leading-6 text-muted-foreground"
+                      data-command-caution
+                    >
+                      {caution}
+                    </p>
+                  )}
 
                   {(command.interactive ||
                     command.terminalAdaptive ||
@@ -380,6 +385,5 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
         {command.source && <a className="footer-link break-all" href={`${source.repository}/blob/${source.commit}/${command.source}`}>{command.source}</a>}
         <CopyButton text={`https://zsh.nirmalkatariya.com${commandHref(command)}`} icon="link" label={`Copy link to ${command.name}`} />
       </div>
-
-</div></ExampleCaution>;
+</div>;
 }
