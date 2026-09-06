@@ -403,29 +403,36 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             const detailsMatches = matchingDetailSections(command, query);
             return (
               <AccordionItem key={commandId(command)} value={commandId(command)} data-command={command.name} className="scroll-mt-32">
-                <AccordionTrigger headingLevel={2} className="gap-2 py-3 hover:no-underline">
-                  <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
-                    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                      <span
-                        translate="no"
-                        className="font-mono text-lg leading-7 font-semibold text-foreground sm:text-base sm:leading-6"
-                      >
-                        {highlightText(command.name, query)}
+                <div className="flex items-start gap-1 sm:gap-2 [&>h2]:min-w-0 [&>h2]:flex-1">
+                  <AccordionTrigger headingLevel={2} className="gap-2 py-3 hover:no-underline [&_[data-slot=accordion-trigger-icon]]:mt-1.5 sm:[&_[data-slot=accordion-trigger-icon]]:mt-1">
+                    <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
+                      <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        <span
+                          translate="no"
+                          className="font-mono text-lg leading-7 font-semibold text-foreground sm:text-base sm:leading-6"
+                        >
+                          {highlightText(command.name, query)}
+                        </span>
+                        <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
+                        {command.category && <CategoryBadge category={command.category} />}
+                        {detailsMatches.length > 0 && (
+                          <Badge variant="outline">Match: {detailsMatches.join(', ')}</Badge>
+                        )}
                       </span>
-                      <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
-                      {command.category && <CategoryBadge category={command.category} />}
-                      {detailsMatches.length > 0 && (
-                        <Badge variant="outline">Match: {detailsMatches.join(', ')}</Badge>
+                      {command.description && (
+                        <span className="text-base font-normal leading-6 text-muted-foreground">
+                          {highlightText(command.description, query)}
+                        </span>
                       )}
                     </span>
-                    {command.description && (
-                      <span className="text-base font-normal leading-6 text-muted-foreground">
-                        {highlightText(command.description, query)}
-                      </span>
-                    )}
-                  </span>
-                </AccordionTrigger>
-                <a className="footer-link inline-flex min-h-11 items-center text-sm" href={commandHref(command)}>Read {command.name} reference</a>
+                  </AccordionTrigger>
+                  <a
+                    className="mt-1 inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground underline-offset-4 transition-colors before:content-['Docs_↗'] hover:bg-muted hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:mt-3 sm:h-6 sm:px-2.5 sm:before:content-['Reference_↗']"
+                    href={commandHref(command)}
+                    aria-label={`Read ${command.name} reference`}
+                    title={`Read ${command.name} reference`}
+                  />
+                </div>
                 {/* Detail bodies mount on expand: keeps the static HTML and DOM
                     budget flat regardless of catalogue size. */}
                 {expanded.includes(commandId(command)) && (

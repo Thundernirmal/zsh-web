@@ -256,6 +256,11 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 		} } });
 	});
 	await page.goto('/commands/?command=function%3Aupkg');
+	const searchbox = page.getByRole('searchbox');
+	await expect.poll(async () => {
+		await page.keyboard.press('ControlOrMeta+k');
+		return searchbox.evaluate((element) => element === document.activeElement);
+	}).toBe(true);
 	const command = page.locator('[data-command="upkg"]');
 	const copy = command.getByRole('button', { name: 'Copy example: upkg', exact: true });
 	await copy.click();
@@ -292,6 +297,61 @@ test('mixed commands show one command-level mutation caution and concise subcomm
 	await expect(command.locator('[data-example-caution]')).toHaveCount(0);
 	await expect(command.getByText('Some subcommands change stored data or packages. Check the selected operation before running.', { exact: true })).toHaveCount(1);
 	await expect(command.getByText('Also known as: check, list', { exact: true }).filter({ visible: true })).toHaveCount(1);
+});
+
+test('collapsed command rows keep static reference links inline', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	await page.goto('/commands/');
+	const command = page.locator('[data-command="upkg"]');
+	const trigger = command.locator('[data-slot="accordion-trigger"]');
+	const commandName = trigger.locator('span[translate="no"]').first();
+	const chevron = trigger.locator('[data-slot="accordion-trigger-icon"]:visible');
+	const reference = command.getByRole('link', { name: 'Read upkg reference', exact: true });
+	await expect(reference).toHaveAttribute('href', '/commands/upkg/');
+	await expect(reference).toHaveAttribute('title', 'Read upkg reference');
+	await expect(reference).toHaveCSS('border-top-style', 'solid');
+	expect(await reference.evaluate((element) => getComputedStyle(element, '::before').content)).toContain('Reference ↗');
+	const layout = await Promise.all([command.boundingBox(), trigger.boundingBox(), commandName.boundingBox(), chevron.boundingBox(), reference.boundingBox()]);
+	const [commandBox, triggerBox, commandNameBox, chevronBox, referenceBox] = layout;
+	expect(commandBox).not.toBeNull();
+	expect(triggerBox).not.toBeNull();
+	expect(commandNameBox).not.toBeNull();
+	expect(chevronBox).not.toBeNull();
+	expect(referenceBox).not.toBeNull();
+	expect(commandBox?.height ?? Infinity).toBeLessThanOrEqual(88);
+	expect(referenceBox?.y ?? -1).toBeGreaterThanOrEqual(triggerBox?.y ?? 0);
+	expect((referenceBox?.y ?? Infinity) + (referenceBox?.height ?? 0)).toBeLessThanOrEqual(
+		(triggerBox?.y ?? 0) + (triggerBox?.height ?? 0),
+	);
+	expect(Math.abs(
+		(referenceBox?.y ?? 0) + (referenceBox?.height ?? 0) / 2
+		- ((chevronBox?.y ?? 0) + (chevronBox?.height ?? 0) / 2),
+	)).toBeLessThanOrEqual(2);
+	expect(Math.abs(
+		(referenceBox?.y ?? 0) + (referenceBox?.height ?? 0) / 2
+		- ((commandNameBox?.y ?? 0) + (commandNameBox?.height ?? 0) / 2),
+	)).toBeLessThanOrEqual(2);
+
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.reload();
+	expect(await reference.evaluate((element) => getComputedStyle(element, '::before').content)).toContain('Docs ↗');
+	const mobileLayout = await Promise.all([command.boundingBox(), trigger.boundingBox(), commandName.boundingBox(), chevron.boundingBox(), reference.boundingBox()]);
+	const [mobileCommandBox, mobileTriggerBox, mobileCommandNameBox, mobileChevronBox, mobileReferenceBox] = mobileLayout;
+	expect(mobileCommandBox?.height ?? Infinity).toBeLessThanOrEqual(140);
+	expect(mobileReferenceBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+	expect(mobileReferenceBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+	expect(mobileReferenceBox?.y ?? -1).toBeGreaterThanOrEqual(mobileTriggerBox?.y ?? 0);
+	expect((mobileReferenceBox?.y ?? Infinity) + (mobileReferenceBox?.height ?? 0)).toBeLessThanOrEqual(
+		(mobileTriggerBox?.y ?? 0) + (mobileTriggerBox?.height ?? 0),
+	);
+	expect(Math.abs(
+		(mobileReferenceBox?.y ?? 0) + (mobileReferenceBox?.height ?? 0) / 2
+		- ((mobileChevronBox?.y ?? 0) + (mobileChevronBox?.height ?? 0) / 2),
+	)).toBeLessThanOrEqual(2);
+	expect(Math.abs(
+		(mobileReferenceBox?.y ?? 0) + (mobileReferenceBox?.height ?? 0) / 2
+		- ((mobileCommandNameBox?.y ?? 0) + (mobileCommandNameBox?.height ?? 0) / 2),
+	)).toBeLessThanOrEqual(2);
 });
 
 test('filtered and expanded reference states have no accessibility violations', async ({ page }) => {

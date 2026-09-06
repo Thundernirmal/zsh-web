@@ -288,6 +288,12 @@ M2 and M5 fixes are retained and revalidated against the rewritten shell.
 - Regression coverage first reproduced the missing single command-level caution, then confirmed that the warning occurs once while the read-only subcommand examples remain unlabelled.
 - Validation: `npm run verify` passed, including source synchronization, all 59 static pages and the unchanged payload/DOM budgets. The affected regression passed in Chromium, Firefox and WebKit across desktop and mobile projects.
 
+### Stage 7 — compact command-reference rows
+
+- **P3 fixed:** every collapsed command retains a normal static reference link in the same flex row as its trigger and chevron. A persistent outlined control makes the destination recognizable as a link: wider layouts show “Reference ↗”, while mobile shows “Docs ↗” with the full accessible name and a 44px-tall target.
+- Regression coverage first reproduced a 125px desktop collapsed row. The fixed desktop row measures 81px; at 390px it measures 135px while preserving the touch target and keeping the link within the trigger row.
+- Validation: `npm run verify` passed with a 1,108-element command index and no budget increase. The browser matrix passed **123 tests** with two expected non-Chromium clipboard-permission skips. Mobile WebKit ran serially through the existing temporary launcher, and the clipboard failure test now polls the `client:visible` island's keyboard behavior before interacting.
+
 ### Remaining optional work and external verification
 
 All confirmed findings H1 and M1–M7 have fixes and regression coverage. The original audit narrative remains historical evidence, not a description of the current implementation.
