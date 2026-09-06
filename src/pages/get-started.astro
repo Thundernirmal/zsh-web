@@ -1,0 +1,34 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import PageHeader from '@/components/PageHeader.astro';
+import ShellSnippet from '@/components/ShellSnippet.astro';
+import source from '@/data/source.json';
+const guide = `${source.repository}/blob/${source.commit}/GUIDE.md`;
+---
+<Layout title="Get Started" description="Install the GNU/Linux-focused Zsh configuration, check dependencies and find your first command.">
+  <PageHeader title="Get Started"><p>A GNU/Linux-focused layer for your own Zsh setup.</p></PageHeader>
+  <div class="grid max-w-prose gap-8 text-base leading-7 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+    <section class="grid gap-3">
+      <h2 class="text-xl font-semibold">Install the shared configuration</h2>
+      <p>Your machine-local <code>~/.zshrc</code> owns Oh My Zsh, Starship, PATH and completion initialization. The shared modules load from <code>~/.config/zsh</code>. Clone into an empty target directory:</p>
+      <ShellSnippet code={'git clone https://github.com/Thundernirmal/zsh.git "$HOME/.config/zsh"'} copyLabel="Copy clone command" />
+      <p>Add this to <code>~/.zshrc</code> after Oh My Zsh if the shared aliases should override framework defaults:</p>
+      <ShellSnippet code={'if [ -r "$HOME/.config/zsh/init.zsh" ]; then\n  source "$HOME/.config/zsh/init.zsh"\nfi'} copyLabel="Copy Zsh configuration" kind="config" />
+      <p>Without a framework, initialize completion before that snippet:</p>
+      <ShellSnippet code="autoload -Uz compinit && compinit -i" copyLabel="Copy completion command" />
+    </section>
+    <section class="grid gap-3">
+      <h2 class="text-xl font-semibold">Check your tools</h2>
+      <p>The intended setup uses Zsh, git, curl, ss, lsd, zoxide and fzf. Every fuzzy picker requires stable fzf {source.fzfMinimum} or newer. Optional tools enable extra workflows; each command reference lists its requirements.</p>
+      <ShellSnippet code="$HOME/.config/zsh/scripts/check-deps.sh" copyLabel="Copy dependency check command" />
+      <p>Restart your shell after installing dependencies. The configuration loads heavy command domains on first use.</p>
+    </section>
+    <section class="grid gap-3">
+      <h2 class="text-xl font-semibold">Find your first command</h2>
+      <ShellSnippet code="zdoctor" copyLabel="Copy zdoctor command" />
+      <p><a class="text-link" href="/commands/zdoctor/">zdoctor</a> diagnoses setup and integration status. Then run <code>zhelp --plain</code> to browse commands or <code>zhelp package</code> to find package workflows. The interactive palette queues an editable example.</p>
+      <p><a class="footer-link" href="/commands/">Browse Commands</a> · <a class="footer-link" href="/troubleshooting/">Troubleshooting</a></p>
+    </section>
+    <p>Based on the <a class="text-link" href={guide}>shell GUIDE at {source.commit.slice(0, 8)}</a>. Cloning installs the shell repository's current revision; this website documents the pinned snapshot shown in the footer.</p>
+  </div>
+</Layout>

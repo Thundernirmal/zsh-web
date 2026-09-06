@@ -10,7 +10,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       "-"
-    ]
+    ],
+    "canonical": "-",
+    "mutation": "session"
   },
   {
     "id": "command-item-a3d4a7",
@@ -23,7 +25,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       ".."
-    ]
+    ],
+    "canonical": "..",
+    "mutation": "session"
   },
   {
     "id": "command-item-0ac31c",
@@ -36,7 +40,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       "..."
-    ]
+    ],
+    "canonical": "...",
+    "mutation": "session"
   },
   {
     "id": "command-item-28256a",
@@ -49,7 +55,9 @@
     "source": "20-aliases.zsh",
     "examples": [
       "...."
-    ]
+    ],
+    "canonical": "....",
+    "mutation": "session"
   },
   {
     "id": "command-bigfiles",
@@ -59,14 +67,15 @@
     "description": "Rank files recursively by size",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when GNU find and du are installed",
     "dependencies": "GNU find and du",
     "examples": [
       "bigfiles . 10"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "bigfiles",
+    "mutation": "read"
   },
   {
     "id": "command-cat",
@@ -80,7 +89,9 @@
     "dependencies": "bat",
     "examples": [
       "cat README.md"
-    ]
+    ],
+    "canonical": "cat",
+    "mutation": "read"
   },
   {
     "id": "command-cgm",
@@ -99,6 +110,8 @@
     "features": [
       "set <name>          Securely store or replace one credential",
       "list                List saved names without retrieving values",
+      "status              Show saved names and current-shell loaded state",
+      "check               Check Secret Service availability without retrieving values",
       "env <name ...>      Load selected credentials into this shell",
       "env --all           Load every saved credential into this shell",
       "unset <name ...>    Remove selected variables from this shell",
@@ -112,8 +125,60 @@
       "Other open shells and already-running processes are not changed.",
       "cgm delete returns nonzero if a current-shell variable cannot be unset."
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "cgm",
+    "mutation": "mixed"
+  },
+  {
+    "id": "command-cgm-check",
+    "name": "cgm-check",
+    "command": "cgm check",
+    "usage": "cgm check",
+    "description": "Check Secret Service health without values",
+    "type": "action",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool, gdbus and a Secret Service provider are available",
+    "dependencies": "secret-tool and gdbus",
+    "examples": [
+      "cgm check"
+    ],
+    "canonical": "cgm",
+    "mutation": "read"
+  },
+  {
+    "id": "command-cgm-env",
+    "name": "cgm-env",
+    "command": "cgm env <name ...>",
+    "usage": "cgm env <name ...>",
+    "description": "Load credentials into this shell",
+    "type": "action",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool and a Secret Service provider are available",
+    "dependencies": "secret-tool and a Secret Service provider",
+    "examples": [
+      "cgm env OPENAI_KEY"
+    ],
+    "canonical": "cgm",
+    "mutation": "session"
+  },
+  {
+    "id": "command-cgm-status",
+    "name": "cgm-status",
+    "command": "cgm status",
+    "usage": "cgm status",
+    "description": "Check exported credential names",
+    "type": "action",
+    "category": "security",
+    "source": "62-cgm.zsh",
+    "availability": "Available when secret-tool and a Secret Service provider are available",
+    "dependencies": "secret-tool",
+    "examples": [
+      "cgm status"
+    ],
+    "canonical": "cgm",
+    "mutation": "read"
   },
   {
     "id": "command-croot",
@@ -123,12 +188,14 @@
     "description": "Enter the Git repository root",
     "type": "function",
     "category": "navigation",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-git.zsh",
     "availability": "Available when git is installed",
     "dependencies": "git",
     "examples": [
       "croot"
-    ]
+    ],
+    "canonical": "croot",
+    "mutation": "session"
   },
   {
     "id": "command-diff",
@@ -142,7 +209,9 @@
     "dependencies": "diff with --color=auto support",
     "examples": [
       "diff before.txt after.txt"
-    ]
+    ],
+    "canonical": "diff",
+    "mutation": "read"
   },
   {
     "id": "command-dusage",
@@ -152,36 +221,39 @@
     "description": "Rank immediate entries by disk usage",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when GNU find and du are installed",
     "dependencies": "GNU du and find",
     "examples": [
       "dusage . 10"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "dusage",
+    "mutation": "read"
   },
   {
     "id": "command-extract",
     "name": "extract",
-    "command": "extract <archive>",
-    "usage": "extract <archive>",
+    "command": "extract [--keep] [--destination <dir>] <archive>",
+    "usage": "extract [--keep] [--destination <dir>] <archive>",
     "description": "Unpack a supported archive",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "dependencies": "tar; format-specific unpackers when needed",
     "examples": [
       "extract archive.tar.gz"
     ],
     "optional": [
-      "bunzip2",
-      "unrar",
-      "gunzip",
       "unzip",
-      "uncompress",
-      "7z"
-    ]
+      "unrar",
+      "7z",
+      "bunzip2",
+      "gunzip",
+      "uncompress"
+    ],
+    "canonical": "extract",
+    "mutation": "write"
   },
   {
     "id": "command-fanprofile",
@@ -191,14 +263,15 @@
     "description": "Show the laptop performance profile",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available on a supported Linux laptop profile interface",
     "dependencies": "Linux ACPI or ASUS WMI profile interface",
     "examples": [
       "fanprofile"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "fanprofile",
+    "mutation": "read"
   },
   {
     "id": "command-fbr",
@@ -208,8 +281,8 @@
     "description": "Pick a branch; enter its worktree or check it out",
     "type": "function",
     "category": "git",
-    "source": "lib/functions-catalogue.zsh",
-    "availability": "Available when git is installed and fzf 0.52.0+ is ready",
+    "source": "lib/functions-git.zsh",
+    "availability": "Available when git is installed and fzf 0.68.0+ is ready",
     "dependencies": "git and fzf 0.68.0+",
     "examples": [
       "fbr"
@@ -218,17 +291,19 @@
       "fzf"
     ],
     "interactive": true,
-    "plainMode": true
+    "terminalAdaptive": true,
+    "canonical": "fbr",
+    "mutation": "session"
   },
   {
     "id": "command-ff",
     "name": "ff",
-    "command": "ff <pattern> [path]",
-    "usage": "ff <pattern> [path]",
+    "command": "ff [options] <pattern> [path]",
+    "usage": "ff [options] <pattern> [path]",
     "description": "Find files by name",
     "type": "function",
     "category": "search",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "dependencies": "fd, fdfind, or find",
     "examples": [
@@ -237,18 +312,20 @@
     "optional": [
       "fd",
       "fdfind"
-    ]
+    ],
+    "canonical": "ff",
+    "mutation": "read"
   },
   {
     "id": "command-fkill",
     "name": "fkill",
-    "command": "fkill [signal]",
-    "usage": "fkill [signal]",
+    "command": "fkill [--all] [signal]",
+    "usage": "fkill [--all] [signal]",
     "description": "Pick processes and send a signal",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
-    "availability": "Available when ps is installed and fzf 0.52.0+ is ready",
+    "source": "lib/functions-system.zsh",
+    "availability": "Available when ps is installed and fzf 0.68.0+ is ready",
     "dependencies": "ps and fzf 0.68.0+",
     "examples": [
       "fkill 15"
@@ -256,17 +333,19 @@
     "requires": [
       "fzf"
     ],
-    "interactive": true
+    "interactive": true,
+    "canonical": "fkill",
+    "mutation": "write"
   },
   {
     "id": "command-ft",
     "name": "ft",
-    "command": "ft <pattern> [path]",
-    "usage": "ft <pattern> [path]",
+    "command": "ft [options] <pattern> [path]",
+    "usage": "ft [options] <pattern> [path]",
     "description": "Search file contents",
     "type": "function",
     "category": "search",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when ripgrep or grep is installed",
     "dependencies": "rg or grep",
     "examples": [
@@ -274,7 +353,9 @@
     ],
     "optional": [
       "rg"
-    ]
+    ],
+    "canonical": "ft",
+    "mutation": "read"
   },
   {
     "id": "command-g",
@@ -289,7 +370,9 @@
     "dependencies": "grep",
     "examples": [
       "git log --oneline G fix"
-    ]
+    ],
+    "canonical": "G",
+    "mutation": "read"
   },
   {
     "id": "command-gcount",
@@ -304,7 +387,9 @@
     "dependencies": "git",
     "examples": [
       "gcount"
-    ]
+    ],
+    "canonical": "gitcount",
+    "mutation": "read"
   },
   {
     "id": "command-gitcount",
@@ -314,7 +399,7 @@
     "description": "Count non-merge commits by contributor",
     "type": "function",
     "category": "git",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-git.zsh",
     "availability": "Available when git is installed",
     "dependencies": "git",
     "examples": [
@@ -322,7 +407,9 @@
     ],
     "notes": [
       "Alias gcount points to gitcount for compatibility"
-    ]
+    ],
+    "canonical": "gitcount",
+    "mutation": "read"
   },
   {
     "id": "command-glog",
@@ -337,7 +424,9 @@
     "dependencies": "git",
     "examples": [
       "glog"
-    ]
+    ],
+    "canonical": "glog",
+    "mutation": "read"
   },
   {
     "id": "command-gpr",
@@ -352,7 +441,9 @@
     "dependencies": "git",
     "examples": [
       "gpr"
-    ]
+    ],
+    "canonical": "gpr",
+    "mutation": "write"
   },
   {
     "id": "command-grep",
@@ -366,7 +457,9 @@
     "dependencies": "grep with --color=auto support",
     "examples": [
       "grep TODO README.md"
-    ]
+    ],
+    "canonical": "grep",
+    "mutation": "read"
   },
   {
     "id": "command-gun",
@@ -381,7 +474,9 @@
     "dependencies": "git",
     "examples": [
       "gun"
-    ]
+    ],
+    "canonical": "gun",
+    "mutation": "write"
   },
   {
     "id": "command-h",
@@ -396,7 +491,9 @@
     "dependencies": "head",
     "examples": [
       "git log --oneline H"
-    ]
+    ],
+    "canonical": "H",
+    "mutation": "read"
   },
   {
     "id": "command-headers",
@@ -406,12 +503,14 @@
     "description": "Print response headers after redirects",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
       "headers https://example.com"
-    ]
+    ],
+    "canonical": "headers",
+    "mutation": "read"
   },
   {
     "id": "command-l",
@@ -426,7 +525,9 @@
     "dependencies": "less",
     "examples": [
       "git diff L"
-    ]
+    ],
+    "canonical": "L",
+    "mutation": "read"
   },
   {
     "id": "command-la",
@@ -440,7 +541,9 @@
     "dependencies": "lsd or GNU ls",
     "examples": [
       "la"
-    ]
+    ],
+    "canonical": "la",
+    "mutation": "read"
   },
   {
     "id": "command-ll",
@@ -454,7 +557,9 @@
     "dependencies": "lsd or GNU ls",
     "examples": [
       "ll"
-    ]
+    ],
+    "canonical": "ll",
+    "mutation": "read"
   },
   {
     "id": "command-ls",
@@ -468,7 +573,9 @@
     "dependencies": "lsd or GNU ls",
     "examples": [
       "ls"
-    ]
+    ],
+    "canonical": "ls",
+    "mutation": "read"
   },
   {
     "id": "command-lt",
@@ -482,7 +589,9 @@
     "dependencies": "lsd or tree",
     "examples": [
       "lt"
-    ]
+    ],
+    "canonical": "lt",
+    "mutation": "read"
   },
   {
     "id": "command-mkcd",
@@ -492,10 +601,12 @@
     "description": "Create a directory and enter it",
     "type": "function",
     "category": "navigation",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "examples": [
       "mkcd new-project"
-    ]
+    ],
+    "canonical": "mkcd",
+    "mutation": "write"
   },
   {
     "id": "command-myip",
@@ -505,14 +616,15 @@
     "description": "Show the public IP address",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
       "myip"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "myip",
+    "mutation": "read"
   },
   {
     "id": "command-ne",
@@ -525,7 +637,9 @@
     "source": "70-globals.zsh",
     "examples": [
       "optional-command NE"
-    ]
+    ],
+    "canonical": "NE",
+    "mutation": "read"
   },
   {
     "id": "command-npkg",
@@ -535,7 +649,7 @@
     "description": "Manage the current Nix profile",
     "type": "function",
     "category": "packages",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-nix.zsh",
     "availability": "Available when nix is installed",
     "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
     "examples": [
@@ -565,7 +679,26 @@
       "npkg refresh and outdated need jq",
       "Interactive add/find/remove needs jq and fzf 0.68.0+",
       "Advanced nix flags can be passed through by calling nix directly"
-    ]
+    ],
+    "canonical": "npkg",
+    "mutation": "mixed"
+  },
+  {
+    "id": "command-npkg-remove",
+    "name": "npkg-remove",
+    "command": "npkg remove [package ...]",
+    "usage": "npkg remove [package ...]",
+    "description": "Remove packages from the Nix profile",
+    "type": "action",
+    "category": "packages",
+    "source": "lib/functions-nix.zsh",
+    "availability": "Available when nix is installed",
+    "dependencies": "nix; jq and fzf 0.68.0+ for optional workflows",
+    "examples": [
+      "npkg remove"
+    ],
+    "canonical": "npkg",
+    "mutation": "write"
   },
   {
     "id": "command-nul",
@@ -578,7 +711,9 @@
     "source": "70-globals.zsh",
     "examples": [
       "noisy-command NUL"
-    ]
+    ],
+    "canonical": "NUL",
+    "mutation": "read"
   },
   {
     "id": "command-path",
@@ -588,12 +723,13 @@
     "description": "List PATH entries",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "examples": [
       "path"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "path",
+    "mutation": "read"
   },
   {
     "id": "command-peek",
@@ -603,7 +739,7 @@
     "description": "Preview a file with bat or cat",
     "type": "function",
     "category": "files",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-files.zsh",
     "availability": "Available when bat or cat is installed",
     "dependencies": "bat or cat",
     "examples": [
@@ -611,7 +747,9 @@
     ],
     "optional": [
       "bat"
-    ]
+    ],
+    "canonical": "peek",
+    "mutation": "read"
   },
   {
     "id": "command-ports",
@@ -621,14 +759,15 @@
     "description": "Show listening sockets and processes",
     "type": "function",
     "category": "system",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when ss is installed",
     "dependencies": "ss",
     "examples": [
       "ports"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "ports",
+    "mutation": "read"
   },
   {
     "id": "command-t",
@@ -643,7 +782,9 @@
     "dependencies": "tail",
     "examples": [
       "git log --oneline T"
-    ]
+    ],
+    "canonical": "T",
+    "mutation": "read"
   },
   {
     "id": "command-tips",
@@ -657,8 +798,9 @@
     "examples": [
       "tips"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "tips",
+    "mutation": "read"
   },
   {
     "id": "command-upkg",
@@ -668,7 +810,7 @@
     "description": "Check, search, upgrade, and clean detected managers",
     "type": "function",
     "category": "packages",
-    "source": "lib/functions-catalogue.zsh",
+    "source": "lib/functions-upkg.zsh",
     "availability": "Available when at least one supported package manager is installed",
     "dependencies": "a supported package manager",
     "examples": [
@@ -712,8 +854,26 @@
       "brew upgrades run unprefixed and stay in Homebrew user space",
       "npm upgrades stay user-space only; upkg will not recommend sudo npm"
     ],
-    "plainMode": true,
-    "richOutput": true
+    "terminalAdaptive": true,
+    "canonical": "upkg",
+    "mutation": "mixed"
+  },
+  {
+    "id": "command-upkg-plan",
+    "name": "upkg-plan",
+    "command": "upkg plan [--only <list>]",
+    "usage": "upkg plan [--only <list>]",
+    "description": "Preview upgrades",
+    "type": "action",
+    "category": "packages",
+    "source": "lib/functions-upkg.zsh",
+    "availability": "Available when at least one supported package manager is installed",
+    "dependencies": "a supported package manager",
+    "examples": [
+      "upkg plan"
+    ],
+    "canonical": "upkg",
+    "mutation": "read"
   },
   {
     "id": "command-w",
@@ -728,22 +888,26 @@
     "dependencies": "wc",
     "examples": [
       "git log --oneline W"
-    ]
+    ],
+    "canonical": "W",
+    "mutation": "read"
   },
   {
     "id": "command-weather",
     "name": "weather",
-    "command": "curl --http1.1 -fsSL https://wttr.in",
+    "command": "weather",
     "usage": "weather",
     "description": "Show the default HTTPS forecast",
-    "type": "alias",
+    "type": "function",
     "category": "system",
-    "source": "20-aliases.zsh",
+    "source": "lib/functions-system.zsh",
     "availability": "Available when curl is installed",
     "dependencies": "curl",
     "examples": [
       "weather"
-    ]
+    ],
+    "canonical": "weather",
+    "mutation": "read"
   },
   {
     "id": "command-z",
@@ -758,7 +922,32 @@
     "dependencies": "zoxide",
     "examples": [
       "z projects"
-    ]
+    ],
+    "canonical": "z",
+    "mutation": "session"
+  },
+  {
+    "id": "command-zdoctor",
+    "name": "zdoctor",
+    "command": "zdoctor [--network] [--secrets]",
+    "usage": "zdoctor [--network] [--secrets]",
+    "description": "Diagnose setup and integration status",
+    "type": "function",
+    "category": "meta",
+    "source": "lib/functions-system.zsh",
+    "examples": [
+      "zdoctor"
+    ],
+    "optional": [
+      "fzf",
+      "fd",
+      "zoxide",
+      "secret-tool",
+      "nix"
+    ],
+    "terminalAdaptive": true,
+    "canonical": "zdoctor",
+    "mutation": "read"
   },
   {
     "id": "command-zhelp",
@@ -777,7 +966,9 @@
       "--all       Include unavailable commands",
       "--plain     Force plain-text output",
       "-h, --help  Show help"
-    ]
+    ],
+    "canonical": "zhelp",
+    "mutation": "read"
   },
   {
     "id": "command-zi",
@@ -788,11 +979,13 @@
     "type": "function",
     "category": "navigation",
     "source": "30-zoxide.zsh",
-    "availability": "Available when zoxide is installed and fzf 0.52.0+ is ready",
+    "availability": "Available when zoxide is installed and fzf 0.68.0+ is ready",
     "dependencies": "zoxide and fzf 0.68.0+",
     "examples": [
       "zi projects"
-    ]
+    ],
+    "canonical": "zi",
+    "mutation": "session"
   },
   {
     "id": "command-ztheme",
@@ -813,6 +1006,8 @@
       "use <theme>      Apply a theme to this shell session",
       "reset            Restore defaults and clear any fzf override",
       "export <theme>   Print safe settings for ~/.zshrc"
-    ]
+    ],
+    "canonical": "ztheme",
+    "mutation": "session"
   }
 ]

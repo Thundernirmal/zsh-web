@@ -1,0 +1,95 @@
+---
+import { CheckIcon, CopyIcon, FileCode2Icon, SquareTerminalIcon } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+
+interface Props {
+  code: string;
+  copyLabel: string;
+  kind?: 'command' | 'config';
+}
+
+const { code, copyLabel, kind = 'command' } = Astro.props;
+const label = kind === 'command' ? 'Run in terminal' : 'Add to ~/.zshrc';
+const Icon = kind === 'command' ? SquareTerminalIcon : FileCode2Icon;
+---
+
+<Card
+  className="gap-0 py-0 ring-border"
+  data-shell-snippet
+  data-copy-text={code}
+  data-copy-label={copyLabel}
+  role="group"
+  aria-label={label}
+>
+  <div class="flex min-h-11 items-center gap-2 border-b bg-terminal-toolbar px-3 sm:min-h-9">
+    <Icon className="size-4 text-primary" aria-hidden="true" />
+    <span class="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{label}</span>
+    <button
+      type="button"
+      class={buttonVariants({ variant: 'ghost', className: 'text-muted-foreground hover:text-foreground' })}
+      data-copy-button
+      data-copy-label={copyLabel}
+      aria-label={copyLabel}
+      title={copyLabel}
+    >
+      <CopyIcon data-icon="inline-start" data-copy-icon aria-hidden="true" />
+      <CheckIcon className="hidden" data-icon="inline-start" data-copied-icon aria-hidden="true" />
+      <span data-copy-button-text>Copy</span>
+    </button>
+  </div>
+  <CardContent className="bg-terminal-background p-0">
+    <pre class="m-0 overflow-x-auto whitespace-pre-wrap break-words px-3 py-2.5 text-sm leading-5 text-foreground" translate="no">{kind === 'command' && <span class="select-none font-bold text-primary" data-shell-prompt aria-hidden="true">$</span>}{kind === 'command' && <span aria-hidden="true"> </span>}<code data-shell-code>{code}</code></pre>
+  </CardContent>
+  <span class="sr-only" data-copy-status role="status"></span>
+</Card>
+
+<script>
+  function setupShellSnippets() {
+    document.querySelectorAll<HTMLElement>('[data-shell-snippet]').forEach((snippet) => {
+      if (snippet.dataset.copyReady === 'true') return;
+
+      const button = snippet.querySelector<HTMLButtonElement>('[data-copy-button]');
+      const buttonText = snippet.querySelector<HTMLElement>('[data-copy-button-text]');
+      const copyIcon = snippet.querySelector<SVGElement>('[data-copy-icon]');
+      const copiedIcon = snippet.querySelector<SVGElement>('[data-copied-icon]');
+      const status = snippet.querySelector<HTMLElement>('[data-copy-status]');
+      if (!button || !buttonText || !copyIcon || !copiedIcon || !status) return;
+
+      snippet.dataset.copyReady = 'true';
+      const copyLabel = snippet.dataset.copyLabel ?? 'Copy snippet';
+      let resetTimer: ReturnType<typeof setTimeout> | undefined;
+
+      const reset = () => {
+        button.setAttribute('aria-label', copyLabel);
+        button.title = copyLabel;
+        buttonText.textContent = 'Copy';
+        copyIcon.classList.remove('hidden');
+        copiedIcon.classList.add('hidden');
+        status.textContent = '';
+        status.className = 'sr-only';
+      };
+
+      button.addEventListener('click', async () => {
+        clearTimeout(resetTimer);
+        reset();
+        try {
+          await navigator.clipboard.writeText(snippet.dataset.copyText ?? '');
+          button.setAttribute('aria-label', 'Copied to clipboard');
+          button.title = 'Copied!';
+          buttonText.textContent = 'Copied';
+          copyIcon.classList.add('hidden');
+          copiedIcon.classList.remove('hidden');
+          status.textContent = 'Copied to clipboard';
+          resetTimer = setTimeout(reset, 1600);
+        } catch {
+          status.textContent = 'Could not copy; select the snippet manually.';
+          status.className = 'block border-t border-border bg-destructive/5 px-3 py-2 text-sm leading-5 text-foreground';
+        }
+      });
+    });
+  }
+
+  setupShellSnippets();
+  document.addEventListener('astro:page-load', setupShellSnippets);
+</script>

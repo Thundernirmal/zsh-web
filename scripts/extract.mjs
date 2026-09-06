@@ -1,4 +1,7 @@
 import fs from 'node:fs';
+import { parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
+import { registryMetadata } from './registry-metadata.mjs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,6 +16,7 @@ const DATA_DIR = path.resolve(SCRIPT_DIR, '..', 'src', 'data');
 
 const GUIDE_SOURCE = 'GUIDE.md';
 const ALIASES_SOURCE = '20-aliases.zsh';
+const FZF_SOURCE = '40-fzf.zsh';
 const ZOXIDE_SOURCE = '30-zoxide.zsh';
 // Loader files sourced eagerly by init.zsh; each delegates to a lazily loaded
 // catalogue under lib/. The catalogues hold the real registrations/bodies.
@@ -22,14 +26,19 @@ const TIPS_LOADER_SOURCE = '80-tips.zsh';
 
 const FUNCTIONS_SOURCE = 'lib/functions-catalogue.zsh';
 const CGM_SOURCE = '62-cgm.zsh';
-const HELP_SOURCE = 'lib/help-catalogue.zsh';
+const HELP_SOURCE = 'lib/command-registry.zsh';
 const GLOBALS_SOURCE = '70-globals.zsh';
 const TIPS_SOURCE = 'lib/tips-catalogue.zsh';
 const AUTOLOAD_FUNCTIONS_DIR = 'functions';
-const FUNCTION_SOURCES = [FUNCTIONS_SOURCE, CGM_SOURCE, HELP_SOURCE, TIPS_SOURCE];
+const FUNCTION_SOURCES = [
+  FUNCTIONS_SOURCE, CGM_SOURCE, 'lib/help-catalogue.zsh', TIPS_SOURCE,
+  ...['common', 'files', 'system', 'git', 'upkg', 'upkg-backends', 'nix'].map((domain) => `lib/functions-${domain}.zsh`),
+];
 const SOURCE_FILES = [
   GUIDE_SOURCE,
+  HELP_SOURCE,
   ALIASES_SOURCE,
+  FZF_SOURCE,
   ZOXIDE_SOURCE,
   FUNCTIONS_LOADER_SOURCE,
   HELP_LOADER_SOURCE,
@@ -44,19 +53,36 @@ if (unknownArguments.length > 0) {
   throw new Error(`Unknown extractor argument${unknownArguments.length === 1 ? '' : 's'}: ${unknownArguments.join(', ')}`);
 }
 
+// Single authoritative floor for every fuzzy picker: 40-fzf.zsh hard-blocks
+// older builds, so availability text must quote the same version it enforces.
+function extractFzfMinVersion() {
+  const source = readSource(FZF_SOURCE);
+  const match = source.match(/typeset\s+-gr\s+_FZF_MIN_VERSION='([0-9]+\.[0-9]+\.[0-9]+)'/);
+
+  if (!match) {
+    throw new Error(`${FZF_SOURCE}: could not read the _FZF_MIN_VERSION declaration`);
+  }
+
+  return match[1];
+}
+
+const FZF_MIN_VERSION = extractFzfMinVersion();
+const FZF_MIN_LABEL = `fzf ${FZF_MIN_VERSION}+`;
+
 const HELP_CHECK_AVAILABILITY = {
   zoxide: 'Available when zoxide is installed',
-  'zoxide-fzf': 'Available when zoxide is installed and fzf 0.52.0+ is ready',
+  'zoxide-fzf': `Available when zoxide is installed and ${FZF_MIN_LABEL} is ready`,
   peek: 'Available when bat or cat is installed',
   disk: 'Available when GNU find and du are installed',
   'file-search': 'Available when fd, fdfind, or GNU find is installed',
   'text-search': 'Available when ripgrep or grep is installed',
   git: 'Available when git is installed',
-  'git-fzf': 'Available when git is installed and fzf 0.52.0+ is ready',
+  'git-fzf': `Available when git is installed and ${FZF_MIN_LABEL} is ready`,
   curl: 'Available when curl is installed',
-  'process-fzf': 'Available when ps is installed and fzf 0.52.0+ is ready',
+  'process-fzf': `Available when ps is installed and ${FZF_MIN_LABEL} is ready`,
   'fan-profile': 'Available on a supported Linux laptop profile interface',
   ss: 'Available when ss is installed',
+  'secret-health': 'Available when secret-tool, gdbus and a Secret Service provider are available',
   'secret-tool': 'Available when secret-tool and a Secret Service provider are available',
   'package-manager': 'Available when at least one supported package manager is installed',
   nix: 'Available when nix is installed',
@@ -185,84 +211,6 @@ function normalizeCategory(category) {
   return category.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-function parseShellWords(line) {
-  const words = [];
-  let current = '';
-  let quote = null;
-  let started = false;
-
-  const pushCurrent = () => {
-    if (!started) {
-      return;
-    }
-
-    words.push(current);
-    current = '';
-    started = false;
-  };
-
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index];
-
-    if (quote === "'") {
-      if (char === "'") {
-        quote = null;
-      } else {
-        current += char;
-      }
-      continue;
-    }
-
-    if (quote === '"') {
-      if (char === '"') {
-        quote = null;
-      } else if (char === '\\' && index + 1 < line.length) {
-        index += 1;
-        current += line[index];
-      } else {
-        current += char;
-      }
-      continue;
-    }
-
-    if (/\s/.test(char)) {
-      pushCurrent();
-      continue;
-    }
-
-    if (char === '#') {
-      if (!started) {
-        break;
-      }
-      current += char;
-      continue;
-    }
-
-    if (char === "'" || char === '"') {
-      quote = char;
-      started = true;
-      continue;
-    }
-
-    if (char === '\\' && index + 1 < line.length) {
-      index += 1;
-      current += line[index];
-      started = true;
-      continue;
-    }
-
-    current += char;
-    started = true;
-  }
-
-  if (quote) {
-    throw new Error(`Unterminated ${quote} quote in: ${line}`);
-  }
-
-  pushCurrent();
-  return words;
-}
-
 function extractHelpCatalogue() {
   const records = [];
 
@@ -281,7 +229,7 @@ function extractHelpCatalogue() {
 
     const [, name, category, summary, usage, example, dependencies, kind, check] = words;
 
-    if (kind !== 'alias' && kind !== 'function') {
+    if (kind !== 'alias' && kind !== 'function' && kind !== 'action') {
       throw new Error(`${HELP_SOURCE}:${index + 1}: unsupported command kind ${kind}`);
     }
 
@@ -316,7 +264,7 @@ function extractHelpCatalogue() {
 function validateGuideCoverage(catalogue) {
   const guide = readSource(GUIDE_SOURCE);
   const missing = catalogue
-    .map((record) => record.name)
+    .map((record) => record.kind === 'action' ? record.example.split(/\s+/).slice(0, 2).join(' ') : record.name)
     .filter((name) => {
       const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return !new RegExp('`' + escapedName + '(?:`|\\s)').test(guide);
@@ -456,6 +404,11 @@ function describeCondition(condition) {
 
   if (conditionHasCommand(condition, 'fzf') && condition.includes('interactive')) {
     return 'Available when fzf is installed in an interactive shell';
+  }
+
+  const globalAliasMatch = condition.match(/\$\{\+\s*galiases\[([A-Za-z])\]\s*\}/);
+  if (globalAliasMatch) {
+    return `Available when the ${globalAliasMatch[1]} global alias is defined`;
   }
 
   if (condition.includes('alias lt')) {
@@ -665,8 +618,11 @@ function extractFunctionDocumentation(name, definition, docIndex) {
     requires: maybeList(dependencies.requires),
     optional: maybeList(dependencies.optional),
     interactive: inspectedBody.includes('requires an interactive terminal') || undefined,
-    plainMode: inspectedBody.includes('_ui_plain_mode') || undefined,
-    richOutput: inspectedBody.includes('_ui_title_line') || undefined,
+    // References to UI helpers describe rendering, not a selectable mode: the
+    // command styles output in rich terminals and degrades to plain otherwise.
+    terminalAdaptive:
+      (inspectedBody.includes('_ui_plain_mode') || inspectedBody.includes('_ui_title_line')) ||
+      undefined,
   };
 }
 
@@ -779,7 +735,7 @@ function extractAutoloadNames() {
 
   for (const source of declarationSources) {
     for (const rawLine of readSource(source).split('\n')) {
-      const match = rawLine.match(/\bautoload\s+(.+)$/);
+      const match = rawLine.match(/^(?:\s*|.*\|\|\s*)autoload\s+(.+)$/);
 
       if (!match) {
         continue;
@@ -822,6 +778,32 @@ function buildCommands(catalogue) {
   }
 
   return catalogue.map((help) => {
+    // Actions document one subcommand of a parent function; the shell itself
+    // resolves them through the first word of their example (65-help.zsh).
+    if (help.kind === 'action') {
+      const parentName = help.example.split(/\s+/)[0];
+      const parent = implementations.get(parentName);
+
+      if (!parent || parent.type !== 'function') {
+        throw new Error(
+          `${HELP_SOURCE}: action ${help.name} needs a parent function, found ${parent?.type ?? 'nothing'} for ${parentName}`,
+        );
+      }
+
+      return {
+        name: help.name,
+        command: help.usage,
+        usage: help.usage,
+        description: help.description,
+        type: 'action',
+        category: help.category,
+        source: parent.source,
+        availability: HELP_CHECK_AVAILABILITY[help.check],
+        dependencies: help.dependencies === 'none' ? undefined : help.dependencies,
+        examples: maybeList([help.example]),
+      };
+    }
+
     const implementation = implementations.get(help.name);
 
     if (!implementation) {
@@ -853,30 +835,45 @@ function buildCommands(catalogue) {
       requires: docs.requires,
       optional: docs.optional,
       interactive: docs.interactive,
-      plainMode: docs.plainMode,
-      richOutput: docs.richOutput,
+      terminalAdaptive: docs.terminalAdaptive,
     };
   });
 }
 
+// Availability and dependency strings quote the same shell floor; anything
+// else reproduces the contradictory guidance this check exists to prevent.
 function parseTipLiteral(text) {
   const words = parseShellWords(text.trim());
   return words.length === 1 ? words[0] : undefined;
 }
 
-function extractTips() {
+// Base-pool tips sit outside every condition, so the pool alone cannot vouch
+// for them. The catalogue phrases actions as "Run <command> …" or
+// "Use <command> …"; when that exact token is a catalogue command, the tip's
+// action needs what the command needs. Mentions elsewhere in the tip text
+// (piped targets, alternatives) are deliberately ignored.
+function referencedCommandAvailability(text, availabilityByName) {
+  const action = text.match(/^(?:Run|Use)\s+(\S+)/);
+  return action ? availabilityByName.get(action[1]) : undefined;
+}
+
+function extractTips(availabilityByName) {
   const tipRecords = [];
   let inTipPool = false;
   const conditionStack = [];
 
   const addTip = (text) => {
     const condition = conditionStack.join(' && ');
+    // Conditional pools already gate their tips on real runtime checks; only
+    // unconditional tips need the referenced command's requirements.
+    const commandAvailability =
+      conditionStack.length === 0 ? referencedCommandAvailability(text, availabilityByName) : undefined;
 
     tipRecords.push({
       text,
       category: inferTipCategory(text),
       source: inferTipSource(condition, text),
-      availability: describeCondition(condition) ?? 'Always available',
+      availability: commandAvailability ?? describeCondition(condition) ?? 'Always available',
     });
   };
 
@@ -953,8 +950,13 @@ function main() {
   const catalogue = extractHelpCatalogue();
   validateGuideCoverage(catalogue);
 
-  const commands = buildCommands(catalogue);
-  const tips = extractTips();
+  const metadata = registryMetadata(readSource(HELP_SOURCE), catalogue.map((record) => record.name));
+  const commands = buildCommands(catalogue).map((command) => ({ ...command, ...metadata.get(command.name) }));
+  validateCommandSemantics(commands, FZF_MIN_VERSION);
+  const availabilityByName = new Map(
+    commands.filter((command) => command.availability).map((command) => [command.name, command.availability]),
+  );
+  const tips = extractTips(availabilityByName);
   // Stable IDs: commands by slug(name), tips by hash(text) — survives catalogue reorder
   const seenCommandIds = new Set();
   const contentCommands = [...commands]
@@ -980,10 +982,24 @@ function main() {
         id = `tip-${hashString(`${tip.text}:${suffix++}`).slice(0, 8)}`;
       }
       seenTipIds.add(id);
-      return { id, ...tip };
+      const name = tip.text.match(/^(?:Run|Use)\s+(\S+)/)?.[1];
+      const command = contentCommands.find((item) => item.name === name);
+      return { id, ...tip, ...(command ? { commandId: command.id, commandName: command.name } : {}) };
     });
 
+  const git = (...args) => execFileSync('git', ['-C', ZSH_DIR, ...args], { encoding: 'utf8' }).trim();
+  if (git('status', '--porcelain', '--untracked-files=no')) {
+    throw new Error('Commit tracked shell changes before syncing a reproducible snapshot.');
+  }
+  const manifest = {
+    repository: 'https://github.com/Thundernirmal/zsh',
+    commit: git('rev-parse', 'HEAD'),
+    sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
+    schemaVersion: 3,
+    fzfMinimum: FZF_MIN_VERSION,
+  };
   const outputs = [
+    { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
   ];

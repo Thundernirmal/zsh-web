@@ -1,10 +1,9 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from 'lucide-react';
 
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
-import { CopyButton } from '@/components/CopyButton';
+import CommandDetails from '@/components/CommandDetails';
 import { highlightText } from '@/components/HighlightText';
-import { SyntaxCode } from '@/components/SyntaxCode';
 import {
   Accordion,
   AccordionContent,
@@ -32,234 +31,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useSlashFocus } from '@/hooks/useSlashFocus';
 import { categoryLabels, categoryOrder, type Category } from '@/lib/categories';
 import {
-  buildFeatureDetails,
   commandId,
   matchingDetailSections,
+  matchesQuery,
   searchableText,
-  splitExample,
-  type FeatureDetail,
   typeVariant,
 } from '@/lib/command-search';
-import { formatLabel, type ShellCommand } from '@/lib/shell-docs';
+import { commandHref, formatLabel, type ShellCommand } from '@/lib/shell-docs';
 
 type Filter = 'all' | ShellCommand['type'];
 
-const validFilters = new Set<Filter>(['all', 'alias', 'global_alias', 'function']);
+const validFilters = new Set<Filter>(['all', 'alias', 'global_alias', 'function', 'action']);
 
 interface SearchCommandsProps {
   commands: ShellCommand[];
 }
 
-function Example({ example, query }: { example: string; query: string }) {
-  const { command, annotation } = splitExample(example);
-  return (
-    <div className="group/example grid min-w-0 gap-0.5">
-      <div className="flex items-center justify-between gap-2">
-        <pre className="detail-code flex-1" data-detail-code>
-          <SyntaxCode code={command} query={query} />
-        </pre>
-        <CopyButton
-          text={command}
-          label="Copy example"
-          className="size-7 shrink-0 opacity-70 group-hover/example:opacity-100 transition-opacity"
-        />
-      </div>
-      {annotation && (
-        <span
-          className="text-pretty text-base leading-6 text-muted-foreground md:text-sm md:leading-5"
-          data-detail-body
-        >
-          {highlightText(annotation, query)}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function FeatureTable({
-  id,
-  commandName,
-  features,
-  query,
+// Removal controls must be real buttons: a clickable span is invisible to
+// keyboard users and to assistive tech. Rendered as a badge-styled button with
+// a 44px touch target on mobile and an explicit removal name.
+function RemovableFilter({
+  onRemove,
+  removeLabel,
+  children,
 }: {
-  id: string;
-  commandName: string;
-  features: FeatureDetail[];
-  query: string;
+  onRemove: () => void;
+  removeLabel: string;
+  children: ReactNode;
 }) {
-  if (features.length === 0) return null;
-  const hasFeatureExamples = features.some((feature) => feature.examples.length > 0);
-
   return (
-    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-features`} data-feature-table>
-      <div
-        className="grid min-w-0 gap-0.5 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-3"
-        data-feature-introduction
-      >
-        <h3 id={`${id}-features`} className="detail-section-heading" data-detail-section-heading>
-          {hasFeatureExamples ? 'Features & Examples' : 'Features'}
-        </h3>
-        {hasFeatureExamples && (
-          <p className="detail-body text-muted-foreground" data-detail-body>
-            Examples appear only where they add useful detail.
-          </p>
-        )}
-      </div>
-      <dl className="grid md:hidden">
-        {features.map((feature, index) => (
-          <div
-            key={`${feature.usage}:${feature.description}`}
-            className="grid min-w-0 gap-1.5 pt-3 first:pt-0"
-            data-feature-row
-          >
-            {feature.usage ? (
-              <dt>
-                <pre className="detail-code font-semibold" data-detail-code>
-                  <SyntaxCode code={feature.usage} query={query} />
-                </pre>
-              </dt>
-            ) : (
-              <dt className="detail-label">General Feature</dt>
-            )}
-            <dd className="grid min-w-0 gap-2.5">
-              <p className="detail-body" data-detail-body>
-                {highlightText(feature.description, query)}
-              </p>
-              {feature.examples.length > 0 && (
-                <div className="grid min-w-0 gap-1.5">
-                  <span className="detail-label" data-detail-label>
-                    Example
-                  </span>
-                  <div className="grid min-w-0 gap-2">
-                    {feature.examples.map((example) => (
-                      <Example key={example} example={example} query={query} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </dd>
-            {index < features.length - 1 && <Separator className="mt-1" />}
-          </div>
-        ))}
-      </dl>
-      <div className="hidden md:block">
-        <Table className="table-fixed">
-          <TableCaption className="sr-only">
-            Features and descriptions{hasFeatureExamples ? ', with matching examples' : ''} for{' '}
-            {commandName}
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col" className="w-1/4">
-                Usage
-              </TableHead>
-              <TableHead scope="col">Description</TableHead>
-              {hasFeatureExamples && <TableHead scope="col" className="w-1/3">Example</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {features.map((feature) => (
-              <TableRow key={`${feature.usage}:${feature.description}`}>
-                <TableHead scope="row" className="h-auto align-top whitespace-normal py-2">
-                  {feature.usage ? (
-                    <pre className="detail-code font-semibold">
-                      <SyntaxCode code={feature.usage} query={query} />
-                    </pre>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </TableHead>
-                <TableCell className="align-top whitespace-normal text-pretty leading-6">
-                  {highlightText(feature.description, query)}
-                </TableCell>
-                {hasFeatureExamples && (
-                  <TableCell className="align-top whitespace-normal">
-                    {feature.examples.length > 0 ? (
-                      <div className="grid min-w-0 gap-2">
-                        {feature.examples.map((example) => (
-                          <Example key={example} example={example} query={query} />
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="sr-only">No example documented</span>
-                    )}
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </section>
-  );
-}
-
-function ExampleList({
-  id,
-  examples,
-  query,
-  additional,
-}: {
-  id: string;
-  examples: string[];
-  query: string;
-  additional: boolean;
-}) {
-  if (examples.length === 0) return null;
-  return (
-    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-examples`}>
-      <div className="grid gap-0.5">
-        <h3 id={`${id}-examples`} className="detail-section-heading" data-detail-section-heading>
-          {additional ? 'Additional Examples' : 'Examples'}
-        </h3>
-        {additional && (
-          <p className="detail-body text-muted-foreground" data-detail-body>
-            General workflows that are not tied to one feature.
-          </p>
-        )}
-      </div>
-      <ul className="grid">
-        {examples.map((example, index) => (
-          <li key={example} className="grid gap-2 pt-2.5 first:pt-0">
-            <Example example={example} query={query} />
-            {index < examples.length - 1 && <Separator />}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function NotesList({ id, notes, query }: { id: string; notes: string[]; query: string }) {
-  if (notes.length === 0) return null;
-  return (
-    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-notes`}>
-      <h3 id={`${id}-notes`} className="detail-section-heading" data-detail-section-heading>
-        Notes
-      </h3>
-      <ul className="grid">
-        {notes.map((note, index) => (
-          <li key={note} className="detail-body grid gap-2 pt-2.5 first:pt-0" data-detail-body>
-            <span className="min-w-0">{highlightText(note, query)}</span>
-            {index < notes.length - 1 && <Separator />}
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Badge
+      render={<button type="button" />}
+      variant="secondary"
+      onClick={onRemove}
+      aria-label={removeLabel}
+      className="h-11 cursor-pointer gap-1 px-3 hover:bg-destructive/20 sm:h-5 sm:px-2"
+    >
+      {children}
+      <XIcon className="size-3" aria-hidden="true" />
+    </Badge>
   );
 }
 
@@ -269,6 +83,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
   const [category, setCategory] = useState<string>('all');
   const [expanded, setExpanded] = useState<string[]>([]);
   const isInitialMount = useRef(true);
+  const deepLinkTarget = useRef<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useSlashFocus(searchRef, {
@@ -301,7 +116,12 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
         setCategory(nextCategory);
       }
       if (nextCommand && commands.some((command) => commandId(command) === nextCommand)) {
+        deepLinkTarget.current = nextCommand;
         setExpanded([nextCommand]);
+        const target = commands.find((command) => commandId(command) === nextCommand)!;
+        if (nextFilter && nextFilter !== 'all' && target.type !== nextFilter) setFilter('all');
+        if (nextCategory && nextCategory !== 'all' && target.category !== nextCategory) setCategory('all');
+        if (nextQuery && !matchesQuery(searchableText(target), nextQuery)) setQuery('');
       }
       return;
     }
@@ -319,15 +139,25 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     window.history.replaceState(window.history.state, '', url);
   }, [availableCategories, category, commands, expanded, filter, query]);
 
+  useEffect(() => {
+    const target = deepLinkTarget.current;
+    if (!target || !expanded.includes(target)) return;
+    const command = commands.find((item) => commandId(item) === target);
+    if (!command) return;
+    const frame = requestAnimationFrame(() => {
+      const row = document.querySelector<HTMLElement>(`[data-command="${CSS.escape(command.name)}"]`);
+      if (!row) return;
+      row.querySelector<HTMLElement>('[data-slot="accordion-trigger"]')?.focus({ preventScroll: true });
+      row.scrollIntoView({ block: 'start', behavior: 'instant' });
+      deepLinkTarget.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [commands, expanded]);
+
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
   const corpus = useMemo(
     () => new Map(commands.map((c) => [commandId(c), searchableText(c)])),
-    [commands],
-  );
-
-  const detailsMap = useMemo(
-    () => new Map(commands.map((c) => [commandId(c), buildFeatureDetails(c)])),
     [commands],
   );
 
@@ -337,19 +167,19 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
       if (category !== 'all' && command.category !== category) return false;
       if (normalizedQuery.length === 0) return true;
       const text = corpus.get(commandId(command)) ?? '';
-      return text.includes(normalizedQuery);
-    });
+      return matchesQuery(text, normalizedQuery);
+    }).sort((a, b) => Number(b.name.toLowerCase() === normalizedQuery) - Number(a.name.toLowerCase() === normalizedQuery));
   }, [category, commands, corpus, filter, normalizedQuery]);
 
   const counts = useMemo(() => {
-    const acc = { all: 0, alias: 0, global_alias: 0, function: 0 } as Record<Filter, number> & {
+    const acc = { all: 0, alias: 0, global_alias: 0, function: 0, action: 0 } as Record<Filter, number> & {
       all: number;
     };
     for (const command of commands) {
       if (category !== 'all' && command.category !== category) continue;
       if (normalizedQuery.length > 0) {
         const text = corpus.get(commandId(command)) ?? '';
-        if (!text.includes(normalizedQuery)) continue;
+        if (!matchesQuery(text, normalizedQuery)) continue;
       }
       acc.all += 1;
       acc[command.type as Filter] = (acc[command.type as Filter] ?? 0) + 1;
@@ -364,7 +194,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
       if (filter !== 'all' && command.type !== filter) continue;
       if (normalizedQuery.length > 0) {
         const text = corpus.get(commandId(command)) ?? '';
-        if (!text.includes(normalizedQuery)) continue;
+        if (!matchesQuery(text, normalizedQuery)) continue;
       }
       acc.all += 1;
       if (command.category) {
@@ -387,6 +217,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     { key: 'alias', label: 'Aliases', count: counts.alias },
     { key: 'global_alias', label: 'Globals', count: counts.global_alias },
     { key: 'function', label: 'Functions', count: counts.function },
+    { key: 'action', label: 'Actions', count: counts.action },
   ];
 
   const clearSearch = () => {
@@ -436,7 +267,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
           {filteredCommands.length} result{filteredCommands.length === 1 ? '' : 's'}
         </span>
 
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <ToggleGroup
             value={[filter]}
             onValueChange={(values) => {
@@ -504,34 +335,28 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
           <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs text-muted-foreground">
             <span className="font-medium text-foreground">Active:</span>
             {query.trim().length > 0 && (
-              <Badge
-                variant="secondary"
-                className="gap-1 cursor-pointer hover:bg-destructive/20"
-                onClick={() => setQuery('')}
+              <RemovableFilter
+                onRemove={() => setQuery('')}
+                removeLabel={`Remove query filter: ${query.trim()}`}
               >
                 Query: “{query.trim()}”
-                <XIcon className="size-3" aria-hidden="true" />
-              </Badge>
+              </RemovableFilter>
             )}
             {filter !== 'all' && (
-              <Badge
-                variant="secondary"
-                className="gap-1 cursor-pointer hover:bg-destructive/20"
-                onClick={() => setFilter('all')}
+              <RemovableFilter
+                onRemove={() => setFilter('all')}
+                removeLabel={`Remove type filter: ${filters.find((f) => f.key === filter)?.label}`}
               >
                 Type: {filters.find((f) => f.key === filter)?.label}
-                <XIcon className="size-3" aria-hidden="true" />
-              </Badge>
+              </RemovableFilter>
             )}
             {category !== 'all' && (
-              <Badge
-                variant="secondary"
-                className="gap-1 cursor-pointer hover:bg-destructive/20"
-                onClick={() => setCategory('all')}
+              <RemovableFilter
+                onRemove={() => setCategory('all')}
+                removeLabel={`Remove category filter: ${categoryLabels[category] ?? formatLabel(category)}`}
               >
                 Category: {categoryLabels[category] ?? formatLabel(category)}
-                <XIcon className="size-3" aria-hidden="true" />
-              </Badge>
+              </RemovableFilter>
             )}
             <Button
               type="button"
@@ -576,141 +401,43 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
         >
           {filteredCommands.map((command) => {
             const detailsMatches = matchingDetailSections(command, query);
-            const detailId = commandId(command).replace(/[^A-Za-z0-9_-]/g, '-');
-            const { features, unmatchedExamples } = detailsMap.get(commandId(command)) ?? {
-              features: [],
-              unmatchedExamples: [],
-            };
-            const hasFeatures = features.length > 0;
-            const displayExamples = unmatchedExamples;
-            const notes = command.notes ?? [];
-            const hasReferenceDetails = hasFeatures || displayExamples.length > 0 || notes.length > 0;
-            const syntaxDetails: Array<{ label: string; value: string }> = [];
-            if (command.command) {
-              syntaxDetails.push({
-                label: command.type === 'function' ? 'Command' : 'Expands To',
-                value: command.command,
-              });
-            }
-            if (command.usage && command.usage !== command.command) {
-              syntaxDetails.push({ label: 'Usage', value: command.usage });
-            }
             return (
-              <AccordionItem key={commandId(command)} value={commandId(command)} data-command={command.name}>
-                <AccordionTrigger headingLevel={2} className="gap-2 py-3 hover:no-underline">
-                  <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
-                    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                      <span
-                        translate="no"
-                        className="font-mono text-lg leading-7 font-semibold text-foreground sm:text-base sm:leading-6"
-                      >
-                        {highlightText(command.name, query)}
+              <AccordionItem key={commandId(command)} value={commandId(command)} data-command={command.name} className="scroll-mt-32">
+                <div className="flex items-start gap-1 sm:gap-2 [&>h2]:min-w-0 [&>h2]:flex-1">
+                  <AccordionTrigger headingLevel={2} className="gap-2 py-3 hover:no-underline [&_[data-slot=accordion-trigger-icon]]:mt-1.5 sm:[&_[data-slot=accordion-trigger-icon]]:mt-1">
+                    <span className="grid min-w-0 flex-1 gap-1.5 pr-2">
+                      <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        <span
+                          translate="no"
+                          className="font-mono text-lg leading-7 font-semibold text-foreground sm:text-base sm:leading-6"
+                        >
+                          {highlightText(command.name, query)}
+                        </span>
+                        <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
+                        {command.category && <CategoryBadge category={command.category} />}
+                        {detailsMatches.length > 0 && (
+                          <Badge variant="outline">Match: {detailsMatches.join(', ')}</Badge>
+                        )}
                       </span>
-                      <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
-                      {command.category && <CategoryBadge category={command.category} />}
-                      {command.source && <Badge variant="metadata">{formatLabel(command.source)}</Badge>}
-                      {detailsMatches.length > 0 && (
-                        <Badge variant="outline">Match: {detailsMatches.join(', ')}</Badge>
+                      {command.description && (
+                        <span className="text-base font-normal leading-6 text-muted-foreground">
+                          {highlightText(command.description, query)}
+                        </span>
                       )}
                     </span>
-                    {command.description && (
-                      <span className="text-base font-normal leading-6 text-muted-foreground">
-                        {highlightText(command.description, query)}
-                      </span>
-                    )}
-                  </span>
-                </AccordionTrigger>
+                  </AccordionTrigger>
+                  <a
+                    className="command-reference-link"
+                    href={commandHref(command)}
+                    aria-label={`Read ${command.name} reference`}
+                    title={`Read ${command.name} reference`}
+                  />
+                </div>
                 {/* Detail bodies mount on expand: keeps the static HTML and DOM
                     budget flat regardless of catalogue size. */}
                 {expanded.includes(commandId(command)) && (
                   <AccordionContent className="grid gap-4 pb-4">
-                  <Separator />
-                  <div className="grid gap-2.5">
-                    {syntaxDetails.map((detail, index) => (
-                      <Fragment key={detail.label}>
-                        {index > 0 && <Separator />}
-                        <div className="grid min-w-0 gap-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="detail-section-heading" data-detail-section-heading>
-                              {detail.label}
-                            </h3>
-                            <CopyButton
-                              text={detail.value}
-                              label={`Copy ${detail.label}`}
-                              className="size-7 shrink-0"
-                            />
-                          </div>
-                          <pre className="detail-code font-semibold" data-detail-code>
-                            <SyntaxCode code={detail.value} query={query} />
-                          </pre>
-                        </div>
-                      </Fragment>
-                    ))}
-                    {(command.availability || command.dependencies) && (
-                      <dl className="grid min-w-0 gap-x-4 gap-y-1.5 text-base leading-7 sm:grid-cols-[7rem_minmax(0,1fr)] sm:text-sm sm:leading-6">
-                        {command.availability && (
-                          <Fragment>
-                            <dt className="font-medium text-muted-foreground">Availability</dt>
-                            <dd className="min-w-0 text-pretty text-foreground">
-                              {highlightText(command.availability, query)}
-                            </dd>
-                          </Fragment>
-                        )}
-                        {command.dependencies && (
-                          <Fragment>
-                            <dt className="font-medium text-muted-foreground">Dependencies</dt>
-                            <dd className="min-w-0 text-pretty text-foreground">
-                              {highlightText(command.dependencies, query)}
-                            </dd>
-                          </Fragment>
-                        )}
-                      </dl>
-                    )}
-                  </div>
-
-                  {(command.interactive ||
-                    command.plainMode ||
-                    command.richOutput ||
-                    command.requires?.length ||
-                    command.optional?.length) && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {command.interactive && <Badge variant="metadata">Interactive</Badge>}
-                      {command.plainMode && <Badge variant="metadata">Plain Mode</Badge>}
-                      {command.richOutput && <Badge variant="metadata">Rich Output</Badge>}
-                      {command.requires?.map((requirement) => (
-                        <Badge key={`${commandId(command)}:requires:${requirement}`} variant="metadata">
-                          Requires {formatLabel(requirement)}
-                        </Badge>
-                      ))}
-                      {command.optional?.map((dependency) => (
-                        <Badge key={`${commandId(command)}:optional:${dependency}`} variant="metadata">
-                          Uses {formatLabel(dependency)} if available
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {hasReferenceDetails && (
-                    <div className="grid min-w-0 gap-5">
-                      {hasFeatures && (
-                        <FeatureTable
-                          id={detailId}
-                          commandName={command.name}
-                          features={features}
-                          query={query}
-                        />
-                      )}
-                      {hasFeatures && displayExamples.length > 0 && <Separator />}
-                      <ExampleList
-                        id={detailId}
-                        examples={displayExamples}
-                        query={query}
-                        additional={hasFeatures}
-                      />
-                      {(hasFeatures || displayExamples.length > 0) && notes.length > 0 && <Separator />}
-                      <NotesList id={detailId} notes={notes} query={query} />
-                    </div>
-                  )}
+                    <CommandDetails command={command} query={query} />
                   </AccordionContent>
                 )}
               </AccordionItem>

@@ -21,12 +21,15 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 	<PageHeader id="home-page-header" title="Nirmal's Shell" accent="Nirmal's" hero>
 		<p>
 			A living guide to aliases, functions, tips, and workflows — extracted directly from:
-			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="font-medium text-primary underline-offset-4 hover:underline" translate="no">
+			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="text-link" translate="no">
 				github.com/Thundernirmal/zsh
 				<span class="sr-only"> (opens in a new tab)</span>
 			</a>
 		</p>
 	</PageHeader>
+    <div class="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+      <a href="/get-started/" class={buttonVariants({ size: 'lg' })}>Get Started</a>
+    </div>
 
 	<div>
 		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
@@ -37,7 +40,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 				<CardHeader className="gap-2">
 					<CardTitle><h2 class="flex items-center gap-2 text-xl"><SquareTerminalIcon className="size-5 text-primary" aria-hidden="true" />Command Library</h2></CardTitle>
 					<CardDescription>
-						Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the live shell sources.
+						Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the committed shell snapshot.
 					</CardDescription>
 			</CardHeader>
 			<CardContent className="grid flex-1 content-start gap-3 leading-6 text-muted-foreground">
@@ -49,7 +52,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 				</p>
 			</CardContent>
 			<CardFooter>
-				<a href="/commands" class={buttonVariants({ size: 'lg' })}>Browse Commands <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
+				<a href="/commands" class={buttonVariants({ size: 'lg' })}>Explore the Reference <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
 			</CardFooter>
 		</Card>
 

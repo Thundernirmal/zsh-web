@@ -85,9 +85,7 @@ test('desktop page sections use their wide-screen grid layouts', async ({ page }
 	expect(tipsHeading?.x ?? 0).toBeGreaterThan((commandHeading?.x ?? 0) + (commandHeading?.width ?? 0));
 
 	await page.goto('/commands/');
-	for (const label of ['total commands', 'custom functions', 'entries with extracted details']) {
-		await expect(page.getByText(label, { exact: true })).toBeVisible();
-	}
+	await expect(page.getByRole('link', { name: 'Read upkg reference', exact: true })).toHaveAttribute('href', '/commands/upkg/');
 
 	await page.goto('/tips/');
 	const searchBox = await page.getByRole('searchbox').boundingBox();
@@ -153,8 +151,9 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 		return commandSearch.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
 	await commandSearch.fill('upkg');
-	await expect(page.locator('[data-command]')).toHaveCount(1);
-	await page.getByRole('button', { name: /upkg/i }).click();
+	await expect(page.locator('[data-command]')).toHaveCount(2);
+	await expect(page.locator('[data-command="upkg-plan"]')).toBeVisible();
+	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
 	const command = page.locator('[data-command="upkg"]');
 	await expect(command.locator('[data-slot="accordion-content"]')).toBeVisible();
 	await expect(command.locator('[data-slot="table"]')).toBeVisible();

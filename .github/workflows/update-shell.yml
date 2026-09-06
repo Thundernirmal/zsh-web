@@ -1,0 +1,52 @@
+name: Update shell snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      shell_ref:
+        description: Shell branch, tag or commit to document
+        required: true
+        default: master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-shell-snapshot
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/checkout@v4
+        with:
+          repository: Thundernirmal/zsh
+          ref: ${{ inputs.shell_ref }}
+          path: .zsh-config
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Regenerate the pinned snapshot
+        env:
+          ZSH_CONFIG_DIR: ${{ github.workspace }}/.zsh-config
+        run: npm run sync
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Validate before proposing an update
+        env:
+          ZSH_CONFIG_DIR: ${{ github.workspace }}/.zsh-config
+        run: npm test
+      - name: Export a reviewable snapshot patch
+        run: git diff --binary -- src/data > /tmp/shell-snapshot.patch
+      - name: Upload the validated patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: shell-snapshot-patch
+          path: /tmp/shell-snapshot.patch
+          if-no-files-found: error

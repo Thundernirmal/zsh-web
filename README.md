@@ -6,10 +6,14 @@ The site is published at [zsh.nirmalkatariya.com](https://zsh.nirmalkatariya.com
 
 ## How the data stays in sync
 
-The extractor reads the local Zsh source directory (`~/.config/zsh` by default), validates every registered command against `GUIDE.md` and its implementation, and writes the two committed frontend datasets:
+The extractor reads the local Zsh source directory (`~/.config/zsh` by default), validates every registered command against `GUIDE.md` and its implementation, and writes the committed frontend datasets:
 
-- `src/data/commands.json`, built from `65-help.zsh`, aliases, globals, and function documentation
-- `src/data/tips.json`, built from `80-tips.zsh` with inferred categories, sources, and availability
+- `src/data/commands.json`, built from `lib/command-registry.zsh`, aliases, globals, and domain function documentation
+- `src/data/tips.json`, built from `lib/tips-catalogue.zsh` with inferred categories, sources, and availability
+
+- `src/data/source.json`, recording the clean shell commit, source commit date, and extractor schema version; CI checks out this exact revision
+
+To update the snapshot, commit shell changes, run `npm run sync`, review all generated changes, and commit them together. The sync date is the source commit date so repeated generation is deterministic. The manually dispatched **Update shell snapshot** workflow accepts a shell ref, regenerates data, runs `npm test`, and uploads a `shell-snapshot-patch` artifact. Review the patch, apply it locally with `git apply`, and commit the generated data through the normal review process. The workflow has read-only repository permissions.
 
 Set `ZSH_CONFIG_DIR` when the source config is elsewhere.
 
@@ -50,18 +54,21 @@ Run the complete static and browser test suite before committing:
 npm test
 ```
 
+Install browser binaries once with `npx playwright install chromium firefox webkit` (CI also installs OS dependencies with `--with-deps`).
+
 For the faster static validation gate without Playwright:
 
 ```bash
 npm run verify
 ```
 
-`npm run verify` verifies that generated data matches the current Zsh sources, runs ESLint and accessibility rules, checks for unused files, dependencies, and exports, runs Astro/TypeScript diagnostics, and produces the static site. `npm test` additionally runs shared behavior and accessibility checks plus dedicated desktop and mobile Playwright suites.
+`npm run verify` verifies that generated data matches the current Zsh sources, runs ESLint and accessibility rules, checks for unused files, dependencies, and exports, runs Astro/TypeScript diagnostics, produces the static site, and enforces route HTML/DOM plus transitive JS/CSS/font budgets. `npm run budget` counts all reachable font subsets conservatively, rather than assuming a particular browser font selection. `npm test` additionally runs shared behavior and accessibility checks plus desktop Chromium/Firefox and mobile Chromium/WebKit Playwright suites. Browser tests include expanded/filter/error states, 320px reflow at 200% text sizing, and a Chromium CPU/network-constrained performance check. Physical-device Safari remains a manual release check.
 
 Individual commands:
 
 | Command | Purpose | Writes tracked files |
 | --- | --- | --- |
+| `npm run test:extract` | Run parser and semantic regression tests | No |
 | `npm run sync` | Validate the Zsh catalogue and regenerate JSON | Yes |
 | `npm run sync:check` | Confirm committed JSON matches the Zsh sources | No |
 | `npm run lint` | Lint JavaScript, TypeScript, React, and Astro | No |

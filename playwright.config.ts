@@ -14,9 +14,11 @@ export default defineConfig({
 		trace: 'on-first-retry',
 	},
 	projects: [
+        { name: 'desktop-firefox', testMatch: ['**/core.spec.ts'], use: { ...devices['Desktop Firefox'] } },
+        { name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
 		{
 			name: 'desktop-chrome',
-			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/performance.spec.ts'],
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{

@@ -4,6 +4,7 @@ export type FeatureDetail = {
   usage: string;
   description: string;
   examples: string[];
+  aliases?: string[];
 };
 
 export function commandId(command: ShellCommand): string {
@@ -14,6 +15,8 @@ export function typeVariant(type: string): 'alias' | 'global' | 'function' | 'me
   if (type === 'alias') return 'alias';
   if (type === 'global_alias') return 'global';
   if (type === 'function') return 'function';
+  // Actions document one subcommand of a parent function; the neutral
+  // metadata styling keeps them visually distinct from whole commands.
   return 'metadata';
 }
 
@@ -123,7 +126,16 @@ export function buildFeatureDetails(command: ShellCommand) {
       unmatchedExamples.push(example);
     }
   }
-  return { features, unmatchedExamples };
+  const primary = features.filter((feature) => !/^Alias for /i.test(feature.description));
+  const retained = [];
+  for (const feature of features.filter((item) => /^Alias for /i.test(item.description))) {
+    const targetName = feature.description.replace(/^Alias for /i, '').trim();
+    const target = primary.find((item) => item.usage.split(/\s+/)[0] === targetName);
+    if (!target) { retained.push(feature); continue; }
+    target.aliases = [...(target.aliases ?? []), feature.usage];
+    target.examples.push(...feature.examples);
+  }
+  return { features: [...primary, ...retained], unmatchedExamples };
 }
 
 function meaningfulExamples(command: ShellCommand): string[] {
@@ -178,3 +190,7 @@ export function matchingDetailSections(command: ShellCommand, query: string): st
 }
 
 export { splitExample };
+
+export function matchesQuery(text: string, query: string): boolean {
+  return query.trim().toLowerCase().split(/\s+/).every((token) => text.includes(token));
+}

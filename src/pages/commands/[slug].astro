@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import PageHeader from '@/components/PageHeader.astro';
+import CommandDetails from '@/components/CommandDetails';
+import { CategoryBadge } from '@/components/CategoryBadge';
+
+export async function getStaticPaths() {
+  return (await getCollection('commands')).map(({ data }) => ({
+    params: { slug: data.id.replace(/^command-/, '') },
+    props: { command: data },
+  }));
+}
+const { command } = Astro.props;
+---
+<Layout title={command.name} description={command.description}>
+  <a class="footer-link w-fit" href="/commands/">← All commands</a>
+  <PageHeader title={command.name}><p>{command.description}</p></PageHeader>
+  {command.category && <div><CategoryBadge category={command.category} /></div>}
+  <h2 class="sr-only">Usage reference</h2>
+  <CommandDetails client:visible command={command} />
+  <noscript><p>All reference text is available here. Select text manually to copy it.</p></noscript>
+</Layout>
