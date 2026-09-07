@@ -169,14 +169,18 @@ function hashString(value) {
   return (h >>> 0).toString(16).padStart(8, '0');
 }
 
-function writeJson(filePath, contents) {
+function writeGeneratedFile(filePath, contents) {
   const tmpPath = `${filePath}.tmp`;
   fs.writeFileSync(tmpPath, contents);
   fs.renameSync(tmpPath, filePath);
 }
 
-function isCurrentJson(filePath, contents) {
+function isCurrentFile(filePath, contents) {
   return fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8') === contents;
+}
+
+function rewriteGuideLinks(guide, repository, commit) {
+  return guide.replace(/\]\(\.\/([^\s)#?]+)([^)]*)\)/g, `](${repository}/blob/${commit}/$1$2)`);
 }
 
 function dedupeBy(records, getKey) {
@@ -998,15 +1002,17 @@ function main() {
     schemaVersion: 3,
     fzfMinimum: FZF_MIN_VERSION,
   };
+  const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
   const outputs = [
     { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
+    { filePath: path.join(DATA_DIR, 'guide.md'), contents: guide },
   ];
 
   if (CHECK_ONLY) {
     const staleFiles = outputs
-      .filter(({ filePath, contents }) => !isCurrentJson(filePath, contents))
+      .filter(({ filePath, contents }) => !isCurrentFile(filePath, contents))
       .map(({ filePath }) => path.relative(process.cwd(), filePath));
 
     if (staleFiles.length > 0) {
@@ -1019,7 +1025,7 @@ function main() {
 
   ensureDataDir();
   for (const { filePath, contents } of outputs) {
-    writeJson(filePath, contents);
+    writeGeneratedFile(filePath, contents);
   }
 
   console.log(`[extract] Synced ${commands.length} commands and ${tips.length} tips from ${ZSH_DIR}.`);

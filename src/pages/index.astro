@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import TerminalHero from '../components/TerminalHero.astro';
 import TipRoulette from '../components/TipRoulette.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { ArrowRightIcon, LightbulbIcon, SquareTerminalIcon } from 'lucide-react';
+import { ArrowRightIcon, BookOpenIcon, LightbulbIcon, SquareTerminalIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCollection } from 'astro:content';
@@ -27,8 +27,9 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 			</a>
 		</p>
 	</PageHeader>
-    <div class="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+    <div class="flex flex-wrap gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
       <a href="/get-started/" class={buttonVariants({ size: 'lg' })}>Get Started</a>
+      <a href="/docs/" class={buttonVariants({ variant: 'outline', size: 'lg' })}>Read Docs <BookOpenIcon data-icon="inline-end" aria-hidden="true" /></a>
     </div>
 
 	<div>

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html'];
+const siteRoutes = ['/', '/commands/', '/tips/', '/docs/', '/404.html'];
 const phoneViewports = [
 	{ width: 320, height: 800 },
 	{ width: 360, height: 800 },

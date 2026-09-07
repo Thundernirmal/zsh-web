@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/troubleshooting/'];
+const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', '/troubleshooting/'];
 
 for (const route of siteRoutes) {
 	test(`${route} has no serious accessibility violations`, async ({ page }) => {
@@ -299,6 +299,27 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	await page.locator('main').getByRole('link', { name: 'Troubleshooting', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
+});
+
+test('the committed shell guide is reachable from the homepage', async ({ page }) => {
+	await page.goto('/');
+	const docsAction = page.locator('main').getByRole('link', { name: 'Read Docs', exact: true });
+	await expect(docsAction).toHaveAttribute('href', '/docs/');
+	await docsAction.click();
+	await expect(page.getByRole('heading', { name: 'Shared Zsh Configuration Guide', level: 1 })).toBeVisible();
+	await expect(page.getByText('Documentation snapshot', { exact: true })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'View GUIDE.md source' })).toHaveAttribute(
+		'href',
+		/\/blob\/[0-9a-f]{40}\/GUIDE\.md$/,
+	);
+	await expect(page.getByRole('link', { name: 'README.md', exact: true })).toHaveAttribute(
+		'href',
+		/\/blob\/[0-9a-f]{40}\/README\.md$/,
+	);
+	const firstTable = page.locator('.markdown-doc table').first();
+	await expect(firstTable).toHaveAttribute('tabindex', '0');
+	await firstTable.focus();
+	await expect(firstTable).toBeFocused();
 });
 
 test('homepage actions and guide content follow the site motion preference', async ({ page }) => {

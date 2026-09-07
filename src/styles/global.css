@@ -253,6 +253,111 @@
     @apply mt-1 inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-border bg-background px-2 text-xs font-medium whitespace-nowrap text-foreground transition-[color,background-color,border-color,box-shadow,transform,text-decoration-color] before:content-['Docs_↗'] hover:bg-muted hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:translate-y-px sm:mt-3 sm:h-6 sm:before:content-['Reference_↗'];
   }
 
+  .docs-source {
+    @apply grid max-w-[68ch] gap-1 border-l-2 border-primary pl-4 text-sm leading-6 text-muted-foreground;
+  }
+
+  .docs-source > :first-child {
+    @apply font-heading text-xs font-semibold tracking-[0.12em] text-primary uppercase;
+  }
+
+  .docs-source > :last-child {
+    @apply flex flex-wrap items-center gap-x-2;
+  }
+
+  .docs-source a,
+  .markdown-doc a {
+    @apply rounded-sm font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-[color,text-decoration-color] hover:text-foreground hover:decoration-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
+  }
+
+  .markdown-doc {
+    @apply grid w-full min-w-0 max-w-[68ch] grid-cols-[minmax(0,1fr)] gap-4 text-base leading-7 text-foreground;
+  }
+
+  .markdown-doc h1 {
+    @apply text-pretty text-4xl leading-tight font-semibold tracking-tight sm:text-5xl;
+  }
+
+  .markdown-doc h2 {
+    @apply mt-8 border-b pb-3 text-pretty text-2xl leading-tight font-semibold tracking-tight sm:text-3xl;
+  }
+
+  .markdown-doc h3 {
+    @apply mt-5 text-pretty text-xl leading-snug font-semibold;
+  }
+
+  .markdown-doc h4 {
+    @apply mt-3 text-pretty text-lg leading-snug font-semibold;
+  }
+
+  .markdown-doc :where(p, li) {
+    @apply text-pretty;
+  }
+
+  .markdown-doc :where(ul, ol) {
+    @apply grid gap-2 pl-6;
+  }
+
+  .markdown-doc ul {
+    @apply list-disc;
+  }
+
+  .markdown-doc ol {
+    @apply list-decimal;
+  }
+
+  .markdown-doc li > :where(ul, ol) {
+    @apply mt-2;
+  }
+
+  .markdown-doc pre {
+    @apply max-w-full overflow-x-auto rounded-lg border bg-terminal-background p-4 text-sm leading-6 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
+  }
+
+  .markdown-doc pre code {
+    @apply border-0 bg-transparent p-0 text-inherit;
+  }
+
+  .markdown-doc :not(pre) > code {
+    overflow-wrap: anywhere;
+  }
+
+  .markdown-doc table {
+    @apply block w-full max-w-full overflow-x-auto border-separate border-spacing-0 text-left text-sm leading-6 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
+  }
+
+  .markdown-doc th {
+    @apply border-y bg-card px-3 py-2 font-heading font-semibold whitespace-nowrap;
+  }
+
+  .markdown-doc th:first-child {
+    @apply border-l;
+  }
+
+  .markdown-doc th:last-child {
+    @apply border-r;
+  }
+
+  .markdown-doc td {
+    @apply border-b px-3 py-2 align-top;
+  }
+
+  .markdown-doc td:first-child {
+    @apply border-l;
+  }
+
+  .markdown-doc td:last-child {
+    @apply border-r;
+  }
+
+  .markdown-doc blockquote {
+    @apply grid gap-3 border-l-2 border-category-git pl-4 text-muted-foreground;
+  }
+
+  .markdown-doc hr {
+    @apply my-4 border-border;
+  }
+
   .roulette-category {
     border-color: color-mix(in srgb, var(--roulette-category, var(--foreground)) 30%, transparent);
     background: color-mix(in srgb, var(--roulette-category, var(--foreground)) 10%, transparent);

@@ -10,7 +10,7 @@ The extractor reads the local Zsh source directory (`~/.config/zsh` by default),
 
 - `src/data/commands.json`, built from `lib/command-registry.zsh`, aliases, globals, and domain function documentation
 - `src/data/tips.json`, built from `lib/tips-catalogue.zsh` with inferred categories, sources, and availability
-
+- `src/data/guide.md`, copied from `GUIDE.md` with repository-relative links pinned to the source commit
 - `src/data/source.json`, recording the clean shell commit, source commit date, and extractor schema version; CI checks out this exact revision
 
 To update the snapshot, commit shell changes, run `npm run sync`, review all generated changes, and commit them together. The sync date is the source commit date so repeated generation is deterministic. The manually dispatched **Update shell snapshot** workflow accepts a shell ref, regenerates data, runs `npm test`, and uploads a `shell-snapshot-patch` artifact. Review the patch, apply it locally with `git apply`, and commit the generated data through the normal review process. The workflow has read-only repository permissions.
