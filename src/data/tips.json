@@ -447,8 +447,8 @@
     "commandName": "zhelp"
   },
   {
-    "id": "tip-5ebf7f0e",
-    "text": "Run ztheme current to preview glyphs; Nerd Font icons require ZSH_UI_GLYPHS=nerd",
+    "id": "tip-e9bb5a14",
+    "text": "Run ztheme current to preview glyphs; set NO_NERD_FONT=1 if needed",
     "category": "utility",
     "source": "core",
     "availability": "Always available",
