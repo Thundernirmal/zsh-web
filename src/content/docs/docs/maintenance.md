@@ -1,4 +1,8 @@
-# Maintenance and verification
+---
+title: "Maintenance and verification"
+description: "Maintenance and verification from Nirmal's shared Zsh configuration."
+editUrl: false
+---
 
 ## Module layout
 
@@ -28,7 +32,9 @@ Captured package queries execute the fixed trusted `lib/query-supervisor.zsh` en
 
 General helpers load their fixed domain on first use: files/search, system diagnostics/network, Git, package orchestration/backend adapters, or Nix. Shared presentation fallbacks load once. Calling `mkcd` or `path` leaves package implementations unloaded; later calls use installed implementations directly. All paths remain fixed beneath the repository. Disk scanners collect records plus explicit state, diagnostics, and exit status before choosing a rich or plain renderer; both preserve partial-scan failures. `lib/command-registry.zsh` is data-only and shared by help and command-name completion; it records canonical names and descriptive mutation categories without authorizing any operation.
 
-## Documentation ownership
+## Maintenance and verification
+
+### Documentation ownership
 
 Keep each surface at one level:
 
@@ -43,7 +49,7 @@ Completed design plans and audits are retained in Git history; use this guide fo
 
 When user-facing behavior changes, update every affected surface without copying long explanations between them.
 
-## Editing rules
+### Editing rules
 
 - Startup-time dependency guards use `(( $+commands[tool] ))`.
 - Guards inside functions use `command -v ... >/dev/null 2>&1` so PATH changes and test stubs are visible.
@@ -54,7 +60,7 @@ When user-facing behavior changes, update every affected surface without copying
 
 Nix attribute completion reuses parsed names in the current session while each cache file’s device, inode, size, and modification time match. Replacing, adding, or removing cache files is reflected on the next completion. It never refreshes the index over the network.
 
-## Required checks
+### Required checks
 
 Run the repository-owned ordered sequence:
 

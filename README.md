@@ -10,7 +10,8 @@ The extractor reads the local Zsh source directory (`~/.config/zsh` by default),
 
 - `src/data/commands.json`, built from `lib/command-registry.zsh`, aliases, globals, and domain function documentation
 - `src/data/tips.json`, built from `lib/tips-catalogue.zsh` with inferred categories, sources, and availability
-- `src/data/guide.md` and `src/data/maintenance.md`, split from `GUIDE.md` into the user guide and maintenance page, with repository-relative links pinned to the source commit
+- `src/content/docs/docs/*.md`, partitioned from `GUIDE.md` into a Starlight overview and ten topic pages, with repository-relative links pinned to the source commit
+- `src/data/docs-links.json`, mapping legacy guide heading links to their new topic pages
 - `src/data/source.json`, recording the clean shell commit, source commit date, and extractor schema version; CI checks out this exact revision
 
 To update the snapshot, commit shell changes, run `npm run sync`, review all generated changes, and commit them together. The sync date is the source commit date so repeated generation is deterministic. The manually dispatched **Update shell snapshot** workflow accepts a shell ref, regenerates data, runs `npm test`, and uploads a `shell-snapshot-patch` artifact. Review the patch, apply it locally with `git apply`, and commit the generated data through the normal review process. The workflow has read-only repository permissions.
@@ -58,7 +59,7 @@ Install browser binaries once with `npx playwright install chromium firefox webk
 
 On other Linux distributions, Playwright may use Ubuntu browser builds. On Fedora, `sudo dnf install x264-libs` supplies the codec validation dependency when the configured repositories provide it. ABI-compatible ICU 74 and JPEG 8 libraries from Ubuntu's official archive can be kept in `~/.cache/ms-playwright/host-dependencies/lib` and linked into WebKit's bundled `sys/lib` folders. Refresh these links when installing a new WebKit build. This keeps compatibility libraries in the browser cache without replacing Fedora system libraries.
 
-The ESLint 10 accessibility rules use an explicit peer override because `eslint-plugin-jsx-a11y` still declares support through ESLint 9. Lint and the browser accessibility suite validate this combination. The shadcn variants used by the UI live in `src/styles/ui-variants.css` with their MIT license, so installing the generator CLI is unnecessary.
+The ESLint 10 accessibility rules use an explicit peer override because `eslint-plugin-jsx-a11y` still declares support through ESLint 9. Lint and the browser accessibility suite validate this combination. Starlight's Expressive Code dependency uses an override to `postcss-nested` 7, which accepts the patched selector parser; builds validate compatibility. The shadcn variants used by the UI live in `src/styles/ui-variants.css` with their MIT license, so installing the generator CLI is unnecessary.
 
 For the faster static validation gate without Playwright:
 
@@ -87,6 +88,7 @@ Individual commands:
 ## Architecture
 
 - Astro static pages with React islands for the route-critical search and filtering interfaces
+- Starlight documentation under `/docs/`, with grouped navigation, page outlines, previous/next links, and Pagefind search
 - Astro-native, on-demand tip roulette with no React hydration cost
 - Zod-validated Astro Content Collections backed by generated JSON
 - A branded static `404.html` route for static hosting platforms
@@ -96,3 +98,7 @@ Individual commands:
 - Static `dist/` output for Cloudflare Pages
 
 Cloudflare Pages should use `npm run build` as the build command and `dist` as the output directory. The deployment environment does not need access to the private local Zsh source directory because generated JSON is committed.
+
+Documentation uses the same palette and Outfit/Jakarta/JetBrains fonts through shared `src/styles/tokens.css`; its separate stylesheet avoids applying the app's Tailwind reset to Starlight. The fixed dark theme matches the rest of the site. `scripts/docs-guide.mjs` owns topic order and section ownership, shared by extraction and navigation. Unknown or missing source sections fail sync, and obsolete generated topic files are removed during sync. Edit the shell guide and this map rather than the generated Markdown. Old `/docs/#heading` links map to their topic heading; the overview replaces the former full guide page.
+
+Starlight loads its search UI during browser idle time and retrieves the search index when needed. Search requires a production build/preview; development mode shows Starlight's search notice. Budget checks include deferred JavaScript chunks as well as initial assets, including chunks using backtick import paths.

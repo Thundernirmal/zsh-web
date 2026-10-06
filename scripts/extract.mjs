@@ -1,5 +1,6 @@
 import fs from 'node:fs';
-import { describeCommandCondition, parseShellWords, splitGuide, validateCommandSemantics } from './extract-semantics.mjs';
+import { describeCommandCondition, parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
+import { generateGuideDocs } from './docs-guide.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -170,6 +171,7 @@ function hashString(value) {
 }
 
 function writeGeneratedFile(filePath, contents) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const tmpPath = `${filePath}.tmp`;
   fs.writeFileSync(tmpPath, contents);
   fs.renameSync(tmpPath, filePath);
@@ -991,24 +993,33 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 4,
+    schemaVersion: 5,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
-  const guidePages = splitGuide(guide);
+  const guidePages = generateGuideDocs(guide);
   const outputs = [
     { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
-    { filePath: path.join(DATA_DIR, 'guide.md'), contents: guidePages.reference },
-    { filePath: path.join(DATA_DIR, 'maintenance.md'), contents: guidePages.maintenance },
+    { filePath: path.join(DATA_DIR, 'docs-links.json'), contents: serializeJson(guidePages.anchors) },
+    ...guidePages.pages.map((page) => ({
+      filePath: path.join(DATA_DIR, '../content/docs/docs', `${page.slug}.md`),
+      contents: `---\ntitle: ${JSON.stringify(page.title)}\ndescription: ${JSON.stringify(`${page.title} from Nirmal's shared Zsh configuration.`)}\neditUrl: false\n---\n\n${page.body.trim()}\n`,
+    })),
   ];
+  const docsDir = path.join(DATA_DIR, '../content/docs/docs');
+  const expectedDocs = new Set(guidePages.pages.map((page) => `${page.slug}.md`));
+  const obsoleteDocs = fs.existsSync(docsDir)
+    ? fs.readdirSync(docsDir).filter((name) => name.endsWith('.md') && !expectedDocs.has(name))
+    : [];
 
   if (CHECK_ONLY) {
     const staleFiles = outputs
       .filter(({ filePath, contents }) => !isCurrentFile(filePath, contents))
       .map(({ filePath }) => path.relative(process.cwd(), filePath));
 
+    staleFiles.push(...obsoleteDocs.map((name) => path.relative(process.cwd(), path.join(docsDir, name))));
     if (staleFiles.length > 0) {
       throw new Error(`Generated data is stale: ${staleFiles.join(', ')}. Run npm run sync.`);
     }
@@ -1021,6 +1032,7 @@ function main() {
   for (const { filePath, contents } of outputs) {
     writeGeneratedFile(filePath, contents);
   }
+  for (const name of obsoleteDocs) fs.unlinkSync(path.join(docsDir, name));
 
   console.log(`[extract] Synced ${commands.length} commands and ${tips.length} tips from ${ZSH_DIR}.`);
 }

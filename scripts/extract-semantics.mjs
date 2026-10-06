@@ -12,28 +12,6 @@ export function describeCommandCondition(condition) {
   return `Available when ${joined} ${any || names.length === 1 ? 'is' : 'are'} installed`;
 }
 
-export function splitGuide(guide) {
-  // GFM treats pipes inside inline code as cell separators unless escaped.
-  guide = guide.replace(/^\|.*$/gm, (row) => row.replace(/`[^`\n]+`/g, (code) => code.replace(/(?<!\\)\|/g, '\\|')));
-  const marker = '\n## Maintenance and verification\n';
-  const offset = guide.indexOf(marker);
-  if (offset === -1) throw new Error('GUIDE.md is missing the maintenance section');
-  let reference = guide.slice(0, offset);
-  let moduleLayout = '';
-  const moduleMarker = '\n## Module layout\n';
-  const moduleStart = reference.indexOf(moduleMarker);
-  if (moduleStart !== -1) {
-    const nextSection = reference.indexOf('\n## ', moduleStart + moduleMarker.length);
-    const moduleEnd = nextSection === -1 ? reference.length : nextSection;
-    moduleLayout = reference.slice(moduleStart, moduleEnd);
-    reference = `${reference.slice(0, moduleStart)}${moduleMarker}\n[Read the module layout](/docs/maintenance/#module-layout).\n${reference.slice(moduleEnd)}`;
-  }
-  return {
-    reference: `${reference}${marker}\n[Read maintenance and verification instructions](/docs/maintenance/).\n`,
-    maintenance: `# Maintenance and verification\n${moduleLayout}${guide.slice(offset + marker.length).replace(/^### /gm, '## ')}`,
-  };
-}
-
 export function parseShellWords(line) {
   const words = [];
   let current = '';

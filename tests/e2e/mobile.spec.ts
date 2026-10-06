@@ -28,6 +28,7 @@ test('mobile navigation has stable touch targets and follows scroll direction', 
 	const heights: number[] = [];
 
 	for (const route of siteRoutes) {
+		if (route.startsWith('/docs/')) continue; // Starlight has its own sidebar/menu contract.
 		await page.goto(route);
 		const header = page.locator('[data-site-header]');
 		heights.push(await header.evaluate((element) => element.getBoundingClientRect().height));
