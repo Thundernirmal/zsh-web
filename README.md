@@ -25,7 +25,7 @@ ZSH_CONFIG_DIR=/path/to/zsh npm run sync
 
 ## Local development
 
-Requires Node.js 22.22.3 or newer and npm 10.9.2 or newer. The exact versions are pinned in `.nvmrc`, `.node-version`, and `package.json#engines` — keep all four in sync when bumping.
+Requires Node.js 22.22.3+ within the 22.x line, 24.16.0+ within 24.x, or 26.3.0+, and npm 10.9.2 or newer. `.nvmrc` and `.node-version` pin 22.22.3 for development and CI; `package.json#engines` declares the dependency-compatible supported range. Keep these declarations and this requirements line in sync when bumping.
 
 ```bash
 npm ci
