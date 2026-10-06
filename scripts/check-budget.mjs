@@ -12,6 +12,7 @@ const BUDGETS = {
   'index.html': { rawBytes: 62_000, gzipBytes: 10_500, elements: 350 },
   'get-started/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
   'docs/index.html': { rawBytes: 105_000, gzipBytes: 31_000, elements: 2_220 },
+  'docs/maintenance/index.html': { rawBytes: 30_000, gzipBytes: 8_000, elements: 280 },
   'troubleshooting/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
 };
 

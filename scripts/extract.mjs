@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
+import { describeCommandCondition, parseShellWords, splitGuide, validateCommandSemantics } from './extract-semantics.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -419,15 +419,7 @@ function describeCondition(condition) {
     return 'Available when the lt alias is available';
   }
 
-  // Fallback: avoid leaking raw shell syntax; keep human-readable and short
-  const cleaned = condition
-    .replace(/^if\s+/, '')
-    .replace(/;?\s*then$/, '')
-    .replace(/^\(\(|\)\)$/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 80);
-  return cleaned ? `Requires: ${cleaned}` : 'Conditional';
+  return describeCommandCondition(condition) ?? 'Conditional on shell configuration';
 }
 
 function inferTipSource(condition, text) {
@@ -999,15 +991,17 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 3,
+    schemaVersion: 4,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
+  const guidePages = splitGuide(guide);
   const outputs = [
     { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
-    { filePath: path.join(DATA_DIR, 'guide.md'), contents: guide },
+    { filePath: path.join(DATA_DIR, 'guide.md'), contents: guidePages.reference },
+    { filePath: path.join(DATA_DIR, 'maintenance.md'), contents: guidePages.maintenance },
   ];
 
   if (CHECK_ONLY) {

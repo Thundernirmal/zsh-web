@@ -1,7 +1,45 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', '/troubleshooting/'];
+const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', '/docs/maintenance/', '/troubleshooting/'];
+
+test('Nix picker syntax remains a subcommand with its matching example', async ({ page }) => {
+  await page.goto('/commands/?command=function%3Anpkg');
+  const details = page.locator('[data-command="npkg"] [data-slot="accordion-content"]');
+  await expect(details).toBeVisible();
+  const row = details.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true });
+  await expect(row).toHaveCount(1);
+  await expect(row.locator('dt, th').filter({ visible: true })).toHaveText('find [--] [query ...]');
+  await expect(row.getByText('npkg find nvim', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Read npkg reference', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'npkg', level: 1 })).toBeVisible();
+  await expect(page.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true }).getByText('npkg find nvim', { exact: true })).toBeVisible();
+});
+
+test('tip requirements read naturally and remain searchable', async ({ page }) => {
+  await page.goto('/tips/?q=fakeroot');
+  await expect.poll(() => page.getByRole('searchbox').inputValue()).toBe('fakeroot');
+  await expect(page.getByText('Available when pacman, checkupdates, and fakeroot are installed', { exact: true })).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('$+commands[');
+});
+
+test('maintenance instructions have their own accessible guide page', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/docs/#maintenance-and-verification');
+  const pipeAlias = page.getByRole('row').filter({ has: page.getByRole('cell', { name: 'G', exact: true }) });
+  await expect(pipeAlias.getByRole('cell')).toHaveCount(3);
+  await expect(pipeAlias.getByRole('cell').nth(1)).toHaveText('| grep');
+  await expect(pipeAlias.getByRole('cell').nth(2)).toHaveText('git log G fix');
+  await page.getByRole('link', { name: 'Read maintenance and verification instructions', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Maintenance and verification', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Required checks', level: 2, exact: true })).toBeVisible();
+  const table = page.locator('.markdown-doc table').first();
+  await expect(table).toHaveAttribute('tabindex', '0');
+  await table.focus();
+  await expect(table).toBeFocused();
+  await page.getByRole('link', { name: '← Back to the shell guide', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Shared Zsh Configuration Guide', level: 1 })).toBeVisible();
+});
 
 for (const route of siteRoutes) {
 	test(`${route} has no serious accessibility violations`, async ({ page }) => {
@@ -146,8 +184,11 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await expect(page.getByRole('button', { name: 'Show Random Tip' })).toBeEnabled();
 });
 
-test('client-side route transitions complete without console errors', async ({ page }) => {
+test('client-side route transitions complete without console errors', async ({ page, browserName }) => {
 	const errors: string[] = [];
+	// Allow extra time for WebKit navigation under parallel Linux workers;
+	// performance budgets remain in performance.spec.ts.
+	const navigationTimeout = browserName === 'webkit' ? 10_000 : 5_000;
 	page.on('console', (message) => {
 		if (message.type() === 'error') errors.push(message.text());
 	});
@@ -156,15 +197,15 @@ test('client-side route transitions complete without console errors', async ({ p
 	await page.goto('/');
 	await page.evaluate(() => document.fonts.ready);
 	await page.getByRole('link', { name: 'Commands', exact: true }).click();
-	await expect(page).toHaveURL(/\/commands\/?$/);
+	await expect(page).toHaveURL(/\/commands\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Command Reference' })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	await page.getByRole('link', { name: 'Tips', exact: true }).click();
-	await expect(page).toHaveURL(/\/tips\/?$/);
+	await expect(page).toHaveURL(/\/tips\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Shell Tips', level: 1 })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	await page.locator('header a[href="/"]:visible').first().click();
-	await expect(page).toHaveURL(/\/$/);
+	await expect(page).toHaveURL(/\/$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: "Nirmal's Shell", level: 1 })).toBeVisible();
 	await page.goto('/404.html');
 	await expect(page.getByRole('heading', { name: 'Command not found.' })).toBeVisible();
@@ -285,6 +326,9 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 
 test('tips lead to static command documentation', async ({ page }) => {
 	await page.goto('/tips/?q=croot');
+	// Wait for the visible island to restore the query before its rows replace
+	// the initial static catalogue, so navigation tests the hydrated link.
+	await expect.poll(() => page.getByRole('searchbox').inputValue()).toBe('croot');
 	const link = page.getByRole('link', { name: 'croot', exact: true });
 	await expect(link).toHaveAttribute('href', '/commands/croot/');
 	await link.click();

@@ -1,0 +1,37 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import source from '@/data/source.json';
+
+interface Props {
+  title: string;
+  description: string;
+  maintenance?: boolean;
+}
+const { title, description, maintenance = false } = Astro.props;
+const guideSource = `${source.repository}/blob/${source.commit}/GUIDE.md`;
+---
+
+<Layout title={title} description={description}>
+  <div class="docs-source motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+    <p>Documentation snapshot</p>
+    <p>
+      Shell commit <a href={`${source.repository}/tree/${source.commit}`}>{source.commit.slice(0, 8)}</a>
+      <span aria-hidden="true">·</span>
+      <a href={guideSource}>View GUIDE.md source</a>
+    </p>
+    {maintenance && <p><a href="/docs/">← Back to the shell guide</a></p>}
+  </div>
+  <article class="markdown-doc motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+    <slot />
+  </article>
+</Layout>
+
+<script>
+  const makeWideContentKeyboardScrollable = () => {
+    document.querySelectorAll<HTMLElement>('.markdown-doc :is(table, pre)').forEach((element) => {
+      element.tabIndex = 0;
+    });
+  };
+  document.addEventListener('astro:page-load', makeWideContentKeyboardScrollable);
+  makeWideContentKeyboardScrollable();
+</script>
