@@ -21,5 +21,15 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
+		// Discover router dependencies before the first request so late
+		// optimization does not invalidate the dev toolbar's module URLs.
+		optimizeDeps: {
+			include: [
+				'astro/virtual-modules/transitions-events.js',
+				'astro/virtual-modules/transitions-router.js',
+				'astro/virtual-modules/transitions-swap-functions.js',
+				'astro/virtual-modules/transitions-types.js',
+			],
+		},
 	},
 });
