@@ -25,7 +25,7 @@ ZSH_CONFIG_DIR=/path/to/zsh npm run sync
 
 ## Local development
 
-Requires Node.js 22.14.0 or newer and npm 10.9.2 or newer. The exact versions are pinned in `.nvmrc`, `.node-version`, and `package.json#engines` — keep all four in sync when bumping.
+Requires Node.js 22.22.3 or newer and npm 10.9.2 or newer. The exact versions are pinned in `.nvmrc`, `.node-version`, and `package.json#engines` — keep all four in sync when bumping.
 
 ```bash
 npm ci
@@ -55,6 +55,10 @@ npm test
 ```
 
 Install browser binaries once with `npx playwright install chromium firefox webkit` (CI also installs OS dependencies with `--with-deps`).
+
+On other Linux distributions, Playwright may use Ubuntu browser builds. On Fedora, `sudo dnf install x264-libs` supplies the codec validation dependency when the configured repositories provide it. ABI-compatible ICU 74 and JPEG 8 libraries from Ubuntu's official archive can be kept in `~/.cache/ms-playwright/host-dependencies/lib` and linked into WebKit's bundled `sys/lib` folders. Refresh these links when installing a new WebKit build. This keeps compatibility libraries in the browser cache without replacing Fedora system libraries.
+
+The ESLint 10 accessibility rules use an explicit peer override because `eslint-plugin-jsx-a11y` still declares support through ESLint 9. Lint and the browser accessibility suite validate this combination. The shadcn variants used by the UI live in `src/styles/ui-variants.css` with their MIT license, so installing the generator CLI is unnecessary.
 
 For the faster static validation gate without Playwright:
 
