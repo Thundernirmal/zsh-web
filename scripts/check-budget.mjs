@@ -11,8 +11,8 @@ const BUDGETS = {
   'tips/index.html': { rawBytes: 140_000, gzipBytes: 16_500, elements: 500 },
   'index.html': { rawBytes: 62_000, gzipBytes: 10_500, elements: 350 },
   'get-started/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
-  'docs/index.html': { rawBytes: 105_000, gzipBytes: 31_000, elements: 2_220 },
-  'docs/maintenance/index.html': { rawBytes: 30_000, gzipBytes: 8_000, elements: 280 },
+  'docs/index.html': { rawBytes: 35_000, gzipBytes: 8_000, elements: 320 },
+  'docs/maintenance/index.html': { rawBytes: 38_000, gzipBytes: 9_800, elements: 500 },
   'troubleshooting/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
 };
 
@@ -25,11 +25,38 @@ const ASSET_BUDGETS = {
   'commands/index.html': { jsGzip: 162_000, cssGzip: 23_000, fontBytes: 220_000 },
   'tips/index.html': { jsGzip: 148_000, cssGzip: 23_000, fontBytes: 220_000 },
 };
+// Starlight has a small initial script plus deferred Pagefind UI (~30 KB gzip
+// combined). Count both; keep app-route limits unchanged.
+const docsAssets = { jsGzip: 35_000, cssGzip: 23_000, fontBytes: 220_000 };
+for (const entry of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(path.join(DIST_DIR, 'docs'), { withFileTypes: true }) : []) {
+  if (entry.isDirectory()) {
+    const file = `docs/${entry.name}/index.html`;
+    BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
+    ASSET_BUDGETS[file] = docsAssets;
+  }
+}
+ASSET_BUDGETS['docs/index.html'] = docsAssets;
 const detailBudget = { rawBytes: 160_000, gzipBytes: 18_000, elements: 900 };
 for (const entry of fs.existsSync(path.join(DIST_DIR, 'commands')) ? fs.readdirSync(path.join(DIST_DIR, 'commands'), { withFileTypes: true }) : []) {
   if (entry.isDirectory()) BUDGETS[`commands/${entry.name}/index.html`] = detailBudget;
 }
 let failures = 0;
+
+// Pagefind loads its runtime/WASM/index separately when searching. Bound the
+// entire generated directory conservatively, including unused UI variants.
+function directoryBytes(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).reduce((sum, entry) => {
+    const file = path.join(directory, entry.name);
+    return sum + (entry.isDirectory() ? directoryBytes(file) : fs.statSync(file).size);
+  }, 0);
+}
+const searchDirectory = path.join(DIST_DIR, 'pagefind');
+const searchBytes = fs.existsSync(searchDirectory) ? directoryBytes(searchDirectory) : Infinity;
+if (searchBytes > 900_000) {
+  console.error(`✗ Pagefind generated assets: ${searchBytes} exceeds 900,000 bytes or is missing`);
+  failures += 1;
+}
+console.log(`Pagefind generated assets: ${searchBytes} bytes`);
 
 for (const [file, budget] of Object.entries(BUDGETS)) {
   const fullPath = path.join(DIST_DIR, file);
