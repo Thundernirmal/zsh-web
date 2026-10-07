@@ -142,6 +142,7 @@ test('a rejected history write does not block search and is retried', async ({ p
     };
   });
   await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('fakeroot');
+  expect(await page.evaluate(() => sessionStorage.getItem(`docs-query:${history.state.docsQueryId}`))).toBe('fakeroot');
   await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
   await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('fakeroot');
   expect(errors).toEqual([]);
@@ -448,4 +449,50 @@ test('a changed index version refreshes the cache after topic navigation', async
   await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('newterm');
   await expect(page.getByRole('link', { name: /^Updated index/ })).toBeVisible();
   expect(requests).toHaveLength(2);
+});
+
+test('ordinary native fragments retain complete router state, query and scroll through traversal', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/docs/nix/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => { location.hash = 'picker-cache-and-dependencies'; });
+  await expect.poll(() => page.evaluate(() => history.state?.index)).toEqual(expect.any(Number));
+  await expect(page.locator('#picker-cache-and-dependencies')).toBeInViewport();
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.fill('nix profiles');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await input.evaluate((element) => (element as HTMLInputElement).blur());
+  const state = await page.evaluate(() => history.state);
+  expect(state).toMatchObject({ index: expect.any(Number), scrollX: expect.any(Number), scrollY: expect.any(Number), docsQueryId: expect.any(String) });
+  await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' }));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(400);
+  await page.locator('.docs-pagination a').last().evaluate((link) => (link as HTMLAnchorElement).click());
+  await expect(page.getByRole('heading', { name: 'Credentials', level: 1 })).toBeVisible();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await expect(input).toHaveValue('nix profiles');
+  await expect.poll(() => page.evaluate(() => history.state?.index)).toBe(state.index);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(400);
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Credentials', level: 1 })).toBeVisible();
+});
+
+test('query snapshots work on an insecure HTTP origin', async ({ page, request, baseURL }) => {
+  const origin = 'http://docs-http.test';
+  await page.route(`${origin}/**`, async (route) => {
+    const url = new URL(route.request().url());
+    const response = await request.get(new URL(url.pathname + url.search, baseURL).href);
+    await route.fulfill({ response });
+  });
+  await page.goto(`${origin}/docs/`);
+  expect(await page.evaluate(() => isSecureContext)).toBe(false);
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.pressSequentially('fakeroot', { delay: 15 });
+  const identity = await page.evaluate(() => history.state.docsQueryId);
+  expect(identity).toEqual(expect.any(String));
+  await page.reload();
+  await expect(input).toHaveValue('fakeroot');
+  expect(await page.evaluate(() => history.state.docsQueryId)).toBe(identity);
 });

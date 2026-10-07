@@ -4,7 +4,8 @@
 .docs-breadcrumb a:hover { text-decoration: underline; }
 .docs-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: start; }
 .docs-sidebar, .docs-reading { min-width: 0; }
-.docs-reading { display: grid; gap: 1.5rem; }
+/* Search results restored after traversal must not shift the router's scroll. */
+.docs-reading { display: grid; gap: 1.5rem; overflow-anchor: none; }
 .docs-menu { border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); padding: 0.5rem; }
 .docs-menu summary, .docs-menu-title { display: flex; align-items: center; gap: 0.625rem; min-height: 44px; padding: 0.5rem 0.625rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; list-style: none; }
 .docs-menu summary::-webkit-details-marker, .docs-outline summary::-webkit-details-marker { display: none; }

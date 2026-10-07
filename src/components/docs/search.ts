@@ -1,3 +1,5 @@
+import { preserveRouterState } from './history';
+
 interface Entry { title: string; url: string; text: string; lower: [string, string] }
 let catalog: Promise<Entry[]> | undefined;
 let failed = false;
@@ -45,7 +47,8 @@ function initSearch() {
   // A document-level navigation can reuse Astro's index zero. Stamp an opaque
   // identity once per entry and retain it on reload/traversal instead.
   const entryKey = () => {
-    if (!history.state?.docsQueryId) history.replaceState({ ...history.state, docsQueryId: crypto.randomUUID() }, '');
+    const state = preserveRouterState();
+    if (!state.docsQueryId) history.replaceState({ ...state, docsQueryId: Array.from(crypto.getRandomValues(new Uint32Array(4)), (word) => word.toString(16)).join('-') }, '');
     return `docs-query:${history.state.docsQueryId}`;
   };
   const remember = () => {
