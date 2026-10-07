@@ -30,5 +30,10 @@ export function guideNavigationTitle(page) {
 export function validateGuideSlugs(slugs) {
   const registered = new Set(guidePages.map((page) => page.slug));
   const unknown = slugs.filter((slug) => !registered.has(slug));
-  if (unknown.length) throw new Error(`Unknown guide topics: ${unknown.join(', ')}. Register them in src/lib/guide-topics.mjs.`);
+  const present = new Set(slugs);
+  const missing = guidePages.filter((page) => !present.has(page.slug)).map((page) => page.slug);
+  const errors = [];
+  if (unknown.length) errors.push(`Unknown guide topics: ${unknown.join(', ')}. Register them in src/lib/guide-topics.mjs.`);
+  if (missing.length) errors.push(`Missing guide topics: ${missing.join(', ')}. Regenerate the guide with npm run sync.`);
+  if (errors.length) throw new Error(errors.join(' '));
 }

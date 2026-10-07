@@ -4,7 +4,13 @@ import { guideNavigationTitle, guideOverview, guidePages, guideTopics, validateG
 
 test('guide routes reject every unknown id before mapping routes', () => {
   assert.doesNotThrow(() => validateGuideSlugs(guidePages.map((page) => page.slug)));
-  assert.throws(() => validateGuideSlugs(['index', 'unexpected', 'nested/extra']), /Unknown guide topics: unexpected, nested\/extra/);
+  assert.throws(() => validateGuideSlugs([...guidePages.map((page) => page.slug), 'unexpected', 'nested/extra']), /Unknown guide topics: unexpected, nested\/extra/);
+});
+
+test('guide routes reject missing registered pages as well as unknown ids', () => {
+  const slugs = guidePages.filter((page) => page.slug !== 'nix').map((page) => page.slug);
+  assert.throws(() => validateGuideSlugs(slugs), /Missing guide topics: nix/);
+  assert.throws(() => validateGuideSlugs([...slugs, 'extra']), /Unknown guide topics: extra.*Missing guide topics: nix/);
 });
 
 test('navigation consumes the original topic records with one overview label override', () => {
