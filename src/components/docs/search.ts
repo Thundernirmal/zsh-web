@@ -29,18 +29,21 @@ function load(url: string) {
 function initSearch() {
   const root = document.querySelector<HTMLElement>('[data-docs-search]');
   if (!root || root.dataset.ready) return;
-  root.dataset.ready = 'true';
   if (catalogUrl !== root.dataset.indexUrl) { catalogUrl = root.dataset.indexUrl!; resetCatalog(); }
-  const select = <T extends Element = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
+  const select = <T extends Element = HTMLElement>(selector: string) => {
+    const element = root.querySelector<T>(selector);
+    if (!element) throw new Error(`Missing guide search control: ${selector}`);
+    return element;
+  };
   const input = select<HTMLInputElement>('input');
-  input.disabled = false;
-  select<HTMLAnchorElement>('[data-search-reload]').hidden = true;
   const status = select<HTMLElement>('[data-search-status]');
   const panel = select<HTMLElement>('[data-search-panel]');
   const error = select<HTMLElement>('[data-search-error]');
   const results = select<HTMLElement>('[data-search-results]');
   const clear = select<HTMLButtonElement>('[data-search-clear]');
   const template = select<HTMLTemplateElement>('template');
+  const retry = select<HTMLButtonElement>('[data-search-retry]');
+  const reload = select<HTMLAnchorElement>('[data-search-reload]');
   let urlTimer: ReturnType<typeof setTimeout> | undefined;
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   let statusMessage = status.textContent ?? '';
@@ -134,7 +137,7 @@ function initSearch() {
   input.addEventListener('input', () => { remember(); void search(); syncUrl(); });
   const reset = () => { input.value = ''; remember(); void search(); syncUrl(true); input.focus(); };
   clear.addEventListener('click', reset);
-  root.querySelector('[data-search-retry]')!.addEventListener('click', () => { resetCatalog(); input.focus(); void search(); });
+  retry.addEventListener('click', () => { resetCatalog(); input.focus(); void search(); });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') reset();
     if (event.key === 'Enter') syncUrl(true);
@@ -151,6 +154,9 @@ function initSearch() {
   }, { signal: listeners.signal });
   remember();
   syncUrl();
+  reload.hidden = true;
+  input.disabled = false;
+  root.dataset.ready = 'true';
   void search();
 }
 document.addEventListener('keydown', (event) => {

@@ -553,3 +553,22 @@ test('docs command shortcuts accept either case and select the existing query', 
     await expect(input).toHaveValue('replacement');
   }
 });
+
+test('partial search initialization keeps the native reload recovery available', async ({ page }) => {
+  await page.clock.install();
+  await page.route('**/docs/', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, body: (await response.text()).replace(/<template data-search-template>[\s\S]*?<\/template>/, '') });
+  });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).not.toHaveAttribute('data-ready', 'true');
+  await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toBeDisabled();
+  await page.clock.fastForward(10_001);
+  await expect(page.getByRole('status')).toContainText('Couldn’t initialize guide search');
+  const reload = page.getByRole('link', { name: 'Reload search' });
+  await expect(reload).toBeVisible();
+  await page.unroute('**/docs/');
+  await reload.click();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toBeEnabled();
+});
