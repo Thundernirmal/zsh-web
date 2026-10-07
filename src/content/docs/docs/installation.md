@@ -1,6 +1,6 @@
 ---
 title: "Installation and requirements"
-description: "Installation and requirements from Nirmal's shared Zsh configuration."
+description: "Set up your shell and check the tools it needs."
 ---
 
 ## Setup and scope

@@ -1,6 +1,6 @@
 ---
 title: "Credentials"
-description: "Credentials from Nirmal's shared Zsh configuration."
+description: "Store and load shell credentials with cgm."
 ---
 
 ## Credential manager: cgm

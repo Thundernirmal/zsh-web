@@ -1,6 +1,6 @@
 ---
 title: "Themes and terminal output"
-description: "Themes and terminal output from Nirmal's shared Zsh configuration."
+description: "Choose colors, glyphs, and finder layouts."
 ---
 
 ## Terminal output modes

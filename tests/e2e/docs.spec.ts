@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { guideTopics } from '../../scripts/docs-guide.mjs';
+import { guideTopics } from '../../src/lib/guide-topics.mjs';
 import legacyLinks from '../../src/data/docs-links.json' with { type: 'json' };
 
 test('every generated legacy target exists in rendered topic HTML', async ({ request }) => {

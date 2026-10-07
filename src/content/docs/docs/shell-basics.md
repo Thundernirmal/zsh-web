@@ -1,6 +1,6 @@
 ---
 title: "Shell basics"
-description: "Shell basics from Nirmal's shared Zsh configuration."
+description: "History, completion, aliases, and everyday shortcuts."
 ---
 
 ## Shell options and history

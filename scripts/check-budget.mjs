@@ -1,5 +1,5 @@
 import { routeAssets } from './route-assets.mjs';
-import { guideTopics } from './docs-guide.mjs';
+import { guideTopics } from '../src/lib/guide-topics.mjs';
 import { gzipSync } from 'node:zlib';
 import fs from 'node:fs';
 import path from 'node:path';

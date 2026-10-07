@@ -993,7 +993,7 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 7,
+    schemaVersion: 8,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
@@ -1006,13 +1006,13 @@ function main() {
     { filePath: path.join(DATA_DIR, 'docs-search.json'), contents: serializeJson(guideSearchIndex(guidePages.pages)) },
     ...guidePages.pages.map((page) => ({
       filePath: path.join(DATA_DIR, '../content/docs/docs', `${page.slug}.md`),
-      contents: `---\ntitle: ${JSON.stringify(page.title)}\ndescription: ${JSON.stringify(`${page.title} from Nirmal's shared Zsh configuration.`)}\n---\n\n${page.body.trim()}\n`,
+      contents: `---\ntitle: ${JSON.stringify(page.title)}\ndescription: ${JSON.stringify(page.description)}\n---\n\n${page.body.trim()}\n`,
     })),
   ];
   const docsDir = path.join(DATA_DIR, '../content/docs/docs');
   const expectedDocs = new Set(guidePages.pages.map((page) => `${page.slug}.md`));
   const obsoleteDocs = fs.existsSync(docsDir)
-    ? fs.readdirSync(docsDir).filter((name) => name.endsWith('.md') && !expectedDocs.has(name))
+    ? fs.readdirSync(docsDir, { recursive: true }).filter((name) => name.endsWith('.md') && !expectedDocs.has(name))
     : [];
 
   if (CHECK_ONLY) {

@@ -1,6 +1,6 @@
 ---
 title: "Navigation and finders"
-description: "Navigation and finders from Nirmal's shared Zsh configuration."
+description: "Move between directories and make the most of fzf."
 ---
 
 ## Zoxide and fzf

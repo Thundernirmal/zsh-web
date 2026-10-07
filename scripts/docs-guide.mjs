@@ -3,19 +3,7 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfm } from 'micromark-extension-gfm';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
 
-// One navigation/section map shared by extraction and the custom documentation.
-export const guideTopics = [
-  { slug: 'installation', title: 'Installation and requirements', description: 'Set up your shell and check the tools it needs.', sections: ['Setup and scope', 'Dependencies'] },
-  { slug: 'shell-basics', title: 'Shell basics', description: 'History, completion, aliases, and everyday shortcuts.', sections: ['Shell options and history', 'Completion', 'Aliases'] },
-  { slug: 'finders', title: 'Navigation and finders', description: 'Move between directories and make the most of fzf.', sections: ['Zoxide and fzf'] },
-  { slug: 'commands', title: 'Command discovery and helpers', description: 'Find commands and learn the helpers behind them.', sections: ['Command discovery', 'Function reference'] },
-  { slug: 'packages', title: 'Package workflows', description: 'Check, search, upgrade, and clean with upkg.', sections: ['Package manager: upkg'] },
-  { slug: 'nix', title: 'Nix profiles and pickers', description: 'Manage profiles, select packages, and compare outputs.', sections: ['Nix profile manager: npkg'] },
-  { slug: 'credentials', title: 'Credentials', description: 'Store and load shell credentials with cgm.', sections: ['Credential manager: cgm'] },
-  { slug: 'themes', title: 'Themes and terminal output', description: 'Choose colors, glyphs, and finder layouts.', sections: ['Terminal output modes'] },
-  { slug: 'safety', title: 'Gotchas and safety', description: 'Understand the boundaries before changing shell state.', sections: ['Gotchas and safety boundaries'] },
-  { slug: 'maintenance', title: 'Maintenance and verification', description: 'Explore the modules and verify changes to the config.', sections: ['Module layout', 'Maintenance and verification'] },
-];
+import { guideTopics } from '../src/lib/guide-topics.mjs';
 
 function parseMarkdown(markdown) {
   return fromMarkdown(markdown, { extensions: [gfm()], mdastExtensions: [gfmFromMarkdown()] });
@@ -45,25 +33,39 @@ export function guideSearchIndex(pages) {
 export function generateGuideDocs(guide) {
   // CommonMark code spans supply exact source ranges. Fenced/indented code
   // stays opaque, so table compatibility escaping cannot mutate examples.
-  const edits = [];
+  const spans = [];
   const visit = (node) => {
-    if (node.type === 'inlineCode') {
-      const start = node.position.start.offset;
-      const end = node.position.end.offset;
-      const line = guide.slice(guide.lastIndexOf('\n', start - 1) + 1, start);
-      if (/^\s*\|/.test(line)) edits.push({ start, end, text: guide.slice(start, end).replace(/(?<!\\)\|/g, '\\|') });
-    }
+    if (node.type === 'inlineCode') spans.push({ start: node.position.start.offset, end: node.position.end.offset });
     for (const child of node.children ?? []) visit(child);
   };
   visit(fromMarkdown(guide));
+  // Mask code-span pipes without changing offsets before recognizing tables.
+  // This also allows pipes in header cells, which would otherwise break GFM's
+  // header/delimiter column-count check before we can repair them.
+  let probe = guide;
+  for (const { start, end } of [...spans].reverse()) probe = probe.slice(0, start) + probe.slice(start, end).replace(/(?<!\\)\|/g, 'x') + probe.slice(end);
+  const tableRanges = [];
+  const collectTables = (node) => {
+    if (node.type === 'table') tableRanges.push([node.position.start.offset, node.position.end.offset]);
+    for (const child of node.children ?? []) collectTables(child);
+  };
+  collectTables(parseMarkdown(probe));
+  const edits = spans.filter(({ start, end }) => tableRanges.some(([begin, finish]) => start >= begin && end <= finish))
+    .map(({ start, end }) => ({ start, end, text: guide.slice(start, end).replace(/(?<!\\)\|/g, '\\|') }));
   for (const edit of edits.reverse()) guide = guide.slice(0, edit.start) + edit.text + guide.slice(edit.end);
   const tree = parseMarkdown(guide);
   const originalSlugger = new GithubSlugger();
-  const headings = tree.children.filter((node) => node.type === 'heading').map((node) => {
+  const headingNodes = [];
+  const collectHeadings = (node, root = false) => {
+    if (node.type === 'heading') headingNodes.push({ node, root });
+    for (const child of node.children ?? []) collectHeadings(child, node.type === 'root');
+  };
+  collectHeadings(tree);
+  const headings = headingNodes.map(({ node, root }) => {
     const text = inlineText(node);
-    return { level: node.depth, text, offset: node.position.start.offset, oldAnchor: originalSlugger.slug(text) };
+    return { root, level: node.depth, text, offset: node.position.start.offset, oldAnchor: originalSlugger.slug(text) };
   });
-  const sections = headings.filter((heading) => heading.level === 2);
+  const sections = headings.filter((heading) => heading.root && heading.level === 2);
   if (sections.filter((section) => section.text === 'Contents').length > 1) throw new Error('GUIDE.md contains duplicate Contents sections');
   const assigned = guideTopics.flatMap((topic) => topic.sections);
   for (const title of assigned) {
@@ -74,7 +76,7 @@ export function generateGuideDocs(guide) {
   }
   if (new Set(assigned).size !== assigned.length) throw new Error('Guide section assigned more than once');
 
-  const anchors = { contents: '/docs/#explore-the-guide', 'shared-zsh-configuration-guide': '/docs/#_top' };
+  const anchors = Object.assign(Object.create(null), { contents: '/docs/#explore-the-guide', 'shared-zsh-configuration-guide': '/docs/#_top' });
   const pages = guideTopics.map((topic) => {
     const slugger = new GithubSlugger();
     const chunks = topic.sections.map((title) => {
@@ -87,13 +89,13 @@ export function generateGuideDocs(guide) {
       }
       return guide.slice(section.offset, end).trim();
     });
-    return { slug: topic.slug, title: topic.title, body: chunks.join('\n\n') };
+    return { slug: topic.slug, title: topic.title, description: topic.description, body: chunks.join('\n\n') };
   });
-  const rewrite = (body) => body.replace(/\]\(#([^)]*)\)/g, (match, anchor) => anchors[anchor] ? `](${anchors[anchor]})` : match);
+  const rewrite = (body) => body.replace(/\]\(#([^)]*)\)/g, (match, anchor) => Object.hasOwn(anchors, anchor) ? `](${anchors[anchor]})` : match);
   const intro = guide.slice(0, sections[0]?.offset ?? guide.length).replace(/^# .+\n/, '').trim();
   const overview = `${intro}\n`;
   return {
-    pages: [{ slug: 'index', title: 'Shell guide', body: overview }, ...pages].map((page) => ({ ...page, body: rewrite(page.body) })),
+    pages: [{ slug: 'index', title: 'Shell guide', description: 'Setup, everyday workflows, and the details behind your commands.', body: overview }, ...pages].map((page) => ({ ...page, body: rewrite(page.body) })),
     anchors,
   };
 }

@@ -1,6 +1,6 @@
 ---
 title: "Nix profiles and pickers"
-description: "Nix profiles and pickers from Nirmal's shared Zsh configuration."
+description: "Manage profiles, select packages, and compare outputs."
 ---
 
 ## Nix profile manager: npkg

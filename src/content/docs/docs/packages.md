@@ -1,6 +1,6 @@
 ---
 title: "Package workflows"
-description: "Package workflows from Nirmal's shared Zsh configuration."
+description: "Check, search, upgrade, and clean with upkg."
 ---
 
 ## Package manager: upkg

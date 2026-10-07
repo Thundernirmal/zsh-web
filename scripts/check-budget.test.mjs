@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { guideTopics } from './docs-guide.mjs';
+import { guideTopics } from '../src/lib/guide-topics.mjs';
 
 test('budget gate rejects a missing mapped topic even when dist omits its directory', () => {
   const dist = fs.mkdtempSync(path.join(os.tmpdir(), 'guide-budget-'));

@@ -1,6 +1,6 @@
 ---
 title: "Command discovery and helpers"
-description: "Command discovery and helpers from Nirmal's shared Zsh configuration."
+description: "Find commands and learn the helpers behind them."
 ---
 
 ## Command discovery

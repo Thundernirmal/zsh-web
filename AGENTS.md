@@ -38,7 +38,7 @@ Run `npm run verify` for static checks and `npm run test:e2e` for UI changes.
 
 ## Guide snapshots and documentation
 
-`GUIDE.md` in the [companion Zsh repository](https://github.com/Thundernirmal/zsh) owns guide content. `scripts/docs-guide.mjs` owns topic order, titles, descriptions, and section assignments. Adding, renaming, removing, or duplicating a source `##` section requires a coordinated map update; unknown or missing sections deliberately fail sync. Keep shell behavior authoritative when adjusting extraction.
+`GUIDE.md` in the [companion Zsh repository](https://github.com/Thundernirmal/zsh) owns guide content. `src/lib/guide-topics.mjs` owns topic order, titles, descriptions, and section assignments. Adding, renaming, removing, or duplicating a source `##` section requires a coordinated map update; unknown or missing sections deliberately fail sync. Keep shell behavior authoritative when adjusting extraction.
 
 Regenerate with `npm run sync` from a clean, committed source checkout. Review generated commands, tips, topic Markdown, heading mappings, search index, and source metadata together; never hand-edit generated files or only advance the source SHA. The pinned revision must be available remotely before CI fetches it. A documentation-only shell commit still changes the snapshot revision.
 
