@@ -4,7 +4,7 @@ import PageHeader from '@/components/PageHeader.astro';
 import DocsSearch from '@/components/docs/DocsSearch.astro';
 import DocsTopicNav from '@/components/docs/DocsTopicNav.astro';
 import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, ChevronDownIcon } from 'lucide-react';
-import { guidePages, guideTopics, guideUrl } from '@/lib/guide-topics.mjs';
+import { guideNavigationTitle, guideOverview, guidePages, guideTopics, guideUrl } from '@/lib/guide-topics.mjs';
 import source from '@/data/source.json';
 import legacyLinks from '@/data/docs-links.json';
 import '../styles/docs.css';
@@ -21,6 +21,7 @@ const position = guidePages.findIndex((page) => page.slug === slug);
 if (position < 0) throw new Error(`Unknown guide topic: ${slug}. Register it in src/lib/guide-topics.mjs.`);
 const previous = guidePages[position - 1];
 const next = guidePages[position + 1];
+const destinationTitles = new Map(guidePages.map((page) => [guideUrl(page.slug), page.title]));
 ---
 
 <Layout title={title} description={description}>
@@ -48,7 +49,7 @@ const next = guidePages[position + 1];
 
     <div class="docs-reading">
       {overview && <div data-legacy-links>
-        {Object.entries(legacyLinks).map(([anchor, href]) => <a id={anchor} href={href} class="text-link">Open {guideTopics.find((page) => href.startsWith(`/docs/${page.slug}/`))?.title ?? 'Shell guide'}</a>)}
+        {Object.entries(legacyLinks).map(([anchor, href]) => <a id={anchor} href={href} class="text-link">Open {destinationTitles.get(href.split('#')[0]) ?? guideOverview.title}</a>)}
       </div>}
       <DocsSearch />
       {!overview && headings.length > 0 && <details class="docs-outline">
@@ -76,8 +77,8 @@ const next = guidePages[position + 1];
       </aside>
 
       <nav class="docs-pagination" aria-label="Guide pagination">
-        {previous ? <a href={guideUrl(previous.slug)}><ArrowLeftIcon className="size-4" aria-hidden="true" /><div><span>Previous</span><strong>{previous.navigationTitle}</strong></div></a> : <span></span>}
-        {next && <a href={guideUrl(next.slug)} class="docs-pagination-next"><div><span>Next</span><strong>{next.navigationTitle}</strong></div><ArrowRightIcon className="size-4" aria-hidden="true" /></a>}
+        {previous ? <a href={guideUrl(previous.slug)}><ArrowLeftIcon className="size-4" aria-hidden="true" /><div><span>Previous</span><strong>{guideNavigationTitle(previous)}</strong></div></a> : <span></span>}
+        {next && <a href={guideUrl(next.slug)} class="docs-pagination-next"><div><span>Next</span><strong>{guideNavigationTitle(next)}</strong></div><ArrowRightIcon className="size-4" aria-hidden="true" /></a>}
       </nav>
     </div>
   </div>

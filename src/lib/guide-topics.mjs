@@ -21,4 +21,14 @@ export const guideTopics = [
   { slug: 'maintenance', title: 'Maintenance and verification', description: 'Explore the modules and verify changes to the config.', sections: ['Module layout', 'Maintenance and verification'] },
 ];
 
-export const guidePages = [guideOverview, ...guideTopics.map((topic) => ({ ...topic, navigationTitle: topic.title }))];
+export const guidePages = [guideOverview, ...guideTopics];
+
+export function guideNavigationTitle(page) {
+  return page.slug === guideOverview.slug ? guideOverview.navigationTitle : page.title;
+}
+
+export function validateGuideSlugs(slugs) {
+  const registered = new Set(guidePages.map((page) => page.slug));
+  const unknown = slugs.filter((slug) => !registered.has(slug));
+  if (unknown.length) throw new Error(`Unknown guide topics: ${unknown.join(', ')}. Register them in src/lib/guide-topics.mjs.`);
+}

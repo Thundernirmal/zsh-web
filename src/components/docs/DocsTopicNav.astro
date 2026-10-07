@@ -1,10 +1,10 @@
 ---
-import { guidePages, guideUrl } from '@/lib/guide-topics.mjs';
+import { guideNavigationTitle, guidePages, guideUrl } from '@/lib/guide-topics.mjs';
 interface Props { slug: string }
 const { slug } = Astro.props;
 ---
 <nav aria-label="Guide navigation" class="docs-topic-nav">
   {guidePages.map((page, index) => <a href={guideUrl(page.slug)} aria-current={page.slug === slug ? 'page' : undefined}>
-    <span class="docs-topic-number" aria-hidden="true">{index === 0 ? '—' : String(index).padStart(2, '0')}</span>{page.navigationTitle}
+    <span class="docs-topic-number" aria-hidden="true">{index === 0 ? '—' : String(index).padStart(2, '0')}</span>{guideNavigationTitle(page)}
   </a>)}
 </nav>
