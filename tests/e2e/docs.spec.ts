@@ -285,17 +285,21 @@ test('emitted legacy-link CSS keeps its hiding rule independent of :has support'
 });
 
 test('displayed typographic quotes and straight quotes find the same guide passage', async ({ page }) => {
+  const authored = `Author's "sample phrase"`;
+  await page.route('**/docs-search.json?*', (route) => route.fulfill({ json: [{ title: 'Quote fixture', url: '/docs/finders/', text: authored }] }));
+  await page.route('**/docs/finders/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/<article[^>]*>/, '$&<p data-quote-fixture>Author’s “sample phrase”</p>');
+    await route.fulfill({ response, body });
+  });
   await page.goto('/docs/finders/');
-  const paragraph = page.locator('.markdown-doc p').filter({ hasText: 'interactive picker' }).first();
-  const displayed = await paragraph.innerText();
-  const phrase = displayed.match(/zoxide[’']s interactive picker/)?.[0];
-  expect(phrase).toBeTruthy();
+  const displayed = await page.locator('[data-quote-fixture]').innerText();
   const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
   await expect(input).toBeEnabled();
-  await input.fill(phrase!);
-  const result = page.getByRole('list', { name: 'Guide search results' }).getByRole('link', { name: /^Navigation and finders/ });
+  await input.fill(displayed);
+  const result = page.getByRole('list', { name: 'Guide search results' }).getByRole('link', { name: /^Quote fixture/ });
   await expect(result).toBeVisible();
-  await input.fill(phrase!.replace('’', "'"));
+  await input.fill(authored);
   await expect(result).toBeVisible();
 });
 
