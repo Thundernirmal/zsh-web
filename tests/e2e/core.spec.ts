@@ -363,22 +363,29 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 	await page.addInitScript(() => {
 		let calls = 0;
 		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => {
-			if (++calls === 1) throw new Error('Clipboard blocked');
+			document.documentElement.dataset.clipboardCalls = String(++calls);
+			if (calls === 1) throw new Error('Clipboard blocked');
 		} } });
 	});
 	await page.goto('/commands/?command=function%3Aupkg');
+	const command = page.locator('[data-command="upkg"]');
+	// The deep link finishes restoring focus and scroll in an animation frame.
+	// Wait for that visible state before focusing the clipboard control.
+	await expect.poll(() => command.locator('[data-slot="accordion-trigger"]').evaluate((element) => element === document.activeElement)).toBe(true);
 	const searchbox = page.getByRole('searchbox');
 	await expect.poll(async () => {
 		await page.keyboard.press('ControlOrMeta+k');
 		return searchbox.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
-	const command = page.locator('[data-command="upkg"]');
 	const copy = command.getByRole('button', { name: 'Copy example: upkg', exact: true });
-	await copy.click();
+	await copy.focus();
+	await copy.press('Enter');
+	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '1');
 	await expect(command.getByRole('status').filter({ hasText: 'Could not copy; select the text manually.' })).toBeVisible();
 	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 	await expect(command.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
-	await copy.click();
+	await copy.press('Enter');
+	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '2');
 	await expect(command.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toHaveCount(1);
 	await expect(command.getByText('Could not copy; select the text manually.')).toHaveCount(0);
 });
