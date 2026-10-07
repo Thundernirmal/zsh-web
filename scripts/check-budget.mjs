@@ -1,5 +1,5 @@
 import { routeAssets } from './route-assets.mjs';
-import { guideTopics } from '../src/lib/guide-topics.mjs';
+import { guidePages, guideUrl } from '../src/lib/guide-topics.mjs';
 import { gzipSync } from 'node:zlib';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,19 +31,19 @@ const ASSET_BUDGETS = {
 // recovery. Reserve compression headroom for these controllers across Node
 // versions; the on-demand index remains separately budgeted below.
 const docsAssets = { jsGzip: 8_500, cssGzip: 23_000, fontBytes: 220_000 };
-for (const topic of guideTopics) {
-  const file = `docs/${topic.slug}/index.html`;
+for (const topic of guidePages) {
+  const file = `${guideUrl(topic.slug).slice(1)}index.html`;
   BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
-  ASSET_BUDGETS[file] = docsAssets;
+  ASSET_BUDGETS[file] ??= docsAssets;
 }
 for (const name of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(path.join(DIST_DIR, 'docs'), { recursive: true }) : []) {
   if (name.endsWith('.html')) {
     const file = `docs/${name.split(path.sep).join('/')}`;
     BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
-    ASSET_BUDGETS[file] = docsAssets;
+    ASSET_BUDGETS[file] ??= docsAssets;
   }
 }
-ASSET_BUDGETS['docs/index.html'] = docsAssets;
+ASSET_BUDGETS['docs/index.html'] ??= docsAssets;
 const detailBudget = { rawBytes: 160_000, gzipBytes: 18_000, elements: 900 };
 for (const entry of fs.existsSync(path.join(DIST_DIR, 'commands')) ? fs.readdirSync(path.join(DIST_DIR, 'commands'), { withFileTypes: true }) : []) {
   if (entry.isDirectory()) BUDGETS[`commands/${entry.name}/index.html`] = detailBudget;
