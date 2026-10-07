@@ -26,7 +26,12 @@ export default defineConfig({
 				output: {
 					// A shared chunk makes controller caching structural: Astro cannot
 					// inline importing entry points, regardless of component filenames.
-					codeSplitting: { groups: [{ name: 'docs', test: (id) => id.includes('/src/components/docs/') && id.endsWith('.ts') }] },
+					// Router imports must stay shared without pulling docs controllers
+					// into every site's ClientRouter entry point.
+					codeSplitting: { groups: [
+						{ name: 'router', test: (id) => id.includes('/node_modules/astro/dist/transitions/'), priority: 1 },
+						{ name: 'docs', test: (id) => id.includes('/src/components/docs/') && id.endsWith('.ts'), entriesAware: true },
+					] },
 				},
 			},
 		},

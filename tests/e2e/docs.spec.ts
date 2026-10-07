@@ -242,21 +242,46 @@ test('failed search stays failed while typing until Retry or topic navigation', 
   expect(attempts).toBe(3);
 });
 
-test('fragment-only legacy redirects preserve router state and Back restores the overview DOM', async ({ page }) => {
-  await page.goto('/docs/?keep=1#contents');
-  await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
-  expect(await page.evaluate(() => history.state?.index)).toEqual(expect.any(Number));
-  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
-  await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
-  await page.goBack();
-  await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
-  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
-  await expect(page.locator('#explore-the-guide')).toBeAttached();
-  await page.goForward();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
-  await page.goBack();
-  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+for (const arrival of ['deep link', 'native fragment']) {
+  test(`legacy ${arrival} redirects preserve target, scroll and router state through Back`, async ({ page }) => {
+    await page.goto(`/docs/?keep=1${arrival === 'deep link' ? '#contents' : ''}`);
+    await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+    if (arrival === 'native fragment') await page.evaluate(() => { location.hash = 'contents'; });
+    await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
+    await expect.poll(() => page.evaluate(() => history.state?.index)).toEqual(expect.any(Number));
+    await expect.poll(() => page.evaluate(() => document.querySelector(':target')?.id)).toBe('explore-the-guide');
+    await expect(page.locator('[data-legacy-links] a:visible')).toHaveCount(0);
+    await expect(page.locator('#explore-the-guide')).toBeInViewport();
+    await expect.poll(() => page.locator('#explore-the-guide').evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const header = document.querySelector('[data-site-header]')!.getBoundingClientRect();
+      return box.top >= Math.max(0, header.bottom) && box.top < innerHeight;
+    })).toBe(true);
+    await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
+    await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
+    await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+    await expect(page.locator('#explore-the-guide')).toBeAttached();
+    await page.goForward();
+    await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+  });
+}
+
+test('emitted legacy-link CSS keeps its hiding rule independent of :has support', async ({ page, request }) => {
+  await page.goto('/docs/');
+  const paths = await page.locator('link[rel="stylesheet"]').evaluateAll((links) => links.map((link) => (link as HTMLLinkElement).href));
+  const rules: string[] = [];
+  for (const path of paths) {
+    const response = await request.get(path);
+    expect(response.ok()).toBe(true);
+    rules.push(...Array.from((await response.text()).matchAll(/[^{}]*\[data-legacy-links\][^{}]*\{[^{}]*\}/g), (match) => match[0]));
+  }
+  expect(rules.length).toBeGreaterThan(0);
+  expect(rules.join('')).not.toContain(':has(');
+  expect(rules.join('')).toMatch(/a:not\(:target\)[^{]*\{[^}]*display:none/);
 });
 
 test('displayed typographic quotes and straight quotes find the same guide passage', async ({ page }) => {
@@ -313,15 +338,24 @@ test('legacy anchors offer an actionable destination without JavaScript', async 
   } finally { await context.close(); }
 });
 
-test('docs routes use the same external controller chunk', async ({ page }) => {
+test('docs routes use the same external controller chunk', async ({ page, request }) => {
   const controllers = new Set<string>();
-  page.on('request', (request) => {
-    const path = new URL(request.url()).pathname;
-    if (/\/_astro\/docs\.[^/]+\.js$/.test(path)) controllers.add(path);
-  });
+  const inspectLoadedScripts = async () => {
+    const urls = await page.evaluate(() => performance.getEntriesByType('resource')
+      .map((entry) => entry.name).filter((url) => new URL(url).pathname.endsWith('.js')));
+    for (const url of urls) {
+      const response = await request.get(url);
+      expect(response.ok()).toBe(true);
+      if ((await response.text()).includes('data-docs-search')) controllers.add(new URL(url).pathname);
+    }
+  };
+  await page.goto('/');
+  await inspectLoadedScripts();
+  expect(controllers.size).toBe(0);
   for (const path of ['/docs/', '/docs/nix/']) {
     await page.goto(path);
     await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+    await inspectLoadedScripts();
     expect(controllers.size).toBe(1);
   }
 });

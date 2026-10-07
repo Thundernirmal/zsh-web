@@ -1,4 +1,8 @@
+import { navigate } from 'astro:transitions/client';
+
+let routerState = history.state;
 const initDocs = () => {
+  if (history.state) routerState = history.state;
   document.querySelectorAll<HTMLElement>('.markdown-doc :is(table, pre)').forEach((element) => { element.tabIndex = 0; });
   if (!location.hash) return;
   let anchor: string;
@@ -7,10 +11,11 @@ const initDocs = () => {
   if (link instanceof HTMLAnchorElement && link.parentElement?.hasAttribute('data-legacy-links')) {
     const target = new URL(link.href);
     target.search = location.search;
-    if (target.pathname === location.pathname && target.search === location.search) {
-      history.replaceState(history.state, '', target);
-      document.getElementById(target.hash.slice(1))?.scrollIntoView();
-    } else location.replace(target);
+    // Native fragment arrival can create a null-state entry. Restore the
+    // router's bookkeeping before letting it replace and scroll the fragment;
+    // its native fragment navigation also updates :target.
+    if (!history.state) history.replaceState(routerState, '');
+    void navigate(target.href, { history: 'replace' });
   }
 };
 const wide = matchMedia('(min-width: 1024px)');
