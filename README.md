@@ -60,7 +60,9 @@ Install browser binaries once with `npx playwright install chromium firefox webk
 
 On other Linux distributions, Playwright may use Ubuntu browser builds. On Fedora, `sudo dnf install x264-libs` supplies the codec validation dependency when the configured repositories provide it. ABI-compatible ICU 74 and JPEG 8 libraries from Ubuntu's official archive can be kept in `~/.cache/ms-playwright/host-dependencies/lib` and linked into WebKit's bundled `sys/lib` folders. Refresh these links when installing a new WebKit build. This keeps compatibility libraries in the browser cache without replacing Fedora system libraries.
 
-The ESLint 10 accessibility rules use an explicit peer override because `eslint-plugin-jsx-a11y` still declares support through ESLint 9. Lint and the browser accessibility suite validate this combination. The shadcn variants used by the UI live in `src/styles/ui-variants.css` with their MIT license, so installing the generator CLI is unnecessary.
+The ESLint 10 accessibility rules use an explicit peer override because `eslint-plugin-jsx-a11y` still declares support through ESLint 9. Lint and the browser accessibility suite validate this combination. The site imports `shadcn/tailwind.css` from its development dependency, so shared UI variants follow package updates rather than a manually maintained copy. `components.json` retains the Base UI Nova configuration for the generator.
+
+The current shadcn CLI dependency tree reports seven high-severity audit entries rooted in the unpatched [braces stack-exhaustion advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm). These dependencies belong to the development generator; the website imports its CSS and does not bundle the CLI. Recheck the advisory when updating shadcn; do not force npm's suggested downgrade to shadcn 1.x or describe the dependency audit as clean until a compatible fix is available.
 
 For the faster static validation gate without Playwright:
 
