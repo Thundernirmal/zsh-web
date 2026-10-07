@@ -233,6 +233,23 @@ test('failed search stays failed while typing and only Retry fetches again', asy
   await expect(retry).toBeVisible();
 });
 
+test('fragment-only legacy redirects preserve router state and Back restores the overview DOM', async ({ page }) => {
+  await page.goto('/docs/?keep=1#contents');
+  await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
+  expect(await page.evaluate(() => history.state?.index)).toEqual(expect.any(Number));
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
+  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+  await expect(page.locator('#explore-the-guide')).toBeAttached();
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+});
+
 test('legacy redirects retain query state', async ({ page }) => {
   await page.goto('/docs/?q=nix&keep=1#aliases');
   await expect(page).toHaveURL(/\/docs\/shell-basics\/\?q=nix&keep=1#aliases$/);

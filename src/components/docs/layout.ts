@@ -7,7 +7,10 @@ const initDocs = () => {
   if (link instanceof HTMLAnchorElement && link.parentElement?.hasAttribute('data-legacy-links')) {
     const target = new URL(link.href);
     target.search = location.search;
-    location.replace(target);
+    if (target.pathname === location.pathname && target.search === location.search) {
+      history.replaceState(history.state, '', target);
+      document.getElementById(target.hash.slice(1))?.scrollIntoView();
+    } else location.replace(target);
   }
 };
 const wide = matchMedia('(min-width: 1024px)');

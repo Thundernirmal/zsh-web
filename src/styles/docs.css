@@ -73,5 +73,6 @@
 @media (min-width: 1024px) { .docs-desktop-menu { display: block; } .docs-mobile-menu { display: none; } }
 @media (forced-colors: active) { .docs-search-field:focus-within { outline: 2px solid Highlight; outline-offset: 2px; } }
 
-[data-legacy-links]:not(:has(> a:target)), [data-legacy-links] > a { display: none; }
+[data-legacy-links]:not(:has(> a:target)) { display: none; }
+[data-legacy-links] > a { display: none; }
 [data-legacy-links] > a:target { display: block; scroll-margin-top: calc(var(--site-header-height, 5rem) + 1rem); }
