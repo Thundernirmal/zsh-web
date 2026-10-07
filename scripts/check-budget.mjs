@@ -25,9 +25,8 @@ const ASSET_BUDGETS = {
   'commands/index.html': { jsGzip: 162_000, cssGzip: 23_000, fontBytes: 220_000 },
   'tips/index.html': { jsGzip: 148_000, cssGzip: 23_000, fontBytes: 220_000 },
 };
-// Starlight has a small initial script plus deferred Pagefind UI (~30 KB gzip
-// combined). Count both; keep app-route limits unchanged.
-const docsAssets = { jsGzip: 35_000, cssGzip: 23_000, fontBytes: 220_000 };
+// Custom docs share the site router plus a small on-demand search controller.
+const docsAssets = { jsGzip: 8_000, cssGzip: 23_000, fontBytes: 220_000 };
 for (const entry of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(path.join(DIST_DIR, 'docs'), { withFileTypes: true }) : []) {
   if (entry.isDirectory()) {
     const file = `docs/${entry.name}/index.html`;
@@ -42,21 +41,20 @@ for (const entry of fs.existsSync(path.join(DIST_DIR, 'commands')) ? fs.readdirS
 }
 let failures = 0;
 
-// Pagefind loads its runtime/WASM/index separately when searching. Bound the
-// entire generated directory conservatively, including unused UI variants.
-function directoryBytes(directory) {
-  return fs.readdirSync(directory, { withFileTypes: true }).reduce((sum, entry) => {
-    const file = path.join(directory, entry.name);
-    return sum + (entry.isDirectory() ? directoryBytes(file) : fs.statSync(file).size);
-  }, 0);
-}
-const searchDirectory = path.join(DIST_DIR, 'pagefind');
-const searchBytes = fs.existsSync(searchDirectory) ? directoryBytes(searchDirectory) : Infinity;
-if (searchBytes > 900_000) {
-  console.error(`✗ Pagefind generated assets: ${searchBytes} exceeds 900,000 bytes or is missing`);
+// The source-backed search index is fetched only when a reader enters a query.
+const searchFile = path.join(DIST_DIR, 'docs-search.json');
+if (!fs.existsSync(searchFile)) {
+  console.error('✗ Guide search index is missing');
   failures += 1;
+} else {
+  const search = fs.readFileSync(searchFile);
+  const metrics = { rawBytes: search.length, gzipBytes: gzipSync(search).length };
+  if (metrics.rawBytes > 110_000 || metrics.gzipBytes > 30_000) {
+    console.error(`✗ Guide search index exceeds 110 KB raw / 30 KB gzip: ${JSON.stringify(metrics)}`);
+    failures += 1;
+  }
+  console.log(`Guide search index: ${JSON.stringify(metrics)}`);
 }
-console.log(`Pagefind generated assets: ${searchBytes} bytes`);
 
 for (const [file, budget] of Object.entries(BUDGETS)) {
   const fullPath = path.join(DIST_DIR, file);
