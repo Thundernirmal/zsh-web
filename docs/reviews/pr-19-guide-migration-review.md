@@ -12,9 +12,236 @@
 
 **CI at time of review:** `verify` **failed** (run `37573837801`); `e2e` was **skipped** because it depends on `verify`. The preceding run (`37571833320`, commit `164ff01`) was green.
 
-## Follow-up assessment and independently developed repairs — 7 October 2026
+## Independent assessment and remediation of R1–R17 — 7 October 2026
 
-The original review below is a historical record of `46e4369`. This section supersedes its verdict and remediation order. Each of its 25 findings was checked against the implementation, the CI failure log, the pinned source checkout, browser behavior, or a regression fixture. The proposed patches were not adopted as a plan: the repairs below were chosen from the underlying platform and parsing behavior.
+This assessment preserves the follow-up findings below as review history. Each item was checked against the implementation; recommended fixes were treated as hypotheses rather than copied. The pinned shell revision remains unchanged; the extractor contract advances to schema 8 and all generated outputs were regenerated together from the clean source checkout.
+
+| Finding | Decision and implemented outcome |
+| --- | --- |
+| R1 | **Confirmed for immediate history traversal.** A shorter timer still loses edits within its window. Every edit is instead saved in tab-local session storage under the router entry index and route. Reload/traversal restore that entry; new navigations honor their URL. URL writes retain the Safari-safe one-second cadence. The previous code already had a `beforeunload` flush, so “nothing flushes on reload” was inaccurate. The new recovery mechanism removes that listener. |
+| R2 | **Confirmed and fixed.** Rewriting checks own properties and the anchor dictionary has no prototype. Tests cover prototype-member fragments and a literal `__proto__` heading. |
+| R3 | **Confirmed and fixed.** A failed catalog stays failed while typing, without another request or repeated alert toggling. Only explicit Retry resets the failure; keyboard activation returns focus to the input. |
+| R4 | **Confirmed and fixed.** CommonMark code-span ranges are masked at equal offsets before GFM table recognition, then only spans inside actual tables are escaped. Tests cover optional leading pipes, pipes in headers, prose, and opaque fence examples. |
+| R5 | **Confirmed fragility, replaced.** Controllers live in the docs component directory and share a named Rolldown chunk. Importing entries cannot be inlined by Astro, independently of Astro component filenames. Browser coverage asserts the same external chunk is loaded across routes. |
+| R6 | **Confirmed and fixed.** Automatic legacy navigation retains all query parameters. Every mapped legacy fragment also identifies a native destination link, revealed by `:target`, which works without JavaScript and can be activated by keyboard. |
+| R7 | **Retained as a performance observation, not an outstanding correctness defect.** Strict existing ceilings remain unchanged. The comment promising approximately 15% headroom was misleading and now describes explicit ceilings. The additional recovery behavior fits after consolidating controllers and simplifying duplicate handlers. A tolerance band would weaken the gate; arbitrarily trimming unrelated functionality or promising a universal percentage is not justified. Current measured headroom is recorded below and remains a constraint on future changes. |
+| R8 | **The encoded hidden map was removed; on-demand JSON was rejected for this implementation.** Native legacy landing links are now the single representation consumed by both browsers and the redirect controller. Fetching a separate map would duplicate that necessary no-JavaScript representation and add a request. Native compatibility adds HTML, so this is not presented as a payload reduction or a solution to the JS budget. Redundant navigation text wrappers and decorative card arrows were removed to keep the DOM inside its existing ceiling. |
+| R9 | **Confirmed and fixed.** The version key hashes actual serialized index content, covering guide-map edits that affect the payload. The endpoint and Cloudflare `_headers` declare the same cache policy as tips: 300 seconds plus stale revalidation. The review's claim that `_headers` used 3600 seconds for tips was inaccurate. Index loading stays lazy and its promise is shared between topic pages; a changed content version resets the cache. |
+| R10 | **Confirmed and fixed.** Generated topic descriptions use the authored taxonomy text; the overview has an authored summary. Regenerated frontmatter now supplies those descriptions to metadata. |
+| R11 | **Confirmed and fixed.** Lowercase title and text are computed once when the catalog resolves and reused for filtering, ranking and excerpt matching. |
+| R12 | **Confirmed coupling, removed.** `src/lib/guide-topics.mjs` is dependency-free and owns the taxonomy. The extractor, layouts, budget tooling and browser specs import it directly. README and AGENTS.md reflect its new ownership. |
+| R13 | **Confirmed duplication, removed.** Desktop and mobile render the same `DocsTopicNav` component. Both responsive surfaces remain present in server HTML to preserve the verified no-JavaScript behavior and avoid layout shift; extracting a component alone does not reduce rendered DOM. |
+| R14 | **Confirmed and fixed.** Budget discovery recursively measures actual built HTML while retaining expected mapped routes. Extraction recursively reports and removes obsolete Markdown. Fixtures cover a nested oversize route and a nested obsolete generated page. |
+| R15 | **Confirmed and fixed.** Copilot instructions defer to authoritative toolchain declarations and identify tokens.css, the Astro tip roulette, current registry/catalog sources and the complete snapshot contract. |
+| R16 | **Confirmed and fixed.** The source integration test skips explicitly if the checkout or pinned commit is unavailable. Unit tests remain standalone; `sync:check` continues to require authoritative sources. The missing-checkout skip path was exercised separately. |
+| R17 | **Reproduced and fixed.** All headings participate in source/page slug counters in document order; only root-level H2 headings partition topics. A regression fixture exercises duplicate headings inside blockquotes and lists. |
+
+Research used the [GFM table specification](https://github.github.com/gfm/#tables-extension-), [session storage lifecycle](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage), [Rolldown code-splitting API](https://rolldown.rs/reference/OutputOptions.codeSplitting), current [Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md), and the installed Astro router/script-inlining implementation. The shadcn review preserves existing semantic tokens and native accessible controls; no framework or component library was added.
+
+### Validation of this remediation
+
+- Clean `npm ci` followed by `npm run verify` on Node 22.22.3/npm 10.9.2: 20 extractor/tooling tests, sync validation, lint, unused-code checks, Astro diagnostics, build and budgets pass.
+- New browser regressions: **20 passed** across desktop Firefox/Chromium and mobile Chromium/WebKit. They cover immediate Back/Forward and reload, explicit fresh URL queries, one request after failure, keyboard Retry focus, retained legacy query parameters, native no-JavaScript activation and shared controller loading.
+- Payload limits were not raised. Node 22.22.3 measures overview 33,499 raw / 6,944 gzip / 318 elements; docs JS 7,905 gzip and CSS 22,178 gzip. Node 26.10.0 measuring the same built output gives 6,928 overview gzip, 7,938 JS and 22,150 CSS. Both pass existing ceilings; JS and DOM headroom remain narrow.
+- Full browser matrix: 273 passed, 4 intentionally skipped, and 5 stale menu-readiness assertions failed. Those assertions now wait on the initialized search control; the five-case rerun passes. All **282 non-skipped cases**, including the four additional changed-index-version cases, passed across the complete matrix and focused rerun. Mobile search results and the native legacy destination were manually inspected at 390px. The Chromium no-JavaScript regression uses native keyboard activation, avoiding its stalled animation-frame stability check for a locator click; the link remains visible and in the viewport.
+- An additional 16-case cache/recovery run passed across all four browsers, including changed-version invalidation and unchanged-version request reuse.
+- Existing GitHub review comments were rechecked: the engine-range correction and inclusion of generated guide pages in snapshot artifacts remain fixed.
+
+## Second follow-up review — 7 October 2026
+
+**Commit reviewed:** `a029c786b0f2e512fa5c2eebd8933f2010901e4b` — 24 commits, 52 files, +4,687 −2,221 against `main` (`c6d3cde`).
+
+**Extractor schema:** 7. Generated dataset sizes are unchanged in substance: 53 commands, 82 tips, 61 legacy anchor mappings, 11 search index entries.
+
+**CI at time of review:** `verify`, `e2e` and the Cloudflare Pages preview all pass. The blocker recorded in the original review is cleared.
+
+This round supersedes both sections below. It re-runs the original method against the repaired branch rather than trusting the repair commits: the three release-blockers are re-measured independently, the shadcn and Web Interface Guidelines review skills are applied to the changed UI, and a separate correctness pass is run over the whole diff, including a line-by-line scan by an independent reviewer.
+
+### Verdict
+
+The repairs are real, not cosmetic. All three release-blockers from the original review are confirmed fixed by measurement: the mobile layout shift is gone, the Safari search no longer freezes under sustained typing, and tables now behave as the PR originally intended. The shadcn token-discipline and interface-guideline items are closed, and one of the original findings (L7) was rejected with reasoning that is sound and is withdrawn below.
+
+The remaining risk is no longer concentrated. The findings below are largely latent, robustness or efficiency issues on a branch that works; none blocks merge by itself. Two are worth fixing before merge because they are cheap and user-facing: the search URL write lag (R1), which is a correctness regression introduced by the H1 repair itself, and the unguarded prototype lookup in the link rewriter (R2).
+
+### Verification of the first follow-up's repairs
+
+Measured on the reviewed commit against a fresh build, not read from the repair commits.
+
+| Original finding | Independent result | Measurement |
+| --- | --- | --- |
+| M1 — mobile layout shift | Confirmed fixed | Layout shift at 390 px with the controller delayed 400 ms and 800 ms measures **0.0005**, previously **0.3141**. With JavaScript disabled the menu renders closed and the title, search field and article are all above the fold, where the earlier build filled the first viewport with navigation. |
+| H1 — Safari search freeze | Confirmed fixed | Sustained 140-character typing in WebKit: **5 history writes, 0 throws, 0 unhandled rejections**, and the URL query tracks the input exactly (127 characters against 127). The previous build recorded 141 attempts, 41 throws and a frozen search. |
+| L1 — table readability | Confirmed fixed | At 390 px `AUTO_PUSHD` renders on one line (84 × 22 px, `white-space: nowrap`) and the table genuinely overflows (`scrollWidth` 351 > `clientWidth` 343), so the existing overflow and tab-stop machinery is now reachable rather than inert. |
+| L2 — hardcoded topic count | Confirmed fixed | The heading now renders `{guideTopics.length} topics`. |
+| L5 — forced-colors focus | Confirmed fixed | A `@media (forced-colors: active)` block supplies a system-colour outline on the search field. |
+| L6 — raw radii | Confirmed fixed | `docs.css` uses `--radius-xl`, `--radius-md` and `--radius-sm`; no raw radius values remain. |
+| L8 — sidebar misalignment | Confirmed fixed | The added `padding` is gone from `.docs-sidebar`. |
+| L14, L15 — budget gaps | Confirmed fixed | `404.html` and `tips.json` now carry independent ceilings. |
+| L18 — duplicate `Contents` | Confirmed fixed | `docs-guide.mjs:67` now rejects a second root-level `Contents` section. |
+| L13 — dependency placement | Confirmed fixed | `github-slugger` moved to development dependencies. The follow-up's correction of the original finding is accurate: `DocsLayout.astro` does import the taxonomy module, so the original claim that nothing under `src/` consumes it was too broad. |
+| B1 — budget and CI | Confirmed fixed, with a caveat | CI passes. The fix relocated the pressure rather than removing it; see R7. |
+| L7 — unconditional tab stops | Rejected with reasoning; accepted | The follow-up argues that a focusable reading block aids reading and selection, that resizing and text zoom can introduce overflow at any width, and that conditional tab stops would require continuous layout observation. That reasoning is sound and the finding is withdrawn. |
+
+### Findings raised in this round
+
+Ordered by user impact, not by fix difficulty. Each was reproduced unless marked otherwise.
+
+#### R1 (high) — the search URL write lags the input, so a fast reload or Back restores a truncated query
+
+`src/components/docs/DocsSearch.astro:53–61`.
+
+The H1 repair replaced per-keystroke history writes with a fixed one-second cadence. The first keystroke still writes immediately; subsequent state is coalesced into a timer that fires up to a second later. Nothing flushes that pending write when the user leaves via reload or Back/Forward.
+
+Reproduced in Chromium against the built site, typing `fakeroot` in about 175 ms:
+
+```
+immediately : input "fakeroot", urlQ "f"        (deferred write lands 1.4s later)
+after Back  : urlQ "f", input restored as "f"
+at reload   : http://…/docs/?q=f  ->  after reload the input is "f"
+```
+
+The stale entry is written before the user leaves, so a `pagehide` or `popstate` flush cannot repair it retrospectively; the window has to be shortened or closed at the point of writing. README and AGENTS.md both state that reload and Back/Forward restore results, and they do — but only from a second after the first keystroke. The click handler at `:73` force-flushes before link navigation, so in-page result clicks are unaffected; the exposure is reload, Back/Forward, and any navigation not preceded by a click on an anchor.
+
+This is a regression against the previous commit of this branch, where every keystroke wrote immediately. That behaviour was correct for restore and wrong for Safari; the fix traded a hard crash for a truncation window. **Recommended fix:** lower the rate limit from 1000 ms to roughly 200 ms. Worst-case sustained writes become about 50 per 10 seconds, half of WebKit's 100-per-10-second ceiling, and the window shrinks fivefold.
+
+#### R2 (high) — the link rewriter reads through the prototype chain, injecting JavaScript source into generated Markdown
+
+`scripts/docs-guide.mjs:92`.
+
+```js
+const rewrite = (body) => body.replace(/\]\(#([^)]*)\)/g, (match, anchor) => anchors[anchor] ? `](${anchors[anchor]})` : match);
+```
+
+`anchors[anchor]` is a prototype-chain lookup, not an own-property test. An intra-guide link whose fragment names an `Object.prototype` member is treated as a mapped anchor and replaced with the member's source text. Reproduced for four anchors: a body containing `[object model](#constructor)` emits `[object model](function Object() { [native code] })` into the published page. `#toString`, `#valueOf` and `#hasOwnProperty` behave the same way.
+
+Reachable only by a maintainer writing such a link in `GUIDE.md`, and the pinned guide contains no colliding anchor — but the failure is silent, publishes a corrupt link, and the same file already performs this lookup correctly elsewhere (`src/layouts/DocsLayout.astro:105` uses `Object.hasOwn`). **Fix:** one line, `Object.hasOwn(anchors, anchor)`.
+
+Two independent reviewers arrived at this finding separately.
+
+#### R3 (medium) — a failed index load re-fetches on every keystroke
+
+`src/components/docs/DocsSearch.astro:33`.
+
+The `catch` resets the memoized `catalog` promise and clears `catalogReady`, so after a single failure every subsequent `input` event calls `load()` again. Typing eight characters with the endpoint aborted produced **8 full requests** against the built site, each also re-rendering the error panel and re-announcing the failure on the live region.
+
+This contradicts the deliberate manual-retry design: the UI offers a Retry button precisely so a transient failure does not become request amplification. **Fix:** leave `catalog` in its rejected state and let the Retry button clear it, or gate re-fetching behind the retry path.
+
+#### R4 (medium) — table-pipe escaping is keyed on the line, not on the table
+
+`scripts/docs-guide.mjs:54`.
+
+Escaping runs only for code spans on lines that begin with a pipe. Two gaps follow, both reproduced directly against `generateGuideDocs`:
+
+- **Rows without leading pipes.** GFM permits table rows written without them. A row `G | \`| grep\`` is emitted unescaped, and re-parsing the generated page splits the cell apart. Verified: `no leading pipes → "G | `| grep`" escaped: false`, against `leading pipes → "| G | `\| grep` |" escaped: true`. Latent; every table in the current guide uses leading pipes.
+- Fenced code was the original L17; the follow-up reports it fixed via parsed inline-code ranges, and the pipe-leading fenced example is now asserted byte-for-byte.
+
+**Fix:** decide from the parsed table node rather than the line's first character.
+
+#### R5 (medium) — the docs overview's budget compliance rests on a filename regex
+
+`astro.config.mjs:27`.
+
+```js
+assetsInlineLimit: (file) => /(?:DocsSearch|DocsLayout)\.astro/.test(file) ? false : undefined,
+```
+
+This predicate is what keeps the overview inside its ceiling: with it active the page is 31,856 raw / 6,839 gzip, and with it not matching — simulated by a rename — the same page becomes 35,734 raw / 8,314 gzip, over **both** the 35,000-byte and 8,000-byte limits. Nothing asserts that the docs routes continue to share a controller URL, so a rename or a third small controller surfaces only as a budget failure with no indication of the cause.
+
+**Fix:** assert the expected controller set, or attach the exemption to an explicit list that fails loudly when it no longer matches anything.
+
+#### R6 (medium) — the legacy-anchor redirect needs JavaScript and discards the query string
+
+`src/layouts/DocsLayout.astro:105`. Two distinct problems in one line:
+
+- `location.replace(links[anchor])` navigates to a bare path, so `/docs/?q=nix#aliases` becomes `/docs/shell-basics/#aliases` and the active search is silently dropped.
+- The redirect exists only in a client script. With JavaScript disabled, `/docs/#setup-and-scope` returns 200, keeps the hash, matches no element and scrolls nowhere (verified: `scrollY` 0). `main`'s monolithic guide scrolled to that heading in the same situation.
+
+Non-JavaScript arrival on a legacy deep link is therefore a silent regression for exactly the audience the compatibility mapping exists to serve. **Fix:** preserve the query string when replacing, and emit static per-anchor redirect stubs or landing headings for the no-JS case.
+
+#### R7 (medium) — the budget fix relocated the pressure instead of removing it
+
+`scripts/check-budget.mjs:31`.
+
+Externalizing the guide controllers gave the overview genuine HTML headroom (6,839 against 8,000), but the same code is now counted as an asset. The docs JS budget stands at **7,860 of 8,000 (98.25%)** and CSS at **22,091 of 23,000 (96%)**, against the file's own stated ~15% convention. The measured zlib spread between supported Node lines is ~29 bytes; 140 bytes of JS headroom is roughly five times that, so the next controller change reintroduces the Node-version-dependent red build this PR just spent a round eliminating.
+
+Nothing is broken today. **Fix:** either reclaim payload — the inline anchor map (R8) is the obvious candidate — or adopt a tolerance band so the gate stops being a byte-exact comparison of an environment-dependent metric.
+
+#### R8 (medium) — a 4.6 KB anchor map is inlined on the page with the least headroom
+
+`src/layouts/DocsLayout.astro:90`.
+
+The 61-entry legacy map is serialized into a hidden DOM attribute on every `/docs/` load, although the consumer returns early unless `location.hash` is non-empty. Measured on the built page: **4,646 raw / ~901 gzip**, about 13% of the overview's 6,839 gzip. Removing it drops the page to 27,229 raw / 5,938 gzip.
+
+This is the same data the follow-up chose to retain while solving the budget by externalizing controllers instead. Adopting the on-demand JSON pattern the PR already established for the search index would close the headroom question outright and address R7 at the same time.
+
+#### R9 (medium) — the search index endpoint diverges from the established lazy-data pattern
+
+`src/pages/docs-search.json.ts:4`. `src/pages/tips.json.ts` sets `Cache-Control: public, max-age=3600, stale-while-revalidate=86400`, and `public/_headers:15` repeats it for `/tips.json`. The new `/docs-search.json` sets content type only and has no `_headers` rule, so a 24.5 KB gzip payload falls back to host defaults on every full document load that carries a query.
+
+The `?v=` key covers the shell commit and schema version but not a guide-map edit, so the cache rule and the cache key have to be designed together rather than adding a long `max-age` to the current key.
+
+#### R10 (medium-low) — page descriptions are boilerplate, discarding the authored text
+
+`scripts/extract.mjs:1009`. Generated frontmatter uses a template, so `nix.md` ships `"Nix profiles and pickers from Nirmal's shared Zsh configuration."` while `guideTopics` — which AGENTS.md names as the owner of descriptions, and which the on-page card renders — says `"Manage profiles, select packages, and compare outputs."` All 11 pages' `meta`/`og` descriptions are therefore boilerplate, and the two copies can drift with no test relating them.
+
+#### R11 (low) — every keystroke re-lowercases the whole index
+
+`src/components/docs/DocsSearch.astro:94`. The filter haystack, the sort key and the excerpt lookup each lowercase the full ~65 KB index per keystroke, and all result nodes are rebuilt from scratch. At 4× CPU throttle on a 390 px context this measured ~1.33 ms per keystroke for matching against ~0.11 ms with precomputed fields, with the whole handler between 4.6 and 27.9 ms. **Fix:** store lowercased fields when the catalog resolves.
+
+#### R12 (low) — the topic taxonomy is imported from the markdown parser
+
+`src/layouts/DocsLayout.astro:6`. `guideTopics` lives in `scripts/docs-guide.mjs`, which also imports `mdast-util-from-markdown`, `mdast-util-gfm`, `micromark-extension-gfm` and `github-slugger`. `src/`, the budget gate and two e2e specs therefore pull a parser toolchain for a constant array. These are build-time only and none enters a browser controller, so there is no shipped cost — but the repo's own precedent for this is `src/lib/categories.ts`, which owns data in a dependency-free module. **Fix:** move the taxonomy to a dependency-free module the extractor imports.
+
+#### R13 (low) — the topic navigation is duplicated byte-for-byte
+
+`src/layouts/DocsLayout.astro:43` and `:51`. The desktop surface and the mobile `<details>` contain the same `pages.map` expression, so numbering, `aria-current` and any future badge or sub-link must be edited twice and can drift without a test noticing. The duplicate also consumes roughly 22 elements of the overview's 290-of-320 budget and about 24 per topic page. The responsive-CSS approach is sound; only the markup needs extracting.
+
+#### R14 (low) — nested docs routes are neither measured nor reported
+
+`scripts/check-budget.mjs:37` discovers topic routes one directory deep, while `src/content.config.ts` uses `glob('**/*.md')`. A page at `src/content/docs/docs/notes/extra.md` builds to `/docs/notes/extra/`; the gate then seeds a budget for the non-existent `docs/notes/index.html` and fails with a misleading "missing from dist" message (reproduced against a fixture), while the real page receives no budget at all and the extractor's obsolete-file scan never reports the stray file.
+
+#### R15 (low) — the standing agent instructions are now stale
+
+`.github/copilot-instructions.md:5`. It still states "Node.js 22.12 or newer and npm 9.6.5 or newer" while `package.json#engines` is `^22.22.3 || ^24.16.0 || >=26.3.0` under `engine-strict=true`, so following it produces an `EBADENGINE` failure during `npm ci`. It also still locates the semantic tokens in `src/styles/global.css`, which now contains no `:root` block at all — an invitation to reintroduce a competing token block in the file that is imported *before* `tokens.css`.
+
+#### R16 (low) — `npm run test:extract` now requires the private shell checkout
+
+`scripts/extract-integration.test.mjs:15`. The new integration test clones the shell repository and checks out the pinned commit unconditionally, so the documented standalone static gate no longer runs without it — on a fresh clone or a fork, `npm run test:extract` fails with a raw git exit-128 rather than skipping. `sync:check` already required the sources; this newly extends the requirement to the unit-test step. **Fix:** skip with an explicit message when the source tree or pinned commit is absent.
+
+#### R17 (low, not asserted) — nested headings may shift duplicate-slug counters
+
+A separate reviewer reported that legacy anchors are computed from top-level Markdown headings only while the renderer slugs every rendered heading, so a heading nested in a blockquote or list item would shift the renderer's duplicate-slug suffix away from the generated map. The reviewer's own confidence was low, and by their account `docs.spec.ts` would fail the build rather than ship the break. **Not reproduced here; recorded as a hypothesis, not a finding.**
+
+### Limits of this round
+
+- Physical-device Safari remains untested; WebKit findings come from the Playwright WebKit build, as before.
+- The back/forward cache was investigated and found **inconclusive**: bfcache did not engage on any route in the headless Chromium used here, including controls, so the newly added `beforeunload` listener could not be shown to change restore behaviour either way. It is not recorded as a finding.
+- The URL-lag window (R1) was measured in Chromium only. The mechanism is shared, but Firefox and WebKit timings were not measured.
+- R5's regression was demonstrated by simulating a rename in `astro.config.mjs`; the rebuild was reverted and the tree left clean.
+- R11's timings are from a single 4× CPU-throttled run and are indicative of magnitude, not a benchmark.
+
+### Remediation order for this round
+
+1. **R2** — one-line `Object.hasOwn` fix in the link rewriter. Two reviewers converged on it independently.
+2. **R1** — shorten the history write cadence so reload and Back/Forward cannot restore a truncated query.
+3. **R9** and **R3** — cache header for the index endpoint, and stop re-fetching it on every keystroke after a failure.
+4. **R7**, **R5**, **R8** — reclaim the headroom (the inline anchor map is the natural source) and assert the controller set so the budget stops depending on a filename regex.
+5. **R6** — preserve the query string through the legacy redirect and cover the no-JavaScript path.
+6. **R4**, **R10**, **R11**, **R12**, **R13**, **R14**, **R15**, **R16** — parser precision, description ownership, search efficiency, module boundary, markup duplication, gate coverage, stale instructions, and test portability.
+
+### Method notes for this round
+
+- Repairs were verified by measurement against a fresh `npm run build` served as static files, not by reading the repair commits.
+- Layout shift: `PerformanceObserver` on `layout-shift` installed via `addInitScript`, with the controller delayed 400 ms and 800 ms through `page.route`, plus a `javaScriptEnabled: false` control for the pre-hydration paint.
+- Safari behaviour: `history.replaceState` wrapped before page scripts ran, counting attempts, throws and `unhandledrejection`, under 140-character sustained typing at 15 ms intervals.
+- URL lag: fast keystroke bursts with the URL read immediately and again after the deferred write, then Back and reload inside the window.
+- Table behaviour: measured `scrollWidth` against `clientWidth` and the rendered geometry of an identifier cell at 390 px.
+- Parser gaps: direct calls to `generateGuideDocs` with synthetic guides exercising pipe-leading and non-pipe-leading table rows.
+- The full diff was additionally reviewed by an independent correctness pass and a separate line-by-line scan, whose findings are folded in above; duplicates between the two are noted once.
+
+## First follow-up assessment and independently developed repairs (historical) — 7 October 2026
+
+The original review below is a historical record of `46e4369`. This section superseded its verdict and remediation order until the second follow-up above. Each of its 25 findings was checked against the implementation, the CI failure log, the pinned source checkout, browser behavior, or a regression fixture. The proposed patches were not adopted as a plan: the repairs below were chosen from the underlying platform and parsing behavior.
 
 ### Disposition of every finding
 
