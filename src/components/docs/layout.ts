@@ -12,6 +12,7 @@ const initDocs = () => {
   if (link instanceof HTMLAnchorElement && link.parentElement?.hasAttribute('data-legacy-links')) {
     const target = new URL(link.href);
     target.search = location.search;
+    document.dispatchEvent(new CustomEvent('docs:legacy-navigation', { detail: target }));
     void navigate(target.href, { history: 'replace', state: history.state });
   } else if (nativeFragment) void navigate(location.href, { history: 'replace', state: history.state });
 };

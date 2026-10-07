@@ -496,3 +496,21 @@ test('query snapshots work on an insecure HTTP origin', async ({ page, request, 
   await expect(input).toHaveValue('fakeroot');
   expect(await page.evaluate(() => history.state.docsQueryId)).toBe(identity);
 });
+
+for (const anchor of ['aliases', 'contents']) {
+  test(`native legacy #${anchor} redirects carry the complete pending query`, async ({ page }) => {
+    await page.clock.install();
+    await page.goto('/docs/?keep=1');
+    await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+    const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+    await input.fill('nix');
+    await input.fill('nix profiles');
+    expect(new URL(page.url()).searchParams.get('q')).toBe('nix');
+    await page.evaluate((value) => { location.hash = value; }, anchor);
+    await expect.poll(() => new URL(page.url()).hash).toBe(anchor === 'contents' ? '#explore-the-guide' : '#aliases');
+    await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('nix profiles');
+    expect(new URL(page.url()).searchParams.get('keep')).toBe('1');
+    await expect(input).toHaveValue('nix profiles');
+    await expect.poll(() => page.evaluate(() => history.state?.index)).toEqual(expect.any(Number));
+  });
+}

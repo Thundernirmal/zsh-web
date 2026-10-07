@@ -80,6 +80,12 @@ function initSearch() {
   document.addEventListener('click', (event) => {
     if (event.target instanceof Element && event.target.closest('a[href]')) syncUrl(true);
   }, { capture: true, signal: listeners.signal });
+  document.addEventListener('docs:legacy-navigation', (event) => {
+    const url = (event as CustomEvent<URL>).detail;
+    if (input.value.trim()) url.searchParams.set('q', input.value);
+    else url.searchParams.delete('q');
+    remember();
+  }, { signal: listeners.signal });
   document.addEventListener('astro:before-swap', () => {
     clearTimeout(urlTimer); clearTimeout(statusTimer); listeners.abort();
   }, { once: true, signal: listeners.signal });
