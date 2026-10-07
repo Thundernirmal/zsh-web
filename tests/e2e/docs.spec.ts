@@ -99,6 +99,75 @@ test('guide navigation has its final responsive state with JavaScript disabled',
   }
 });
 
+test('sustained typing keeps search responsive and history writes bounded', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    const original = history.replaceState.bind(history);
+    let writes = 0;
+    history.replaceState = (...args) => {
+      document.documentElement.dataset.historyWrites = String(++writes);
+      return original(...args);
+    };
+  });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  const initialWrites = Number(await page.locator('html').getAttribute('data-history-writes'));
+  const started = Date.now();
+  await input.pressSequentially('x'.repeat(140), { delay: 15 });
+  await expect(page.getByRole('status')).toContainText('No matches');
+  await input.fill('fakeroot');
+  await expect(page.getByRole('list', { name: 'Guide search results' }).getByRole('link', { name: /^Installation/ })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('fakeroot');
+  const writes = Number(await page.locator('html').getAttribute('data-history-writes')) - initialWrites;
+  expect(writes).toBeLessThanOrEqual(Math.ceil((Date.now() - started) / 1000) + 1);
+  expect(writes).toBeLessThan(100);
+  expect(errors).toEqual([]);
+});
+
+test('a rejected history write does not block search and is retried', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => {
+    const original = history.replaceState.bind(history);
+    let reject = true;
+    history.replaceState = (...args) => {
+      if (reject) { reject = false; throw new DOMException('History rate limit', 'SecurityError'); }
+      return original(...args);
+    };
+  });
+  await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('fakeroot');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('fakeroot');
+  expect(errors).toEqual([]);
+});
+
+test('cached result counts do not repeatedly mutate the search live region', async ({ page }) => {
+  await page.goto('/docs/?q=fakeroot');
+  const status = page.getByRole('status');
+  await expect(status).toHaveText('2 matching topics');
+  await status.evaluate((element) => {
+    let mutations = 0;
+    new MutationObserver((records) => { element.dataset.mutations = String(mutations += records.length); }).observe(element, { childList: true, characterData: true, subtree: true });
+    element.dataset.mutations = '0';
+  });
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.pressSequentially(' '.repeat(20), { delay: 30 });
+  await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe(await input.inputValue());
+  await expect(status).toHaveAttribute('data-mutations', '0');
+});
+
+test('search excerpts retain complete context words', async ({ page }) => {
+  const text = 'prefixword '.repeat(12) + 'workflow ' + 'completeword '.repeat(20);
+  await page.route('**/docs-search.json?*', (route) => route.fulfill({ json: [{ title: 'Example', url: '/docs/nix/', text }] }));
+  await page.goto('/docs/?q=workflow');
+  const excerpt = page.locator('.docs-search-result span');
+  await expect(excerpt).toHaveText(/^…prefixword (?:prefixword )*workflow (?:completeword )*completeword…$/);
+});
+
 test('forced colors retain an actual search focus outline', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'Forced-colors emulation is supported by Chromium.');
   await page.emulateMedia({ forcedColors: 'active' });

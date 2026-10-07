@@ -22,11 +22,15 @@ import source from '@/data/source.json';
 <script>
   interface Entry { title: string; url: string; text: string }
   let catalog: Promise<Entry[]> | undefined;
+  let catalogReady = false;
+  let lastHistoryWrite = 0;
   function load(url: string) {
     return catalog ??= fetch(url).then(async (response) => {
       if (!response.ok) throw new Error('Search unavailable');
-      return await response.json() as Entry[];
-    }).catch((error: unknown) => { catalog = undefined; throw error; });
+      const entries = await response.json() as Entry[];
+      catalogReady = true;
+      return entries;
+    }).catch((error: unknown) => { catalog = undefined; catalogReady = false; throw error; });
   }
   function initSearch() {
     const root = document.querySelector<HTMLElement>('[data-docs-search]');
@@ -39,50 +43,84 @@ import source from '@/data/source.json';
     const results = root.querySelector<HTMLElement>('[data-search-results]')!;
     const clear = root.querySelector<HTMLButtonElement>('[data-search-clear]')!;
     const template = root.querySelector<HTMLTemplateElement>('template')!;
+    let urlTimer: ReturnType<typeof setTimeout> | undefined;
+    let statusTimer: ReturnType<typeof setTimeout> | undefined;
+    let statusMessage = status.textContent ?? '';
+    const listeners = new AbortController();
+    const syncUrl = (force = false) => {
+      clearTimeout(urlTimer);
+      if (!root.isConnected) return;
+      const remaining = 1000 - (Date.now() - lastHistoryWrite);
+      if (!force && remaining > 0) { urlTimer = setTimeout(syncUrl, remaining); return; }
+      const url = new URL(location.href);
+      if (input.value.trim()) url.searchParams.set('q', input.value);
+      else url.searchParams.delete('q');
+      if (url.href === location.href) return;
+      lastHistoryWrite = Date.now();
+      try { history.replaceState(history.state, '', url); }
+      catch { urlTimer = setTimeout(syncUrl, 1000); }
+    };
+    // Publish at a fixed cadence, rather than announce transient counts for
+    // every key repeat. Identical counts cause no live-region mutation.
+    const updateStatus = (message: string) => {
+      statusMessage = message;
+      if (statusTimer) return;
+      statusTimer = setTimeout(() => {
+        statusTimer = undefined;
+        if (root.isConnected && status.textContent !== statusMessage) status.textContent = statusMessage;
+      }, 500);
+    };
+    document.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('a[href]')) syncUrl(true);
+    }, { capture: true, signal: listeners.signal });
+    window.addEventListener('beforeunload', () => syncUrl(true), { signal: listeners.signal });
+    document.addEventListener('astro:before-swap', () => {
+      clearTimeout(urlTimer); clearTimeout(statusTimer); listeners.abort();
+    }, { once: true, signal: listeners.signal });
     let version = 0;
     const search = async () => {
       const current = ++version;
       const query = input.value.trim().toLowerCase();
-      const url = new URL(location.href);
-      if (input.value.trim()) url.searchParams.set('q', input.value);
-      else url.searchParams.delete('q');
-      // Preserve the router's history metadata and the current topic/hash.
-      if (url.href !== location.href) history.replaceState(history.state, '', url);
       clear.hidden = !query;
       error.hidden = true;
       results.replaceChildren();
       panel.hidden = true;
-      if (!query) { status.textContent = 'Search across the whole guide.'; return; }
-      status.textContent = 'Searching…';
+      if (!query) { updateStatus('Search across the whole guide.'); return; }
+      if (!catalogReady) updateStatus('Searching…');
       try {
         const entries = await load(root.dataset.indexUrl!);
         if (current !== version || !root.isConnected) return;
         const terms = query.split(/\s+/);
         const matches = entries.filter((entry) => terms.every((term) => `${entry.title} ${entry.text}`.toLowerCase().includes(term)));
         matches.sort((a, b) => Number(b.title.toLowerCase().includes(query)) - Number(a.title.toLowerCase().includes(query)));
-        status.textContent = matches.length ? `${matches.length} matching topic${matches.length === 1 ? '' : 's'}` : 'No matches. Try a command name or a different phrase.';
+        updateStatus(matches.length ? `${matches.length} matching topic${matches.length === 1 ? '' : 's'}` : 'No matches. Try a command name or a different phrase.');
         for (const entry of matches) {
           const item = template.content.cloneNode(true) as DocumentFragment;
           const link = item.querySelector<HTMLAnchorElement>('a')!;
           link.href = entry.url;
           item.querySelector('strong')!.textContent = entry.title;
-          const start = Math.max(0, entry.text.toLowerCase().indexOf(terms[0]) - 55);
-          const excerpt = entry.text.slice(start, start + 160);
-          item.querySelector('span')!.textContent = `${start ? '…' : ''}${excerpt}${start + 160 < entry.text.length ? '…' : ''}`;
+          const offset = Math.max(0, entry.text.toLowerCase().indexOf(terms[0]) - 55);
+          const start = offset ? entry.text.lastIndexOf(' ', offset) + 1 : 0;
+          const limit = start + 160;
+          const boundary = entry.text.indexOf(' ', limit);
+          const end = boundary < 0 ? entry.text.length : boundary;
+          const excerpt = entry.text.slice(start, end);
+          item.querySelector('span')!.textContent = `${start ? '…' : ''}${excerpt}${end < entry.text.length ? '…' : ''}`;
           results.append(item);
         }
         panel.hidden = !matches.length;
       } catch {
         if (current !== version || !root.isConnected) return;
-        status.textContent = 'Search unavailable';
+        updateStatus('Search unavailable');
         error.hidden = false;
       }
     };
-    input.addEventListener('input', () => { void search(); });
-    clear.addEventListener('click', () => { input.value = ''; void search(); input.focus(); });
+    input.addEventListener('input', () => { void search(); syncUrl(); });
+    clear.addEventListener('click', () => { input.value = ''; void search(); syncUrl(true); input.focus(); });
     root.querySelector('[data-search-retry]')!.addEventListener('click', () => { input.focus(); void search(); });
     input.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') { input.value = ''; void search(); }
+      if (event.key === 'Escape') { input.value = ''; void search(); syncUrl(true); }
+      if (event.key === 'Enter') syncUrl(true);
     });
     const shortcut = (event: KeyboardEvent) => {
       if (!root.isConnected) { document.removeEventListener('keydown', shortcut); return; }
