@@ -127,9 +127,16 @@ test('docs search reports a load failure and retries without losing the query', 
   await input.fill('fakeroot');
   await expect(page.getByRole('alert')).toContainText('Couldn’t load guide search');
   await expect(input).toHaveValue('fakeroot');
-  await page.getByRole('button', { name: 'Retry search', exact: true }).click();
+  const retry = page.getByRole('button', { name: 'Retry search', exact: true });
+  await retry.focus();
+  await retry.press('Enter');
+  await expect(input).toBeFocused();
   await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
   await expect(page.getByRole('alert')).not.toBeVisible();
+  await input.press('Tab');
+  await expect(page.getByRole('button', { name: 'Clear search', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('list', { name: 'Guide search results' }).getByRole('link').first()).toBeFocused();
   expect(requests).toBe(2);
 });
 

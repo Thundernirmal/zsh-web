@@ -75,7 +75,7 @@ import source from '@/data/source.json';
     };
     input.addEventListener('input', () => { void search(); });
     clear.addEventListener('click', () => { input.value = ''; void search(); input.focus(); });
-    root.querySelector('[data-search-retry]')!.addEventListener('click', () => { void search(); });
+    root.querySelector('[data-search-retry]')!.addEventListener('click', () => { input.focus(); void search(); });
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') { input.value = ''; void search(); }
     });
