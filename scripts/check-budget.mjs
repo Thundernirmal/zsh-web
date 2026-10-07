@@ -27,8 +27,10 @@ const ASSET_BUDGETS = {
   'commands/index.html': { jsGzip: 162_000, cssGzip: 23_000, fontBytes: 220_000 },
   'tips/index.html': { jsGzip: 148_000, cssGzip: 23_000, fontBytes: 220_000 },
 };
-// Custom docs share the site router plus a small on-demand search controller.
-const docsAssets = { jsGzip: 8_000, cssGzip: 23_000, fontBytes: 220_000 };
+// Docs include router-state preservation, punctuation matching and search
+// recovery. Reserve compression headroom for these controllers across Node
+// versions; the on-demand index remains separately budgeted below.
+const docsAssets = { jsGzip: 8_500, cssGzip: 23_000, fontBytes: 220_000 };
 for (const topic of guideTopics) {
   const file = `docs/${topic.slug}/index.html`;
   BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
