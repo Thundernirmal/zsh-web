@@ -1,4 +1,13 @@
 // One navigation/section map shared by extraction and the custom documentation.
+export const guideOverview = {
+  slug: 'index', title: 'Shell guide', navigationTitle: 'Overview',
+  description: 'Setup, everyday workflows, and the details behind your commands.',
+};
+
+export function guideUrl(slug) {
+  return slug === 'index' ? '/docs/' : `/docs/${slug}/`;
+}
+
 export const guideTopics = [
   { slug: 'installation', title: 'Installation and requirements', description: 'Set up your shell and check the tools it needs.', sections: ['Setup and scope', 'Dependencies'] },
   { slug: 'shell-basics', title: 'Shell basics', description: 'History, completion, aliases, and everyday shortcuts.', sections: ['Shell options and history', 'Completion', 'Aliases'] },
@@ -11,3 +20,5 @@ export const guideTopics = [
   { slug: 'safety', title: 'Gotchas and safety', description: 'Understand the boundaries before changing shell state.', sections: ['Gotchas and safety boundaries'] },
   { slug: 'maintenance', title: 'Maintenance and verification', description: 'Explore the modules and verify changes to the config.', sections: ['Module layout', 'Maintenance and verification'] },
 ];
+
+export const guidePages = [guideOverview, ...guideTopics.map((topic) => ({ ...topic, navigationTitle: topic.title }))];

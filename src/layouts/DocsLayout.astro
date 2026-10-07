@@ -4,7 +4,7 @@ import PageHeader from '@/components/PageHeader.astro';
 import DocsSearch from '@/components/docs/DocsSearch.astro';
 import DocsTopicNav from '@/components/docs/DocsTopicNav.astro';
 import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, ChevronDownIcon } from 'lucide-react';
-import { guideTopics } from '../../src/lib/guide-topics.mjs';
+import { guidePages, guideTopics, guideUrl } from '@/lib/guide-topics.mjs';
 import source from '@/data/source.json';
 import legacyLinks from '@/data/docs-links.json';
 import '../styles/docs.css';
@@ -17,12 +17,10 @@ interface Props {
 }
 const { title, description, slug, headings } = Astro.props;
 const overview = slug === 'index';
-const pages = [{ slug: 'index', title: 'Overview' }, ...guideTopics];
-const position = pages.findIndex((page) => page.slug === slug);
-const previous = pages[position - 1];
-const next = pages[position + 1];
-const url = (page: { slug: string }) => page.slug === 'index' ? '/docs/' : `/docs/${page.slug}/`;
-const topic = guideTopics.find((page) => page.slug === slug);
+const position = guidePages.findIndex((page) => page.slug === slug);
+if (position < 0) throw new Error(`Unknown guide topic: ${slug}. Register it in src/lib/guide-topics.mjs.`);
+const previous = guidePages[position - 1];
+const next = guidePages[position + 1];
 ---
 
 <Layout title={title} description={description}>
@@ -32,7 +30,7 @@ const topic = guideTopics.find((page) => page.slug === slug);
       {!overview && <><span aria-hidden="true">/</span><span>{String(position).padStart(2, '0')}</span></>}
     </nav>
     <PageHeader title={title} accent={overview ? 'guide' : undefined} id="_top">
-      <p>{overview ? 'Setup, everyday workflows, and the details behind your commands.' : topic?.description}</p>
+      <p>{description}</p>
     </PageHeader>
   </div>
 
@@ -65,8 +63,8 @@ const topic = guideTopics.find((page) => page.slug === slug);
       {overview && <section class="docs-topics" aria-labelledby="explore-the-guide">
         <div class="docs-section-heading"><h2 id="explore-the-guide">Explore the guide</h2><span>{guideTopics.length} topics</span></div>
         <div class="docs-card-grid">
-          {guideTopics.map((page, index) => <a class="docs-topic-card" href={url(page)}>
-            <div><span class="docs-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
+          {guideTopics.map((page, index) => <a class="docs-topic-card" href={guideUrl(page.slug)}>
+            <span class="docs-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
             <h3>{page.title}</h3><p>{page.description}</p>
           </a>)}
         </div>
@@ -78,8 +76,8 @@ const topic = guideTopics.find((page) => page.slug === slug);
       </aside>
 
       <nav class="docs-pagination" aria-label="Guide pagination">
-        {previous ? <a href={url(previous)}><ArrowLeftIcon className="size-4" aria-hidden="true" /><div><span>Previous</span><strong>{previous.title}</strong></div></a> : <span></span>}
-        {next && <a href={url(next)} class="docs-pagination-next"><div><span>Next</span><strong>{next.title}</strong></div><ArrowRightIcon className="size-4" aria-hidden="true" /></a>}
+        {previous ? <a href={guideUrl(previous.slug)}><ArrowLeftIcon className="size-4" aria-hidden="true" /><div><span>Previous</span><strong>{previous.navigationTitle}</strong></div></a> : <span></span>}
+        {next && <a href={guideUrl(next.slug)} class="docs-pagination-next"><div><span>Next</span><strong>{next.navigationTitle}</strong></div><ArrowRightIcon className="size-4" aria-hidden="true" /></a>}
       </nav>
     </div>
   </div>

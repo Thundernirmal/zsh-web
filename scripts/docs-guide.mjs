@@ -3,7 +3,7 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfm } from 'micromark-extension-gfm';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
 
-import { guideTopics } from '../src/lib/guide-topics.mjs';
+import { guideOverview, guideTopics, guideUrl } from '../src/lib/guide-topics.mjs';
 
 function parseMarkdown(markdown) {
   return fromMarkdown(markdown, { extensions: [gfm()], mdastExtensions: [gfmFromMarkdown()] });
@@ -25,7 +25,7 @@ function searchText(node) {
 export function guideSearchIndex(pages) {
   return pages.map((page) => ({
     title: page.title,
-    url: page.slug === 'index' ? '/docs/' : `/docs/${page.slug}/`,
+    url: guideUrl(page.slug),
     text: searchText(parseMarkdown(page.body)).replace(/\s+/g, ' ').trim(),
   }));
 }
@@ -85,7 +85,7 @@ export function generateGuideDocs(guide) {
       const end = next?.offset ?? guide.length;
       // Every old heading (including duplicate names) maps to its new page-local slug.
       for (const heading of headings.filter((item) => item.offset >= section.offset && item.offset < end)) {
-        anchors[heading.oldAnchor] = `/docs/${topic.slug}/#${slugger.slug(heading.text)}`;
+        anchors[heading.oldAnchor] = `${guideUrl(topic.slug)}#${slugger.slug(heading.text)}`;
       }
       return guide.slice(section.offset, end).trim();
     });
@@ -95,7 +95,7 @@ export function generateGuideDocs(guide) {
   const intro = guide.slice(0, sections[0]?.offset ?? guide.length).replace(/^# .+\n/, '').trim();
   const overview = `${intro}\n`;
   return {
-    pages: [{ slug: 'index', title: 'Shell guide', description: 'Setup, everyday workflows, and the details behind your commands.', body: overview }, ...pages].map((page) => ({ ...page, body: rewrite(page.body) })),
+    pages: [{ ...guideOverview, body: overview }, ...pages].map((page) => ({ ...page, body: rewrite(page.body) })),
     anchors,
   };
 }
