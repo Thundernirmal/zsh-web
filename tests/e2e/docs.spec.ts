@@ -65,8 +65,8 @@ test('guide search restores URL queries on reload and clears without dropping ot
   expect(requests).toHaveLength(2);
 });
 
-test('Custom docs topic layouts reflow across desktop and mobile widths', async ({ page }) => {
-  for (const width of [320, 390, 667, 1024, 1440]) {
+for (const width of [320, 390, 667, 1024, 1440]) {
+  test(`Custom docs topic layouts reflow at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     for (const topic of guideTopics) {
       await page.goto(`/docs/${topic.slug}/`);
@@ -75,8 +75,8 @@ test('Custom docs topic layouts reflow across desktop and mobile widths', async 
       expect(layout.content).toBeGreaterThan(0);
       expect(layout.content).toBeLessThanOrEqual(800);
     }
-  }
-});
+  });
+}
 
 test('guide navigation has its final responsive state with JavaScript disabled', async ({ browser, baseURL }) => {
   for (const width of [390, 1440]) {
@@ -148,7 +148,11 @@ test('a rejected history write does not block search and is retried', async ({ p
 test('cached result counts do not repeatedly mutate the search live region', async ({ page }) => {
   await page.goto('/docs/?q=fakeroot');
   const status = page.getByRole('status');
-  await expect(status).toHaveText('2 matching topics');
+  const results = page.getByRole('list', { name: 'Guide search results' }).getByRole('link');
+  await expect(results.first()).toBeVisible();
+  const count = await results.count();
+  expect(count).toBeGreaterThan(0);
+  await expect(status).toHaveText(`${count} matching topic${count === 1 ? '' : 's'}`);
   await status.evaluate((element) => {
     let mutations = 0;
     new MutationObserver((records) => { element.dataset.mutations = String(mutations += records.length); }).observe(element, { childList: true, characterData: true, subtree: true });

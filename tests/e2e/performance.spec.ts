@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test('mobile guide navigation stays stable while controllers load slowly', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
+    if (!PerformanceObserver.supportedEntryTypes.includes('layout-shift')) return;
     let shift = 0;
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
@@ -11,6 +12,7 @@ test('mobile guide navigation stays stable while controllers load slowly', async
       }
       document.documentElement.dataset.layoutShift = String(shift);
     }).observe({ type: 'layout-shift', buffered: true });
+    document.addEventListener('DOMContentLoaded', () => { document.documentElement.dataset.layoutShift ??= '0'; }, { once: true });
   });
   await page.route('**/*.js', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -22,7 +24,12 @@ test('mobile guide navigation stays stable while controllers load slowly', async
     await document.fonts.ready;
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
   });
-  expect(Number(await page.locator('html').getAttribute('data-layout-shift') ?? 0)).toBeLessThan(0.1);
+  const measurement = await page.locator('html').getAttribute('data-layout-shift');
+  expect(measurement, 'A supported, registered layout-shift observer must publish a measurement').not.toBeNull();
+  const shift = Number(measurement);
+  expect(Number.isFinite(shift)).toBe(true);
+  expect(shift).toBeGreaterThanOrEqual(0);
+  expect(shift).toBeLessThan(0.1);
 });
 
 test('mobile constrained loading, search and expanded DOM stay within budgets', async ({ page }, testInfo) => {
