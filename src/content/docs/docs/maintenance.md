@@ -75,4 +75,4 @@ The environment check is optional because it reflects the current machine rather
 $HOME/.config/zsh/scripts/check-deps.sh
 ```
 
-For a full stable-release manual pass, use the ignored `qa-features.csv` checklist described in [`AGENTS.md`](https://github.com/Thundernirmal/zsh/blob/1133c8493dfa67427e4684231a84e534f599198f/AGENTS.md).
+For a full stable-release manual pass, use the ignored `qa-features.csv` checklist described in [`AGENTS.md`](https://github.com/Thundernirmal/zsh/blob/9334c4090dbc0490b5682ce03cff2c2e29e0ffbd/AGENTS.md).
