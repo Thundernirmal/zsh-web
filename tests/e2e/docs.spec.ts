@@ -554,6 +554,17 @@ test('docs command shortcuts accept either case and select the existing query', 
   }
 });
 
+test('snapshot commit links have a descriptive name and a visible link affordance', async ({ page }) => {
+  await page.goto('/docs/');
+  const source = page.getByRole('complementary', { name: 'Documentation source' });
+  const commit = source.getByRole('link', { name: /^Source commit [a-f0-9]{8}$/ });
+  await expect(commit).toHaveAttribute('href', /\/tree\/[a-f0-9]{40}$/);
+  expect(await commit.evaluate((link) => getComputedStyle(link).textDecorationLine)).toContain('underline');
+  await commit.focus();
+  await expect(commit).toBeFocused();
+  await expect(source.getByRole('link', { name: 'View GUIDE.md source' })).toBeVisible();
+});
+
 test('partial search initialization keeps the native reload recovery available', async ({ page }) => {
   await page.clock.install();
   await page.route('**/docs/', async (route) => {

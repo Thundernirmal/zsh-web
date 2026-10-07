@@ -94,19 +94,6 @@
     @apply mt-1 inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-border bg-background px-2 text-xs font-medium whitespace-nowrap text-foreground transition-[color,background-color,border-color,box-shadow,transform,text-decoration-color] before:content-['Docs_↗'] hover:bg-muted hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:translate-y-px sm:mt-3 sm:h-6 sm:before:content-['Reference_↗'];
   }
 
-  .docs-source {
-    @apply grid max-w-[68ch] gap-1 border-l-2 border-primary pl-4 text-sm leading-6 text-muted-foreground;
-  }
-
-  .docs-source > :first-child {
-    @apply font-heading text-xs font-semibold tracking-[0.12em] text-primary uppercase;
-  }
-
-  .docs-source > :last-child {
-    @apply flex flex-wrap items-center gap-x-2;
-  }
-
-  .docs-source a,
   .markdown-doc a {
     @apply rounded-sm font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-[color,text-decoration-color] hover:text-foreground hover:decoration-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
   }

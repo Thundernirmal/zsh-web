@@ -73,7 +73,7 @@ const destinationTitles = new Map(guidePages.map((page) => [guideUrl(page.slug),
       </section>}
 
       <aside class="docs-snapshot" aria-label="Documentation source">
-        <span>Documentation snapshot</span><a href={`${source.repository}/tree/${source.commit}`}>{source.commit.slice(0, 8)}</a><a class="text-link" href={`${source.repository}/blob/${source.commit}/GUIDE.md`}>View GUIDE.md source</a>
+        <span>Documentation snapshot</span><a class="text-link" href={`${source.repository}/tree/${source.commit}`}>Source commit {source.commit.slice(0, 8)}</a><a class="text-link" href={`${source.repository}/blob/${source.commit}/GUIDE.md`}>View GUIDE.md source</a>
       </aside>
 
       <nav class="docs-pagination" aria-label="Guide pagination">
