@@ -35,11 +35,15 @@ function initSearch() {
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   let statusMessage = status.textContent ?? '';
   const listeners = new AbortController();
-  // History writes can be throttled by the browser. Save every edit separately
-  // under the router's entry index so immediate traversal never loses an edit.
-  const entryKey = `docs-query:${history.state?.index}:${location.pathname}`;
+  // History writes can be throttled by the browser. Save every edit separately.
+  // A document-level navigation can reuse Astro's index zero. Stamp an opaque
+  // identity once per entry and retain it on reload/traversal instead.
+  const entryKey = () => {
+    if (!history.state?.docsQueryId) history.replaceState({ ...history.state, docsQueryId: crypto.randomUUID() }, '');
+    return `docs-query:${history.state.docsQueryId}`;
+  };
   const remember = () => {
-    try { sessionStorage.setItem(entryKey, input.value); } catch { /* Storage may be disabled. URL flushing remains available. */ }
+    try { sessionStorage.setItem(entryKey(), input.value); } catch { /* Storage may be disabled. URL flushing remains available. */ }
   };
   const syncUrl = (force = false) => {
     clearTimeout(urlTimer);
@@ -120,8 +124,14 @@ function initSearch() {
   });
   input.value = new URL(location.href).searchParams.get('q') ?? '';
   if (restoreEntry) {
-    try { input.value = sessionStorage.getItem(entryKey) ?? input.value; } catch { /* Storage may be disabled. */ }
+    try { input.value = sessionStorage.getItem(entryKey()) ?? input.value; } catch { /* Storage may be disabled. */ }
   }
+  const pathname = location.pathname;
+  window.addEventListener('popstate', () => {
+    if (pathname !== location.pathname || !history.state?.docsQueryId) return;
+    try { input.value = sessionStorage.getItem(entryKey()) ?? input.value; } catch { /* Storage may be disabled. */ }
+    void search();
+  }, { signal: listeners.signal });
   remember();
   syncUrl();
   void search();

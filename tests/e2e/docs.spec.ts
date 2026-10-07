@@ -309,12 +309,35 @@ test('multi-term excerpts use a body match when the first term is only in the ti
 
 test('missing navigation timing honors a fresh URL query', async ({ page }) => {
   await page.addInitScript(() => {
-    sessionStorage.setItem('docs-query:0:/docs/', 'stale query');
+    history.replaceState({ index: 0, scrollX: 0, scrollY: 0, docsQueryId: 'existing-entry' }, '');
+    sessionStorage.setItem('docs-query:existing-entry', 'stale query');
     const getEntries = performance.getEntriesByType.bind(performance);
     performance.getEntriesByType = (type) => type === 'navigation' ? [] : getEntries(type);
   });
   await page.goto('/docs/?q=nix');
   await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toHaveValue('nix');
+});
+
+test('separate document loads of one route retain independent query snapshots', async ({ page }) => {
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await input.fill('alpha');
+  const first = await page.evaluate(() => history.state.docsQueryId);
+  await page.goto('/docs/?z=1');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await input.fill('beta');
+  const second = await page.evaluate(() => history.state.docsQueryId);
+  expect(first).toEqual(expect.any(String));
+  expect(second).not.toBe(first);
+  await page.goBack();
+  await expect(input).toHaveValue('alpha');
+  await expect.poll(() => page.evaluate(() => history.state.docsQueryId)).toBe(first);
+  await page.reload();
+  await expect(input).toHaveValue('alpha');
+  await page.goForward();
+  await expect(input).toHaveValue('beta');
+  await expect.poll(() => page.evaluate(() => history.state.docsQueryId)).toBe(second);
 });
 
 test('legacy redirects retain query state', async ({ page }) => {
