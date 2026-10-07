@@ -2,18 +2,17 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
+import { parse } from 'yaml';
 import { execFileSync } from 'node:child_process';
 
 const workflow = fs.readFileSync(new URL('../.github/workflows/update-shell.yml', import.meta.url), 'utf8');
-const exportRun = workflow.match(/- name: Export a reviewable snapshot patch\n {8}run: \|\n([\s\S]*?)(?= {6}- name:)/)?.[1]
-  .split('\n').map((line) => line.replace(/^ {10}/, '')).join('\n');
+const exportRun = parse(workflow).jobs.update.steps.find((step) => step.id === 'snapshot-patch')?.run;
 
 test('snapshot artifact applies changed, new, and deleted guide pages alongside data', () => {
   assert.ok(exportRun, 'workflow must expose its snapshot export commands');
   assert.ok(workflow.includes('path: ${{ runner.temp }}/shell-snapshot.patch'));
-  const parent = new URL('../.playwright-mcp/', import.meta.url);
-  fs.mkdirSync(parent, { recursive: true });
-  const fixture = fs.mkdtempSync(path.join(parent.pathname, 'snapshot-patch-check-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'snapshot-patch-check-'));
   const git = (...args) => execFileSync('git', args, { cwd: fixture, encoding: 'utf8' });
   const write = (file, content) => {
     const target = path.join(fixture, file);

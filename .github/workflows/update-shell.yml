@@ -43,6 +43,7 @@ jobs:
           ZSH_CONFIG_DIR: ${{ github.workspace }}/.zsh-config
         run: npm test
       - name: Export a reviewable snapshot patch
+        id: snapshot-patch
         run: |
           git add --intent-to-add -- src/data src/content/docs/docs
           git diff --binary HEAD -- src/data src/content/docs/docs > "$RUNNER_TEMP/shell-snapshot.patch"
