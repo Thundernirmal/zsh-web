@@ -91,6 +91,9 @@ function initSearch() {
     else url.searchParams.delete('q');
     remember();
   }, { signal: listeners.signal });
+  // Traversal changes history before the old document is swapped. A pending
+  // URL flush must never save the outgoing input into the destination entry.
+  document.addEventListener('astro:before-preparation', () => clearTimeout(urlTimer), { signal: listeners.signal });
   document.addEventListener('astro:before-swap', () => {
     clearTimeout(urlTimer); clearTimeout(statusTimer); listeners.abort();
   }, { once: true, signal: listeners.signal });

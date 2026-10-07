@@ -207,8 +207,10 @@ test('immediate reload and history traversal restore the complete pending query'
   await input.pressSequentially('fakeroot', { delay: 15 });
   await page.goBack();
   await expect.poll(() => new URL(page.url()).pathname).toBe('/');
+  await expect(page.getByRole('heading', { name: "Nirmal's Shell", level: 1 })).toBeVisible();
   await page.goForward();
   await expect(input).toHaveValue('fakeroot');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
   await input.fill('nix profiles');
   await page.reload();
@@ -452,6 +454,7 @@ test('a changed index version refreshes the cache after topic navigation', async
 });
 
 test('ordinary native fragments retain complete router state, query and scroll through traversal', async ({ page }) => {
+  await page.clock.install();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/docs/nix/');
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
@@ -469,7 +472,26 @@ test('ordinary native fragments retain complete router state, query and scroll t
   await page.locator('.docs-pagination a').last().evaluate((link) => (link as HTMLAnchorElement).click());
   await expect(page.getByRole('heading', { name: 'Credentials', level: 1 })).toBeVisible();
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
-  await page.goBack();
+  // Hold the traversal fetch across the URL flush cadence: the outgoing
+  // controller stays connected while history already names the Nix entry.
+  await input.fill('credentials');
+  await input.fill('pending destination edit');
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  let requested = false;
+  await page.route('**/docs/nix/**', async (route) => {
+    const response = await route.fetch();
+    requested = true;
+    await held;
+    await route.fulfill({ response });
+  });
+  const back = page.goBack();
+  await expect.poll(() => requested).toBe(true);
+  await page.clock.fastForward(1_001);
+  expect(await page.evaluate(() => sessionStorage.getItem(`docs-query:${history.state.docsQueryId}`))).toBe('nix profiles');
+  expect(new URL(page.url()).searchParams.get('q')).toBe('nix profiles');
+  release();
+  await back;
   await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
   await expect(input).toHaveValue('nix profiles');
   await expect.poll(() => page.evaluate(() => history.state?.index)).toBe(state.index);
