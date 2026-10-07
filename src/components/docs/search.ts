@@ -16,12 +16,14 @@ document.addEventListener('astro:before-preparation', (event) => {
 });
 function load(url: string) {
   if (catalog) return catalog;
-  const request = fetch(url).then(async (response) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  const request = fetch(url, { signal: controller.signal }).then(async (response) => {
     if (!response.ok) throw new Error('Search unavailable');
     const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(entry.title), normalize(entry.text)] as [string, string] }));
     if (catalog === request) loaded = true;
     return entries;
-  }).catch((error: unknown) => { if (catalog === request) failed = true; throw error; });
+  }).catch((error: unknown) => { if (catalog === request) failed = true; throw error; }).finally(() => clearTimeout(timeout));
   return catalog = request;
 }
 function initSearch() {

@@ -514,3 +514,27 @@ for (const anchor of ['aliases', 'contents']) {
     await expect.poll(() => page.evaluate(() => history.state?.index)).toEqual(expect.any(Number));
   });
 }
+
+test('a stalled index times out and exposes working retry without losing the query', async ({ page }) => {
+  await page.clock.install();
+  let attempts = 0;
+  await page.route('**/docs-search.json?*', async (route) => {
+    attempts += 1;
+    if (attempts > 1) await route.fulfill({ json: [{ title: 'Timeout recovery', url: '/docs/nix/', text: 'retained query' }] });
+  });
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('retained query');
+  await expect.poll(() => attempts).toBe(1);
+  await page.clock.fastForward(10_001);
+  const retry = page.getByRole('button', { name: 'Retry search' });
+  await expect(retry).toBeVisible();
+  await page.clock.fastForward(501);
+  await expect(page.getByRole('status')).toHaveText('Search unavailable');
+  await expect(input).toHaveValue('retained query');
+  await retry.click();
+  await expect(input).toBeFocused();
+  await expect(page.getByRole('link', { name: /^Timeout recovery/ })).toBeVisible();
+  expect(attempts).toBe(2);
+});
