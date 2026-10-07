@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { describeCommandCondition, parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
 import { generateGuideDocs, guideSearchIndex } from './docs-guide.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
+import { generatedDocsFiles } from './generated-docs.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1011,9 +1012,7 @@ function main() {
   ];
   const docsDir = path.join(DATA_DIR, '../content/docs/docs');
   const expectedDocs = new Set(guidePages.pages.map((page) => `${page.slug}.md`));
-  const obsoleteDocs = fs.existsSync(docsDir)
-    ? fs.readdirSync(docsDir, { recursive: true }).filter((name) => name.endsWith('.md') && !expectedDocs.has(name))
-    : [];
+  const obsoleteDocs = generatedDocsFiles(docsDir).filter((name) => !expectedDocs.has(name));
 
   if (CHECK_ONLY) {
     const staleFiles = outputs

@@ -25,6 +25,18 @@ test('extractor validates and restores the pinned guide outputs and removes obso
     fs.symlinkSync(path.join(repo, 'node_modules'), path.join(project, 'node_modules'), 'dir');
     const run = (...args) => spawnSync(process.execPath, ['scripts/extract.mjs', ...args], { cwd: project, encoding: 'utf8', env: { ...process.env, ZSH_CONFIG_DIR: shell } });
     assert.equal(run('--check').status, 0);
+    const outside = path.join(fixture, 'outside');
+    fs.mkdirSync(outside);
+    fs.writeFileSync(path.join(outside, 'keep.md'), 'keep');
+    const linked = path.join(project, 'src/content/docs/docs/linked');
+    fs.symlinkSync(outside, linked);
+    for (const args of [[], ['--check']]) {
+      const result = run(...args);
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /must not contain symbolic links/);
+      assert.equal(fs.readFileSync(path.join(outside, 'keep.md'), 'utf8'), 'keep');
+    }
+    fs.unlinkSync(linked);
     const missing = ['src/data/docs-links.json', 'src/data/docs-search.json', 'src/content/docs/docs/nix.md'];
     for (const file of missing) fs.unlinkSync(path.join(project, file));
     const obsolete = 'src/content/docs/docs/notes/obsolete.md';
