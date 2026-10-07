@@ -3,12 +3,17 @@ let catalog: Promise<Entry[]> | undefined;
 let failed = false;
 let catalogUrl = '';
 let lastHistoryWrite = 0;
-let restoreEntry = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming)?.type !== 'navigate';
-document.addEventListener('astro:before-preparation', (event) => { restoreEntry = event.navigationType === 'traverse'; });
+const navigationType = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type;
+let restoreEntry = navigationType === 'reload' || navigationType === 'back_forward';
+const normalize = (text: string) => text.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+document.addEventListener('astro:before-preparation', (event) => {
+  restoreEntry = event.navigationType === 'traverse';
+  if (failed) { catalog = undefined; failed = false; }
+});
 function load(url: string) {
   return catalog ??= fetch(url).then(async (response) => {
     if (!response.ok) throw new Error('Search unavailable');
-    const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [entry.title.toLowerCase(), entry.text.toLowerCase()] as [string, string] }));
+    const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(entry.title), normalize(entry.text)] as [string, string] }));
     return entries;
   }).catch((error: unknown) => { failed = true; throw error; });
 }
@@ -19,6 +24,7 @@ function initSearch() {
   if (catalogUrl !== root.dataset.indexUrl) { catalogUrl = root.dataset.indexUrl!; catalog = undefined; failed = false; }
   const select = <T extends Element = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const input = select<HTMLInputElement>('input');
+  input.disabled = false;
   const status = select<HTMLElement>('[data-search-status]');
   const panel = select<HTMLElement>('[data-search-panel]');
   const error = select<HTMLElement>('[data-search-error]');
@@ -67,7 +73,7 @@ function initSearch() {
   let version = 0;
   const search = async () => {
     const current = ++version;
-    const query = input.value.trim().toLowerCase();
+    const query = normalize(input.value.trim());
     clear.hidden = !query;
     if (failed && query) { error.hidden = false; updateStatus('Search unavailable'); return; }
     error.hidden = true;
@@ -87,7 +93,8 @@ function initSearch() {
         const link = item.querySelector<HTMLAnchorElement>('a')!;
         link.href = entry.url;
         item.querySelector('strong')!.textContent = entry.title;
-        const offset = Math.max(0, entry.lower[1].indexOf(terms[0]) - 55);
+        const match = terms.map((term) => entry.lower[1].indexOf(term)).find((index) => index >= 0) ?? 0;
+        const offset = Math.max(0, match - 55);
         const start = offset ? entry.text.lastIndexOf(' ', offset) + 1 : 0;
         const limit = start + 160;
         const boundary = entry.text.indexOf(' ', limit);

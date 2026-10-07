@@ -9,11 +9,11 @@ const version = createHash('sha256').update(JSON.stringify(index)).digest('hex')
   <label><span>Search docs</span>
   <span class="docs-search-field">
     <SearchIcon className="size-4" aria-hidden="true" />
-    <input id="docs-search-input" type="search" name="q" placeholder="Find a workflow, command, or requirement…" autocomplete="off" aria-describedby="docs-search-status" />
+    <input id="docs-search-input" type="search" name="q" placeholder="Find a workflow, command, or requirement…" autocomplete="off" aria-describedby="docs-search-status" disabled />
     <kbd aria-hidden="true">/</kbd>
   </span></label>
   <div class="docs-search-feedback">
-    <p id="docs-search-status" role="status" data-search-status>Search across the whole guide.</p>
+    <p id="docs-search-status" role="status" data-search-status>Enable JavaScript to search, or browse the guide topics.</p>
     <button type="button" data-search-clear hidden>Clear search</button>
   </div>
   <div data-search-panel hidden><ul aria-label="Guide search results" data-search-results></ul></div>

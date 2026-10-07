@@ -84,6 +84,8 @@ test('guide navigation has its final responsive state with JavaScript disabled',
     try {
       const page = await context.newPage();
       await page.goto(new URL('/docs/', baseURL).href);
+      await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toBeDisabled();
+      await expect(page.getByRole('status')).toContainText('Enable JavaScript');
       const navigation = page.getByRole('navigation', { name: 'Guide navigation', exact: true });
       if (width < 1024) {
         await expect(navigation).not.toBeVisible();
@@ -216,7 +218,7 @@ test('immediate reload and history traversal restore the complete pending query'
   await expect(input).toHaveValue('upkg');
 });
 
-test('failed search stays failed while typing and only Retry fetches again', async ({ page }) => {
+test('failed search stays failed while typing until Retry or topic navigation', async ({ page }) => {
   let attempts = 0;
   await page.route('**/docs-search.json?*', (route) => { attempts += 1; return route.abort(); });
   await page.goto('/docs/');
@@ -231,6 +233,13 @@ test('failed search stays failed while typing and only Retry fetches again', asy
   await expect(input).toBeFocused();
   await expect.poll(() => attempts).toBe(2);
   await expect(retry).toBeVisible();
+  await page.route('**/docs-search.json?*', (route) => { attempts += 1; return route.fulfill({ json: [{ title: 'Recovered index', url: '/docs/nix/', text: 'fakeroot' }] }); });
+  await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(input).toBeEnabled();
+  await input.fill('fakeroot');
+  await expect(page.getByRole('link', { name: /^Recovered index/ })).toBeVisible();
+  expect(attempts).toBe(3);
 });
 
 test('fragment-only legacy redirects preserve router state and Back restores the overview DOM', async ({ page }) => {
@@ -248,6 +257,39 @@ test('fragment-only legacy redirects preserve router state and Back restores the
   await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+});
+
+test('displayed typographic quotes and straight quotes find the same guide passage', async ({ page }) => {
+  await page.goto('/docs/finders/');
+  const paragraph = page.locator('.markdown-doc p').filter({ hasText: 'interactive picker' }).first();
+  const displayed = await paragraph.innerText();
+  const phrase = displayed.match(/zoxide[’']s interactive picker/)?.[0];
+  expect(phrase).toBeTruthy();
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill(phrase!);
+  const result = page.getByRole('list', { name: 'Guide search results' }).getByRole('link', { name: /^Navigation and finders/ });
+  await expect(result).toBeVisible();
+  await input.fill(phrase!.replace('’', "'"));
+  await expect(result).toBeVisible();
+});
+
+test('multi-term excerpts use a body match when the first term is only in the title', async ({ page }) => {
+  const text = 'unrelated introduction '.repeat(20) + 'workflow context ' + 'completeword '.repeat(20);
+  await page.route('**/docs-search.json?*', (route) => route.fulfill({ json: [{ title: 'Example', url: '/docs/nix/', text }] }));
+  await page.goto('/docs/?q=Example%20workflow');
+  await expect(page.locator('.docs-search-result span')).toContainText('workflow context');
+  await expect(page.locator('.docs-search-result span')).toHaveText(/^…/);
+});
+
+test('missing navigation timing honors a fresh URL query', async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem('docs-query:0:/docs/', 'stale query');
+    const getEntries = performance.getEntriesByType.bind(performance);
+    performance.getEntriesByType = (type) => type === 'navigation' ? [] : getEntries(type);
+  });
+  await page.goto('/docs/?q=nix');
+  await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toHaveValue('nix');
 });
 
 test('legacy redirects retain query state', async ({ page }) => {
