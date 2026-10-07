@@ -12,7 +12,57 @@
 
 **CI at time of review:** `verify` **failed** (run `37573837801`); `e2e` was **skipped** because it depends on `verify`. The preceding run (`37571833320`, commit `164ff01`) was green.
 
-## Verdict
+## Follow-up assessment and independently developed repairs — 7 October 2026
+
+The original review below is a historical record of `46e4369`. This section supersedes its verdict and remediation order. Each of its 25 findings was checked against the implementation, the CI failure log, the pinned source checkout, browser behavior, or a regression fixture. The proposed patches were not adopted as a plan: the repairs below were chosen from the underlying platform and parsing behavior.
+
+### Disposition of every finding
+
+| Finding | Assessment | Result and evidence |
+| --- | --- | --- |
+| B1 | Valid; fixed | CI run `37573837801` confirms 8,013 gzip bytes. Astro's build plugin was repeating small controllers inside each HTML document. Emit only the two shared guide controllers as cacheable assets, retain the inline legacy mapping, and retain every existing limit. Exact Node **22.22.3 / npm 10.9.2** verification passes; overview HTML is **6,858 B gzip** versus the unchanged **8,000 B** ceiling. No tolerance band or toolchain bump is used. |
+| H1 | Valid; fixed | History writes were outside filtering's error handling. Use a fixed one-second write cadence that coalesces pending query state, handles rejection independently, retries, and flushes before link navigation, reload, or Enter. Filtering remains independent of history. Real 140-character typing and an injected `SecurityError` exercise both paths on all browser projects. This is not a per-keystroke trailing debounce. |
+| M1 | Valid; fixed | The server-rendered `open` attribute created the mobile collapse. Render a desktop navigation surface and a closed native mobile disclosure, selected entirely by responsive CSS. No initial script changes their open state. Both remain usable without JavaScript; delayed-controller CLS and no-JavaScript navigation have coverage. |
+| M2 | Valid; fixed | Derive search text from Markdown syntax nodes rather than removing marker strings. Emphasis nodes contribute their content; inline/fenced code contributes its literal value. Tests retain `**/*.js`, `**/*(D)`, identifiers, and shell pipes. |
+| M3 | Valid; fixed | The same structural extraction excludes code-fence metadata, list delimiters, quote delimiters, and reference definitions without discarding their content. Queries still match real occurrences of `text` or `zsh`. |
+| L1 | Valid existing readability issue; fixed | Keep only code spans inside tables unbroken (`white-space: nowrap`); prose still wraps. A 320px browser test checks the identifier's one-line geometry, actual overflow, focus, and ArrowRight scrolling. |
+| L2 | Valid; fixed | The displayed topic count now comes from the taxonomy length. |
+| L3 | Valid; fixed | Announcements are coalesced at a fixed 500ms cadence and identical messages are not rewritten. A loaded catalogue no longer emits a transient “Searching…” message for each key. MutationObserver coverage verifies an unchanged result count causes no mutations. |
+| L4 | Valid; fixed | Excerpts expand their context to whitespace boundaries at both ends. A synthetic index with repeated complete words verifies rendered excerpts do not split them. |
+| L5 | Valid; fixed | Forced-colors focus uses a real outline with the system `Highlight` color on the compound search field. Chromium's forced-colors test inspects the actual focused outline; unsupported emulation is explicitly skipped elsewhere. |
+| L6 | Valid small consistency issue; fixed | Documentation border radii now consume the shared radius scale. Spacing values remain spacing values. |
+| L7 | Observation correct; retain intentional behavior | A focusable reading block is not an accessibility violation solely because it fits at one width. Stable keyboard access also supports reading and selection, while resizing/text zoom can introduce overflow. Conditional tab stops would require continuous layout observation and would change the existing reading contract. Keep the deliberate behavior and its focus tests; do not describe every block as overflowing. The table readability repair addresses the demonstrated usability defect. |
+| L8 | Valid; fixed | Remove the additional sidebar padding, restoring the card's content-shell alignment. Existing inner menu padding already contains link focus outlines; short-viewport keyboard tests check the resulting visibility. No negative-margin compensation is used. |
+| L9 | Valid; fixed | Seed expected topic routes from the taxonomy before examining build output. A missing entire topic directory now fails the gate. A test executes the real budget script against a complete fixture and then deletes a mapped directory. Contrary to the original wording, the existing reflow test already visited every `guideTopics` entry; browser coverage alone was still insufficient for the static gate. |
+| L10 | Risk valid; diagnostic fixed | An interpolated path cannot be measured as a concrete file. Keep fail-closed accounting, report an explicit unsupported-interpolation diagnostic, and let the gate report it without an uncaught stack trace. The synthetic interpolation fixture verifies this. Silently skipping it would risk undercounting. |
+| L11 | Not a defect requiring removal; wording clarified | Zero additional matches in one build does not invalidate support for statically named backtick imports. The generic traversal and regression are useful and cheap. Retain them; README now describes supported static references and interpolation failure without claiming an observed reduction or extra assets in this build. |
+| L12 | Valid maintenance issue; fixed | Parse the workflow as YAML and identify the export step by a stable semantic ID. Execute its actual `run` value. Name, whitespace, and block-style formatting no longer drive extraction; fixtures live in the OS temporary directory and are cleaned in `finally`. |
+| L13 | Placement valid; corrected | Move `github-slugger` into development dependencies with the extraction tools. The assertion that nothing under `src` imports the module was too broad: `DocsLayout.astro` imports `guideTopics` from the shared extraction module. This occurs at build time; none of these parsing dependencies enters a browser controller. |
+| L14 | Valid existing guard gap; fixed | Add a 404 HTML/DOM budget: **30,000 B raw / 6,800 B gzip / 150 elements**, plus existing default JS/CSS/font ceilings. It covers the measured 25,435 B raw / 5,795 B gzip CI-runtime build with deliberate headroom. No existing ceiling was raised. |
+| L15 | Valid existing guard gap; fixed | Add an independent on-demand `tips.json` ceiling: **21,000 B raw / 4,500 B gzip**, based on the measured 18,086 B / 3,801 B CI-runtime payload. JS is still a JS metric, not a total-transfer metric; the separate data gate closes the actual omission. |
+| L16 | Valid latent defect; fixed | Use the CommonMark parser for block boundaries rather than a custom fence state machine. A fixture includes a same-delimiter info string, a four-space fake closer, and apparent H2 headings that must remain code. |
+| L17 | Valid latent defect; fixed | Apply table compatibility escaping only to parsed inline-code source ranges. Fenced/indented code is opaque and is not rewritten; the pipe-leading fenced example is asserted byte-for-byte. |
+| L18 | Valid latent defect; fixed | Reject multiple root-level Contents sections explicitly. The single existing contents section continues to map to topic cards. |
+| L19 | Valid latent defect; fixed | Heading text comes from parsed inline content, so link labels, emphasis, code spans, and literal trailing `#` follow Markdown semantics. Slugging uses that rendered text. Fixtures check formatted duplicate headings and accurate C# diagnostics; browser coverage checks every generated legacy target against actual HTML IDs. |
+| L20 | Coverage gap valid; strengthened | Add negative parser fixtures, missing-route budget coverage, interpolation diagnostics, and an extraction integration test. The latter clones the actual pinned shell commit locally, runs the extractor in a separate project, deletes both guide JSON outputs and a topic, adds an obsolete topic, checks the diagnostics, syncs, and compares restored outputs byte-for-byte. The shell source checkout is never modified. |
+
+### Research and design basis
+
+- [History API exceptions](https://developer.mozilla.org/en-US/docs/Web/API/History/replaceState): history failure must not be a dependency of search rendering; browser limits are implementation-dependent.
+- [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/): code, headings, emphasis, and fence boundaries are grammatical constructs rather than independent substitutions.
+- [mdast parser API](https://github.com/syntax-tree/mdast-util-from-markdown) and [GFM extension](https://github.com/syntax-tree/mdast-util-gfm): source positions allow targeted table repair while node types provide plain text without destroying shell syntax.
+- [Astro configuration](https://docs.astro.build/en/reference/configuration-reference/#vite), cross-checked against the installed `plugin-scripts.js`: the asset-inline predicate controls whether small shared controllers are repeated in HTML. The predicate is limited to the guide's two components.
+- [Forced-colors behavior](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/forced-colors): shadows do not provide a reliable forced-color focus indicator; an outline using a system color does.
+
+### Follow-up validation
+
+The complete snapshot was regenerated with extractor schema **7** from clean shell commit `9334c409`. Only the search index and schema metadata changed; command/tip datasets, topic Markdown, and the 61 legacy mappings remain identical. The new parser/YAML dependencies are development tooling and are not shipped in the guide controllers. The existing seven high-severity shadcn development-tree audit entries remain disclosed and unchanged.
+
+Exact CI-runtime static verification passes all **16** parser, integration, workflow, and asset tests; source consistency, lint, dead-code analysis, Astro types/build, and every budget pass. The complete four-project browser run reported **257 passed, 4 intentionally skipped, 1 failed assertion**. The new scroll test initially required overflow at 390px, which is not necessary when a readable table fits; it now measures the supported 320px minimum after fonts load. That case passed in all four projects on rerun. The sustained-typing rate assertion also uses elapsed time instead of a hardware-dependent absolute call count; its final four-project rerun passes. All **258 non-skipped cases** have passed across the complete run and focused reruns. The four skips are two existing clipboard-permission cases and two browsers without forced-colors emulation.
+
+Manual Chromium review checked 390px search results and unbroken identifiers, 320px keyboard table scrolling, and the focused desktop Maintenance link at 1440×500. Heading and menu card left edges both measure **228.5px**; the semantic radius resolves to **11.2px**. Checked pages reported no page errors. Independent 390px layout-shift measurements with 400ms and 800ms controller delays both measured **0.00114348**, with the mobile menu closed throughout. These are controlled browser measurements, not physical-device Safari or a universal performance score.
+
+## Original verdict (historical)
 
 The substance of this PR holds up and should be merged once the CI blocker is cleared. Generated content is reproducible byte-for-byte from the pinned upstream revision, the shadcn dependency restoration loses nothing relative to the vendored CSS it replaced, all 61 legacy guide anchors resolve, and the full browser suite passes when run.
 
@@ -327,7 +377,7 @@ These were checked specifically and held up.
 
 **The browser suite passes on this head.** `desktop-chrome` 53/53, `mobile-webkit` 52/52 with one expected skip. This matters because CI’s `e2e` job never ran.
 
-## Remediation order
+## Original remediation order (superseded by the follow-up above)
 
 **Before merge**
 
