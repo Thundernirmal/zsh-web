@@ -23,6 +23,9 @@ test('route assets traverse shared chunks and fonts once and reject missing asse
       jsGzip: gzipSync(main).length + gzipSync(shared).length + gzipSync('export const lazy = true;').length,
       cssGzip: gzipSync(css).length, fontBytes: 4,
     });
+    fs.writeFileSync(path.join(dist, '_astro/main.js'), 'import(`./chunks/${name}.js`)');
+    assert.throws(() => routeAssets(dist, 'index.html'), /Cannot statically measure interpolated asset/);
+    fs.writeFileSync(path.join(dist, '_astro/main.js'), main);
     fs.unlinkSync(path.join(dist, '_astro/shared.js'));
     assert.throws(() => routeAssets(dist, 'index.html'), /ENOENT/);
   } finally { fs.rmSync(dist, { recursive: true, force: true }); }
