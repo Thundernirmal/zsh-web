@@ -64,6 +64,6 @@
 @media (min-width: 640px) { .docs-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) {
   .docs-grid { grid-template-columns: 210px minmax(0, 1fr); gap: 2rem; }
-  .docs-sidebar { position: sticky; top: 6rem; }
+  .docs-sidebar { position: sticky; top: calc(var(--site-header-height, 5rem) + 1rem); max-height: calc(100dvh - var(--site-header-height, 5rem) - 2rem); overflow-y: auto; padding: 0.25rem; scroll-padding-block: 0.5rem; }
   .docs-topic-nav a { min-height: 0; padding-block: 0.5rem; }
 }

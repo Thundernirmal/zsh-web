@@ -102,6 +102,13 @@ const topic = guideTopics.find((page) => page.slug === slug);
     const menu = document.querySelector<HTMLDetailsElement>('[data-docs-menu]');
     if (menu) menu.open = wide.matches;
   });
+  document.addEventListener('focusin', (event) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLElement>('.docs-topic-nav a') : null;
+    // Firefox can leave a tall focused link only partially visible in a scrollport.
+    if (wide.matches && link) requestAnimationFrame(() => {
+      if (link === document.activeElement) link.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+    });
+  });
   document.addEventListener('astro:page-load', initDocs);
   window.addEventListener('hashchange', () => {
     if (document.querySelector('[data-guide-links]')) initDocs();
