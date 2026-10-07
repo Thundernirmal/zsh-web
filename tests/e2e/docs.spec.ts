@@ -77,3 +77,48 @@ test('Custom docs topic layouts reflow across desktop and mobile widths', async 
     }
   }
 });
+
+test('guide navigation has its final responsive state with JavaScript disabled', async ({ browser, baseURL }) => {
+  for (const width of [390, 1440]) {
+    const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width, height: 900 } });
+    try {
+      const page = await context.newPage();
+      await page.goto(new URL('/docs/', baseURL).href);
+      const navigation = page.getByRole('navigation', { name: 'Guide navigation', exact: true });
+      if (width < 1024) {
+        await expect(navigation).not.toBeVisible();
+        const summary = page.locator('[data-docs-menu] summary');
+        await summary.focus();
+        await summary.press('Enter');
+      }
+      await expect(navigation).toBeVisible();
+      await expect(navigation.getByRole('link')).toHaveCount(guideTopics.length + 1);
+      await navigation.getByRole('link', { name: /Nix profiles and pickers/ }).click();
+      await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+    } finally { await context.close(); }
+  }
+});
+
+test('forced colors retain an actual search focus outline', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Forced-colors emulation is supported by Chromium.');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/docs/');
+  await page.getByRole('searchbox', { name: 'Search docs', exact: true }).focus();
+  const outline = await page.locator('.docs-search-field').evaluate((element) => ({ width: getComputedStyle(element).outlineWidth, style: getComputedStyle(element).outlineStyle }));
+  expect(outline).toEqual({ width: '2px', style: 'solid' });
+});
+
+test('narrow guide tables preserve copy-sensitive identifiers and scroll by keyboard', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/docs/shell-basics/');
+  await page.evaluate(() => document.fonts.ready);
+  const table = page.locator('.markdown-doc table').filter({ hasText: 'INTERACTIVE_COMMENTS' });
+  await expect(table).toHaveAttribute('tabindex', '0');
+  const code = table.locator('code').filter({ hasText: /^INTERACTIVE_COMMENTS$/ });
+  const dimensions = await code.evaluate((element) => ({ height: element.getBoundingClientRect().height, line: parseFloat(getComputedStyle(element).lineHeight) }));
+  expect(dimensions.height).toBeLessThan(dimensions.line * 1.5);
+  expect(await table.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  await table.focus();
+  await table.press('ArrowRight');
+  await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+});

@@ -1,5 +1,30 @@
 import { test, expect } from '@playwright/test';
 
+test('mobile guide navigation stays stable while controllers load slowly', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    let shift = 0;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const layout = entry as PerformanceEntry & { value: number; hadRecentInput: boolean };
+        if (!layout.hadRecentInput) shift += layout.value;
+      }
+      document.documentElement.dataset.layoutShift = String(shift);
+    }).observe({ type: 'layout-shift', buffered: true });
+  });
+  await page.route('**/*.js', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    await route.continue();
+  });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-menu]')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+  expect(Number(await page.locator('html').getAttribute('data-layout-shift') ?? 0)).toBeLessThan(0.1);
+});
+
 test('mobile constrained loading, search and expanded DOM stay within budgets', async ({ page }, testInfo) => {
   const cdp = await page.context().newCDPSession(page);
   await page.setViewportSize({ width: 390, height: 844 });

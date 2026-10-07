@@ -37,7 +37,15 @@ const topic = guideTopics.find((page) => page.slug === slug);
 
   <div class="docs-grid" data-docs-layout>
     <aside class="docs-sidebar">
-      <details class="docs-menu" open data-docs-menu>
+      <div class="docs-menu docs-desktop-menu">
+        <div class="docs-menu-title"><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span></div>
+        <nav aria-label="Guide navigation" class="docs-topic-nav">
+          {pages.map((page, index) => <a href={url(page)} aria-current={page.slug === slug ? 'page' : undefined}>
+            <span class="docs-topic-number" aria-hidden="true">{index === 0 ? '—' : String(index).padStart(2, '0')}</span><span>{page.title}</span>
+          </a>)}
+        </nav>
+      </div>
+      <details class="docs-menu docs-mobile-menu" data-docs-menu>
         <summary><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span><ChevronDownIcon className="docs-menu-chevron size-4" aria-hidden="true" /></summary>
         <nav aria-label="Guide navigation" class="docs-topic-nav">
           {pages.map((page, index) => <a href={url(page)} aria-current={page.slug === slug ? 'page' : undefined}>
@@ -59,7 +67,7 @@ const topic = guideTopics.find((page) => page.slug === slug);
       <article class="markdown-doc" aria-label={title}><slot /></article>
 
       {overview && <section class="docs-topics" aria-labelledby="explore-the-guide">
-        <div class="docs-section-heading"><h2 id="explore-the-guide">Explore the guide</h2><span>10 topics</span></div>
+        <div class="docs-section-heading"><h2 id="explore-the-guide">Explore the guide</h2><span>{guideTopics.length} topics</span></div>
         <div class="docs-card-grid">
           {guideTopics.map((page, index) => <a class="docs-topic-card" href={url(page)}>
             <div><span class="docs-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><span aria-hidden="true">↗</span></div>
@@ -86,7 +94,6 @@ const topic = guideTopics.find((page) => page.slug === slug);
   const initDocs = () => {
     const menu = document.querySelector<HTMLDetailsElement>('[data-docs-menu]');
     if (menu) {
-      menu.open = matchMedia('(min-width: 1024px)').matches;
       menu.dataset.ready = 'true';
     }
     document.querySelectorAll<HTMLElement>('.markdown-doc :is(table, pre)').forEach((element) => { element.tabIndex = 0; });
@@ -98,10 +105,6 @@ const topic = guideTopics.find((page) => page.slug === slug);
     if (Object.hasOwn(links, anchor)) location.replace(links[anchor]);
   };
   const wide = matchMedia('(min-width: 1024px)');
-  wide.addEventListener('change', () => {
-    const menu = document.querySelector<HTMLDetailsElement>('[data-docs-menu]');
-    if (menu) menu.open = wide.matches;
-  });
   document.addEventListener('focusin', (event) => {
     const link = event.target instanceof Element ? event.target.closest<HTMLElement>('.docs-topic-nav a') : null;
     // Firefox can leave a tall focused link only partially visible in a scrollport.
