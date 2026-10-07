@@ -31,15 +31,16 @@ const ASSET_BUDGETS = {
 // request-race recovery. Reserve compression headroom across Node versions;
 // the on-demand index remains separately budgeted below.
 const docsAssets = { jsGzip: 9_500, cssGzip: 23_000, fontBytes: 220_000 };
+const docsBudget = { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
 for (const topic of guidePages) {
   const file = `${guideUrl(topic.slug).slice(1)}index.html`;
-  BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
+  BUDGETS[file] ??= docsBudget;
   ASSET_BUDGETS[file] ??= docsAssets;
 }
 for (const name of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(path.join(DIST_DIR, 'docs'), { recursive: true }) : []) {
   if (name.endsWith('.html')) {
     const file = `docs/${name.split(path.sep).join('/')}`;
-    BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
+    BUDGETS[file] ??= docsBudget;
     ASSET_BUDGETS[file] ??= docsAssets;
   }
 }
