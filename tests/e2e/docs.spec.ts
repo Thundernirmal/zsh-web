@@ -30,6 +30,27 @@ test('guide sidebar keeps every keyboard-focused topic visible in a short viewpo
   }
 });
 
+test('guide search restores URL queries on reload and clears without dropping other URL state', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => { if (request.url().includes('/docs-search.json')) requests.push(request.url()); });
+  await page.goto('/docs/nix/?q=%20%20&keep=1#picker-cache-and-dependencies');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  expect(requests).toHaveLength(0);
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.fill('Nix profiles');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await page.reload();
+  await expect(input).toHaveValue('Nix profiles');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await page.getByRole('button', { name: 'Clear search', exact: true }).click();
+  await expect(input).toBeFocused();
+  await expect(page).toHaveURL(/\/docs\/nix\/\?keep=1#picker-cache-and-dependencies$/);
+  await page.reload();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await expect(input).toHaveValue('');
+  expect(requests).toHaveLength(2);
+});
+
 test('Custom docs topic layouts reflow across desktop and mobile widths', async ({ page }) => {
   for (const width of [320, 390, 667, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });

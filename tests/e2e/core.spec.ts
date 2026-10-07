@@ -94,6 +94,7 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   await page.keyboard.press('/');
   await expect(input).toBeFocused();
   await input.fill('fakeroot');
+  await expect(page).toHaveURL(/\?q=fakeroot$/);
   const results = page.getByRole('list', { name: 'Guide search results', exact: true });
   const installation = results.getByRole('link', { name: /^Installation and requirements/ });
   await expect(installation).toBeVisible();
@@ -102,6 +103,7 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   await expect(input).toHaveValue('');
   await expect(input).toBeFocused();
   await expect(results).not.toBeVisible();
+  expect(new URL(page.url()).searchParams.has('q')).toBe(false);
   await input.fill('not-a-real-guide-topic');
   await expect(page.getByRole('status')).toContainText('No matches');
   await page.getByRole('button', { name: 'Clear search', exact: true }).click();
@@ -112,6 +114,13 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   await installation.click();
   await expect(page).toHaveURL(/\/docs\/installation\//);
   await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await page.goBack();
+  await expect(input).toHaveValue('fakeroot');
+  await expect(installation).toBeVisible();
+  expect(indexRequests).toHaveLength(1);
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(input).toHaveValue('');
 });
 
 test('docs search reports a load failure and retries without losing the query', async ({ page }) => {

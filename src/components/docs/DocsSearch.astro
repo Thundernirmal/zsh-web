@@ -43,6 +43,11 @@ import source from '@/data/source.json';
     const search = async () => {
       const current = ++version;
       const query = input.value.trim().toLowerCase();
+      const url = new URL(location.href);
+      if (input.value.trim()) url.searchParams.set('q', input.value);
+      else url.searchParams.delete('q');
+      // Preserve the router's history metadata and the current topic/hash.
+      if (url.href !== location.href) history.replaceState(history.state, '', url);
       clear.hidden = !query;
       error.hidden = true;
       results.replaceChildren();
@@ -87,6 +92,8 @@ import source from '@/data/source.json';
       }
     };
     document.addEventListener('keydown', shortcut);
+    input.value = new URL(location.href).searchParams.get('q') ?? '';
+    void search();
   }
   document.addEventListener('astro:page-load', initSearch);
   initSearch();
