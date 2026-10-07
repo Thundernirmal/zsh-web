@@ -1,9 +1,11 @@
 ---
 import { SearchIcon } from 'lucide-react';
-import source from '@/data/source.json';
+import { createHash } from 'node:crypto';
+import index from '@/data/docs-search.json';
+const version = createHash('sha256').update(JSON.stringify(index)).digest('hex').slice(0, 16);
 ---
 
-<section class="docs-search" aria-label="Guide search" data-docs-search data-index-url={`/docs-search.json?v=${source.commit}-${source.schemaVersion}`}>
+<section class="docs-search" aria-label="Guide search" data-docs-search data-index-url={`/docs-search.json?v=${version}`}>
   <label><span>Search docs</span>
   <span class="docs-search-field">
     <SearchIcon className="size-4" aria-hidden="true" />
