@@ -12,7 +12,186 @@
 
 **CI at time of review:** `verify` **failed** (run `37573837801`); `e2e` was **skipped** because it depends on `verify`. The preceding run (`37571833320`, commit `164ff01`) was green.
 
-## Third follow-up review — 7 October 2026
+## Fourth follow-up review and merge decision — 7 October 2026
+
+**Commit reviewed:** `105633aa4af3d7aec245485b343af50e3e725952` — 38 commits, 62 files, +5,472 −2,229 against `main` (`c6d3cde`).
+
+**Published PR head:** `11a94d4403d209d5d6574a682e463f8d16e49f9f` — **9 commits behind the reviewed revision.** Verified against the remote after an explicit `git fetch`; `git rev-list --left-right --count` reports `0 9`.
+
+**Extractor schema:** 8.
+
+**CI at time of review:** `verify`, `e2e` and the Cloudflare Pages preview pass on `11a94d44`. **The nine unpushed commits have never been through CI.**
+
+This round supersedes the earlier review rounds; the remediation assessment follows its findings. It re-measures the previous round's remediation against a fresh build, applies the shadcn and Web Interface Guidelines review skills to the changed UI, and runs a fresh correctness pass over the whole diff (ten finder angles plus a sweep). Every finding marked *verified* below was reproduced here; the rest are recorded as reported.
+
+### Merge decision
+
+# NO
+
+Do not merge this pull request in its current state.
+
+The decision rests on three independent grounds, in order of weight.
+
+**1. The pull request is not the code that has been reviewed.** The published head is `11a94d44`; the reviewed and repaired revision is `105633a`, nine commits further on. Every finding from the previous round — the router-state desync, the symlink deletion, the quote mismatch, the failing `:has()` rule, the budget coupling — is addressed in commits that exist only on the local branch. The green CI run on `11a94d44` therefore certifies a revision that still contains all of them. Merging now merges the unrepaired code. This alone is disqualifying, and it is also the cheapest to fix: push the branch, then let CI run on the head that actually contains the work.
+
+**2. Two of the repairs do not survive into the artifact, or introduce a regression.** Both were verified here, not inferred:
+
+- The `:has()` repair is undone by the build. The source now correctly splits the selector into two rules (`src/styles/docs.css:75–76`), but the build's Lightning CSS pass re-merges them into a single selector list, so the shipped stylesheet is byte-identical in effect to the version the repair was meant to fix. In a browser without `:has()` support the whole rule is dropped and all 61 legacy anchors render inline above the search box.
+- The `components.json` repair breaks the shadcn CLI. Repointing `tailwind.css` at `tokens.css` makes `shadcn eject` fail with *Could not find `@import "shadcn/tailwind.css"` in `src/styles/tokens.css`. Nothing to eject.*, where the previous value ejected successfully. The `cn-font-heading` font transform reads the same configured file, which no longer contains `--font-heading`. The rationale for the change — keeping a single token source — is sound, but the fix as implemented trades one inconsistency for a broken tool.
+
+**3. A navigation defect from the previous round survives on a second path.** The legacy redirect still leaves `history.state` null when the mapped anchor is reached by an in-page fragment navigation rather than a fresh document load, so the URL/DOM desync identified as T1 is not fully closed. That path additionally leaks a visible fallback link above the search box. Verified in Chromium:
+
+```
+A) in-page arrival : /docs/#explore-the-guide  :target "contents"  container block  link visible TRUE  state null
+B) fresh deep link : /docs/#explore-the-guide  :target correct     container none   link visible false state {index:0}
+```
+
+### What would make this a yes
+
+1. Push the nine commits so the reviewed revision is the published one, and let CI run on it.
+2. Make the `:has()` fallback survive minification — remove `:has()` from the hiding rule entirely, for example `[data-legacy-links] > a:not(:target) { display: none; }`, so no build pass can merge it back into a list that fails as a unit.
+3. Restore shadcn CLI compatibility while keeping one token source — for instance by moving the `shadcn/tailwind.css` import into `tokens.css` so the configured file is the one the CLI reads.
+4. Close the legacy-redirect state and `:target` handling for the in-page path, and assert URL/DOM agreement after Back in a browser test.
+
+### Verification of the previous round's remediation
+
+Measured against a fresh build of `105633a`.
+
+| Previous finding | Independent result | Evidence |
+| --- | --- | --- |
+| T1 — URL/DOM desync after legacy redirect | **Partially fixed; defect survives** | The route now uses `history.replaceState` and preserves the query, and the fresh deep-link path is clean. On in-page arrival the entry state is still `null` and `:target` is stale, so the desync and a visible link leak remain. See U3. |
+| T2 — symlink deletion during sync | Confirmed fixed | Commit `a8b6645` rejects symlinks before the obsolete scan; the guard is present and the failure mode no longer reproduces. |
+| T3 — index cannot match displayed text | Confirmed fixed | Index text is now derived from parsed Markdown through the same typographic path as the rendered page. |
+| T4 — `:has()` non-forgiving list | **Fixed in source; defeated by the build** | Source correctly splits into two rules at `docs.css:75–76`, but `dist/_astro/_..DfopI72k.css` contains the merged single list. See U1. |
+| T5 — failed load disables search | Partially fixed | The failure is now scoped and cleared on navigation, but a rejection landing after a navigation re-arms it. See U5. |
+| T6 — shadcn generator CSS target | **Regression introduced** | Repointed to `tokens.css`, which breaks `shadcn eject` and the font transform. See U2. |
+| T7 — budget headroom | Addressed by reserving JS headroom; remaining margins are recorded below | The reviewed revision reserves headroom for the navigation and search repairs. |
+| T8 — asset ceilings overwritten | Partially fixed | `??=` now used for docs routes, but the commands discovery loop six lines later still uses `=`. See U11. |
+| T9 — `@import` placement | Confirmed fixed | CSS imports now precede other rules in `global.css`. |
+| T10, T12, T13 — layout metadata | Confirmed fixed | Page metadata is centralised and the layout validates its topic; route and label duplication is reduced. See U7 and U15 for the residual. |
+| T16, T17 — content-coupled and slow tests | Partially addressed | The live-region count is no longer hard-coded; the reflow test was split, though the work per run is unchanged. See U13 and U14. |
+
+### Findings raised in this round
+
+Ordered by user impact. *Verified* means reproduced here.
+
+#### U1 (high) — the `:has()` repair is reverted by the build *(verified)*
+
+`src/styles/docs.css:75–76`.
+
+The source now separates the rules so that a browser without `:has()` keeps the plain hiding rule. Lightning CSS merges them back during the build:
+
+```
+dist/_astro/_..DfopI72k.css:[data-legacy-links]:not(:has(>a:target)),[data-legacy-links]>a{display:none}
+```
+
+The shipped artifact therefore behaves exactly like the single rule the repair set out to replace: in Chrome <105, Firefox <121 or Safari <15.4 the entire declaration is dropped and all 61 legacy anchors render inline above the search box. Every browser in the Playwright matrix supports `:has()`, so no test can observe this. **Fix:** remove `:has()` from the hiding rule rather than splitting around it, so no minifier pass can recombine a failing selector into the list.
+
+#### U2 (high) — pointing `components.json` at `tokens.css` breaks the shadcn CLI *(verified)*
+
+`components.json:8`.
+
+Verified with the project's installed `shadcn@4.21.3` in a scratch copy, holding everything else constant:
+
+```
+css -> src/styles/tokens.css (current):  Could not find @import "shadcn/tailwind.css" in src/styles/tokens.css. Nothing to eject.
+css -> src/styles/global.css (previous): ✔ Inlining shadcn/tailwind.css ... Removing shadcn.
+```
+
+`@import "shadcn/tailwind.css"` and `--font-heading` both live in `global.css`; the configured path is what the CLI reads for `eject` and for the `cn-font-heading` font transform, which will now rewrite that class to nothing. The single-token-source goal is right; the implementation contradicts it by pointing the CLI at a file that does not contain the declarations the CLI manipulates. **Fix:** move the shadcn import into `tokens.css`, or keep the CLI pointed at the file that carries it.
+
+#### U3 (high) — the legacy redirect still leaks a link and leaves a null history state on in-page arrival *(verified)*
+
+`src/components/docs/layout.ts:11`.
+
+`history.replaceState` does not update the document's `:target` element and copies the current entry's state verbatim. Verified in Chromium:
+
+```
+A) in-page arrival : /docs/#explore-the-guide  :target "contents"  container display block  link visible TRUE  state null
+B) fresh deep link : /docs/#explore-the-guide  :target correct     container display none   link visible false state {index:0}
+```
+
+On the in-page path — an old bookmark activated while `/docs/` is already open — a legacy "Open …" link stays painted above the search box for the rest of the visit, and the entry keeps a null state, so the T1 desync and the unusable `docs-query:undefined:` storage key both persist. The new regression test only exercises the full-load path, where the router has already stamped a state. **Fix:** keep a real fragment navigation, or manage `:target` and `history.state` explicitly.
+
+#### U4 (medium) — the restore key is not unique per history entry
+
+`src/components/docs/search.ts:40`. `docs-query:${history.state?.index}:${location.pathname}` is not a unique entry identity — the router stamps index `0` on every document-level load — so different entries share one slot. Reported as measured: typing `alpha` on `/docs/`, then loading `/docs/?z=1` in the same tab and typing `beta`, overwrites the slot; Back restores `alpha` but then rewrites the entry to `beta`. The legacy cross-page redirect makes this likely, since the redirected document is a fresh load that immediately writes an empty value into the destination's shared key.
+
+#### U5 (medium) — a rejection landing after navigation re-arms the failure
+
+`src/components/docs/search.ts:11`. `load()`'s catch sets the module-wide `failed` flag without checking that the rejected promise is still current. Reported as verified with a delayed abort: navigating away while the index request is in flight lets the abort land on the destination page and disable search there until Retry. **Fix:** a generation token so only the current request can set `failed`.
+
+#### U6 (medium) — the search input is server-rendered disabled, so a chunk failure is permanent
+
+`src/components/docs/DocsSearch.astro:12`. If the shared docs chunk fails to load, the input stays disabled forever while the live region reports *Enable JavaScript to search* even though JavaScript is enabled, and `/` and Ctrl/Cmd+K focus a disabled control. This trades the previous "silently inert" behaviour (T14) for a mislabelled dead end. `<noscript>` is the browser-owned mechanism for this layer.
+
+#### U7 (medium) — the taxonomy invariant fails at render rather than at the data layer
+
+`src/layouts/DocsLayout.astro:21`. The check runs inside one layout's render, so an unregistered page still becomes a route and aborts the build from inside the layout instead of being rejected where the page list is produced. Validating in `getStaticPaths` would report every offending id once and protect other consumers of the collection.
+
+#### U8–U15 (low) — reconciliation and test-robustness items
+
+- **U8** `layout.ts:12` — the manual `scrollIntoView` that replaces native fragment scrolling is asserted nowhere; the existing test only checks that the heading is attached, which is true of every `/docs/` response.
+- **U9** `layout.ts:10` — `target.search === location.search` can never be false, because line 9 assigns it from `location.search`; the clause reads as a guard but is inert.
+- **U10** `scripts/check-budget.mjs:46` — `ASSET_BUDGETS['docs/index.html'] ??= docsAssets` is dead; the guide-page loop already assigns that key.
+- **U11** `scripts/check-budget.mjs:49` — the commands discovery loop still overwrites explicit ceilings with `=`, so the policy applied to docs routes six lines above was not applied here.
+- **U12** `src/lib/guide-topics.mjs:24` — `guidePages` shallow-copies all ten topics to add a `navigationTitle` that is identical to `title` for every one, leaving two shapes of the same taxonomy.
+- **U13** `tests/e2e/docs.spec.ts:68` — splitting the reflow test redistributed the 30-second timeout without reducing work: each of the five tests still loads all ten topics, so the matrix still performs roughly 200 document loads.
+- **U14** `tests/e2e/docs.spec.ts:266` — the new quote test pins a sentence from generated guide content, reintroducing the content coupling that was just removed from the live-region test.
+- **U15** `src/layouts/DocsLayout.astro:51` — the legacy-anchor label still rebuilds the `/docs/<slug>/` route rule by string prefix with a literal `Shell guide` fallback, a surviving copy of the rule the previous round consolidated.
+
+### Limits of this round
+
+- U4, U5, U6, U7 and U8–U15 are recorded from the correctness pass and its verifier agents; I reproduced U1, U2 and U3 directly and did not re-run the others.
+- The `:has()` consequence rests on the CSS selector-list specification plus the emitted build output; no browser without `:has()` support was available to run against.
+- The merge decision does not depend on CI passing on the unpushed revision, which has not been run.
+- Physical-device Safari remains untested throughout this review series.
+- This round did not re-audit the shell-reference datasets or generated guide content.
+
+### Method notes for this round
+
+- The published-versus-local divergence was established with an explicit `git fetch origin codex/sync-shell-reference-qa` followed by `git rev-list --left-right --count origin/codex/sync-shell-reference-qa...HEAD`, not from cached remote-tracking refs.
+- The minifier merge was confirmed by building the working tree and grepping the emitted `dist/_astro/*.css` for the legacy-link rules.
+- The shadcn regression was reproduced by running the project's installed CLI (`node node_modules/shadcn/dist/index.js eject -y`) in a scratch copy of `components.json`, `package.json`, `tsconfig.json` and `src/styles/`, toggling only the `tailwind.css` value between runs.
+- The redirect leak was measured in Chromium by comparing an in-page fragment arrival against a fresh deep link on the same build, reading `document.querySelector(':target')`, the container's computed `display`, the link's client rects, and `history.state` on both paths.
+
+## Independent assessment and remediation of U1–U15 — 7 October 2026
+
+Assessed the fourth round against local `105633a` and implemented the confirmed defects in nine local commits, `d28e6b4` through `d70c37c`. The fourth-round findings above remain as the historical record; this assessment describes their disposition in the repaired revision.
+
+| Finding | Decision | Change or rationale |
+| --- | --- | --- |
+| U1 — minified `:has()` hiding rule | **Fixed** | Removed `:has()` from legacy-link hiding entirely. The container uses `display: contents`; only the targeted anchor can display. A browser test reads the emitted stylesheet and asserts the actual hiding selector remains independent of `:has()` after minification. |
+| U2 — shadcn eject/font regression | **Fixed** | Moved the shadcn import, dark variant and inline theme declarations into the configured `tokens.css`. It remains the sole token source and now contains the font mapping the CLI reads. A disposable fixture runs the installed CLI's real `eject` command and heading-font transform, without uninstalling repository dependencies or accessing the network. |
+| U3 — native fragment arrival leaves stale target/state | **Fixed** | Restores Astro's bookkeeping on a null-state native fragment entry and replaces the legacy destination through Astro's navigator. Native fragment handling updates `:target` and performs the scroll. Tests exercise both a fresh deep link and `location.hash` arrival, then Back, Forward and a second Back, checking URL, document, state and hidden fallback anchors. Router code is shared separately so other site routes do not acquire the guide controllers. |
+| U4 — document loads reuse one snapshot slot | **Fixed** | Query snapshots use an opaque identity stamped into each history entry, rather than the router index/path combination. The identity survives reload and traversal; fresh document entries receive different identities even when Astro starts their index at zero. Browser coverage loads the same route twice with distinct queries and checks Back, reload and Forward. |
+| U5 — stale rejection disables destination search | **Fixed** | Only the current catalog promise can update load/failure state. Pending or failed catalogs are discarded on navigation; successful catalogs remain cached. A delayed-abort test rejects the old request after the next topic renders and confirms a fresh search succeeds without Retry. |
+| U6 — missing controller chunk is a misleading dead end | **Fixed** | Native `noscript` messaging replaces the disabled search UI when JavaScript is off. A small independent inline bootstrap detects missing initialization after ten seconds and reveals a native reload link retaining the current URL. A failed-chunk browser test restores delivery, activates that link and searches successfully. Shortcuts only target enabled search controls, and delayed initialization hides the reload link. |
+| U7 — unknown ids rejected during render | **Fixed as hardening** | The existing layout guard already failed the build, so an unknown route could not ship. `getStaticPaths` now validates all collection ids before mapping routes and reports every unknown id together. A unit test verifies the aggregate diagnostic; the layout guard remains defensive. |
+| U8 — scroll not asserted | **Fixed** | Both legacy-arrival tests check that the destination heading is in the viewport and below the sticky header. The untested manual `scrollIntoView` path was removed in favor of router/native fragment scrolling. |
+| U9 — tautological query comparison | **Fixed** | Removed the manual same-route branch and its inert query equality check. The destination retains the current query before router navigation. |
+| U10 — redundant overview asset assignment | **Fixed** | Removed the fallback already provided by the guide-page loop. |
+| U11 — commands discovery overwrites explicit limits | **Fixed** | Command detail discovery uses `??=`. The affected assignment is in the HTML/DOM `BUDGETS` map, not `ASSET_BUDGETS`; explicit route limits are preserved. |
+| U12 — duplicate topic shapes/navigation titles | **Fixed** | `guidePages` references the original topic objects. One navigation-label helper supplies the overview-only label override; sidebar and pagination consume it. Unit coverage checks object identity and labels. |
+| U13 — exhaustive reflow tests still perform ~200 loads | **Retained; no correctness defect** | The split addressed an aggregate per-test timeout and intentionally preserved all ten topics at five widths in four browser projects. It never claimed to reduce total work. Each topic can contain different code/table content, and each browser can reflow differently; reducing this matrix would remove coverage. The complete matrix is validated below. |
+| U14 — quote regression coupled to generated prose | **Fixed** | Replaced the pinned guide sentence with controlled HTML and index fixtures containing curly and straight quotes. The test searches the displayed text and the authored equivalent without depending on source-guide wording. |
+| U15 — route/title reconstruction in legacy labels | **Fixed** | Destination labels resolve through a map built from `guidePages` and `guideUrl`; the fallback comes from `guideOverview.title`. No second route formula or literal overview title remains. |
+
+### Reconciliation with the fourth-round merge decision
+
+The publication mismatch is real, but this task explicitly requires local commits **without pushing**. The previous nine commits and these repairs therefore remain local. No remote CI or deployment result is claimed for them, and the published PR must still be updated and validated before merge. Pushing is intentionally left to the user under that instruction; it is not an unresolved code repair or permission request.
+
+One factual correction to the verification table above: T3 did **not** regenerate the index through the rendered Markdown typography pipeline. It normalized curly/straight quotes in the query and cached searchable text while preserving authored index text, including code. U14 now tests that actual behavior with controlled fixtures.
+
+### Payload decision and validation
+
+The docs JavaScript gzip ceiling increases from **8,500 to 9,500 bytes** in standalone performance-budget commit `d28e6b4`. Router-native legacy navigation, independent history snapshots, stale-request recovery and initialization fallback are required for the correctness fixes; the final build measures **8,778 bytes**, leaving **722 bytes** of compression headroom. Keeping the previous ceiling would fail the repaired artifact. Other route ceilings, hydration directives and the separate on-demand search-index ceiling are unchanged. The overview measures **34,107 raw bytes and 313 elements**, within its existing 35,000-byte/320-element limits; the search index remains **24,513 bytes gzip**, fetched only for a nonempty query.
+
+- `npm run verify`: passed all **24 tooling/parser/CLI tests**, snapshot consistency, lint, dead-code checks, Astro/TypeScript diagnostics, production build and every payload/DOM budget. Generated commands, tips, guide pages, links, search index and source metadata remain unchanged.
+- `npm run test:e2e -- --workers=2`: **334 passed, 4 skipped** across desktop Firefox, mobile WebKit, desktop Chromium and mobile Chromium (338 scheduled tests, 5.1 minutes). The pre-existing skip conditions are unchanged; all new regression cases passed. The suite includes the full reflow matrix, accessibility, query-history restoration, successful index reuse, failure recovery and route-transition checks.
+- Manual Chromium review at **390px and 320px**: search results, result-to-topic navigation and the topic outline remained usable; the Nix tables stayed within the article, and the commands code block accepted focus and horizontal scrolling without page overflow. Native `#contents` arrival reached `#explore-the-guide`, with a real router state, no painted legacy links and the heading 95px below the viewport top. Physical-device Safari remains untested.
+
+## Third follow-up review (historical) — 7 October 2026
 
 **Commit reviewed:** `11a94d4403d209d5d6574a682e463f8d16e49f9f` — 29 commits, 59 files, +5,100 −2,227 against `main` (`c6d3cde`).
 
@@ -194,7 +373,7 @@ Two further items were reported without independent reproduction: that the sweep
 - The intermittent restore failure was probed by running `tests/e2e/docs.spec.ts` six times on mobile-webkit (`--repeat-each=6 --workers=1`).
 - The full diff was additionally reviewed by a ten-angle correctness pass plus a sweep; their findings are verified individually above, and duplicates between them are reported once.
 
-## Independent assessment and remediation of T1–T19 — 7 October 2026
+## Independent assessment and remediation of T1–T19 (historical) — 7 October 2026
 
 Every finding from the third follow-up was checked against the current implementation. The original findings above are preserved as review history. These repairs are local only; nothing was pushed or posted to GitHub.
 
