@@ -35,3 +35,15 @@ The PR body lists every user-facing change the diff ships, so a reviewer can map
 ## Before pushing
 
 Run `npm run verify` for static checks and `npm run test:e2e` for UI changes.
+
+## Guide snapshots and documentation
+
+`GUIDE.md` in the [companion Zsh repository](https://github.com/Thundernirmal/zsh) owns guide content. `scripts/docs-guide.mjs` owns topic order, titles, descriptions, and section assignments. Adding, renaming, removing, or duplicating a source `##` section requires a coordinated map update; unknown or missing sections deliberately fail sync. Keep shell behavior authoritative when adjusting extraction.
+
+Regenerate with `npm run sync` from a clean, committed source checkout. Review generated commands, tips, topic Markdown, heading mappings, search index, and source metadata together; never hand-edit generated files or only advance the source SHA. The pinned revision must be available remotely before CI fetches it. A documentation-only shell commit still changes the snapshot revision.
+
+Old `/docs/#heading` links use the current guide's generated mappings, not a history of renamed anchors. Heading renames or duplicate-heading reordering require explicit compatibility handling if old public links must remain usable. Sync does not validate every link: inspect cross-topic anchors, repository file links, and image targets when changing guide structure or formatting.
+
+Docs use `Layout.astro`, `PageHeader.astro`, the shared theme tokens, and existing Markdown styles. Keep navigation and search keyboard-accessible. The search index loads only for a nonempty query and is cached between topic pages; preserve this behavior and its separate payload budget. Avoid adding a framework or eager search payload without a stated performance rationale and appropriate browser coverage.
+
+Before pushing a guide or extraction update, run `npm run verify` and `npm run test:e2e`, and manually review affected docs at mobile widths, search results, heading navigation, and code/table overflow. New parser syntax, command categories, availability checks, moved source files, or tip formats also need extraction-output review and appropriate regression coverage.
