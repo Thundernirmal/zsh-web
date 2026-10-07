@@ -43,10 +43,9 @@ for (const name of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(p
     ASSET_BUDGETS[file] ??= docsAssets;
   }
 }
-ASSET_BUDGETS['docs/index.html'] ??= docsAssets;
 const detailBudget = { rawBytes: 160_000, gzipBytes: 18_000, elements: 900 };
 for (const entry of fs.existsSync(path.join(DIST_DIR, 'commands')) ? fs.readdirSync(path.join(DIST_DIR, 'commands'), { withFileTypes: true }) : []) {
-  if (entry.isDirectory()) BUDGETS[`commands/${entry.name}/index.html`] = detailBudget;
+  if (entry.isDirectory()) BUDGETS[`commands/${entry.name}/index.html`] ??= detailBudget;
 }
 let failures = 0;
 
