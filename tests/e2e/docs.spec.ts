@@ -84,8 +84,8 @@ test('guide navigation has its final responsive state with JavaScript disabled',
     try {
       const page = await context.newPage();
       await page.goto(new URL('/docs/', baseURL).href);
-      await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toBeDisabled();
-      await expect(page.getByRole('status')).toContainText('Enable JavaScript');
+      await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).not.toBeVisible();
+      await expect(page.getByText('Guide search requires JavaScript. Browse the guide topics.', { exact: true })).toBeVisible();
       const navigation = page.getByRole('navigation', { name: 'Guide navigation', exact: true });
       if (width < 1024) {
         await expect(navigation).not.toBeVisible();
@@ -362,6 +362,24 @@ test('a late rejected index request cannot disable search on the next topic', as
   await expect(page.getByRole('link', { name: /^Recovered index/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retry search' })).not.toBeVisible();
   expect(attempts).toBe(2);
+});
+
+test('a missing docs chunk offers a native page reload with an honest failure status', async ({ page }) => {
+  await page.clock.install();
+  await page.route('**/_astro/docs*.js', (route) => route.abort());
+  await page.goto('/docs/?keep=1');
+  await page.clock.fastForward(10_001);
+  await expect(page.getByRole('status')).toContainText('Couldn’t initialize guide search');
+  const reload = page.getByRole('link', { name: 'Reload search' });
+  await expect(reload).toBeVisible();
+  await expect(reload).toHaveAttribute('href', /\/docs\/\?keep=1$/);
+  await page.unroute('**/_astro/docs*.js');
+  await reload.click();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('nix');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
 });
 
 test('legacy redirects retain query state', async ({ page }) => {

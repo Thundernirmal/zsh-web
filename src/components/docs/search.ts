@@ -30,6 +30,7 @@ function initSearch() {
   const select = <T extends Element = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const input = select<HTMLInputElement>('input');
   input.disabled = false;
+  select<HTMLAnchorElement>('[data-search-reload]').hidden = true;
   const status = select<HTMLElement>('[data-search-status]');
   const panel = select<HTMLElement>('[data-search-panel]');
   const error = select<HTMLElement>('[data-search-error]');
@@ -144,7 +145,7 @@ function initSearch() {
 document.addEventListener('keydown', (event) => {
   const input = document.querySelector<HTMLInputElement>('[data-docs-search] input');
   const typing = event.target instanceof HTMLElement && (event.target.matches('input, textarea, select') || event.target.isContentEditable);
-  if (input && (((event.ctrlKey || event.metaKey) && event.key === 'k') || (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey))) {
+  if (input && !input.disabled && (((event.ctrlKey || event.metaKey) && event.key === 'k') || (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey))) {
     event.preventDefault(); input.focus();
   }
 });

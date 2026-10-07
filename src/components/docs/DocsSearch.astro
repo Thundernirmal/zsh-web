@@ -13,10 +13,26 @@ const version = createHash('sha256').update(JSON.stringify(index)).digest('hex')
     <kbd aria-hidden="true">/</kbd>
   </span></label>
   <div class="docs-search-feedback">
-    <p id="docs-search-status" role="status" data-search-status>Enable JavaScript to search, or browse the guide topics.</p>
+    <p id="docs-search-status" role="status" data-search-status>Guide search is loading. Browse the topics below.</p>
     <button type="button" data-search-clear hidden>Clear search</button>
+    <a href={Astro.url.pathname} data-astro-reload data-search-reload hidden>Reload search</a>
   </div>
   <div data-search-panel hidden><ul aria-label="Guide search results" data-search-results></ul></div>
   <div data-search-error hidden><p role="alert">Couldn’t load guide search. Browse the topics or try again.</p><button type="button" data-search-retry>Retry search</button></div>
   <template data-search-template><li><a href="/docs/" class="docs-search-result"><strong></strong><span></span></a></li></template>
 </section>
+
+<noscript><style is:inline>[data-docs-search] { display: none; }</style><p>Guide search requires JavaScript. Browse the guide topics.</p></noscript>
+<script is:inline data-astro-rerun>
+  {
+    const root = document.querySelector('[data-docs-search]');
+    setTimeout(() => {
+      if (root?.isConnected && !root.dataset.ready) {
+        root.querySelector('[data-search-status]').textContent = 'Couldn’t initialize guide search. Reload or browse the topics.';
+        const reload = root.querySelector('[data-search-reload]');
+        reload.href = location.href;
+        reload.hidden = false;
+      }
+    }, 10000);
+  }
+</script>
