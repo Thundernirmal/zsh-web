@@ -1,5 +1,19 @@
 import { expect, test } from '@playwright/test';
 import { guideTopics } from '../../scripts/docs-guide.mjs';
+import legacyLinks from '../../src/data/docs-links.json' with { type: 'json' };
+
+test('every generated legacy target exists in rendered topic HTML', async ({ request }) => {
+  const pages = new Map<string, string>();
+  for (const url of Object.values(legacyLinks)) {
+    const [route, anchor] = url.split('#');
+    if (!pages.has(route)) {
+      const response = await request.get(route);
+      expect(response.status(), route).toBe(200);
+      pages.set(route, await response.text());
+    }
+    expect(pages.get(route), url).toContain(`id="${anchor}"`);
+  }
+});
 
 test('guide sidebar keeps every keyboard-focused topic visible in a short viewport', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

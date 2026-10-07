@@ -29,3 +29,28 @@ test('code fences do not create guide sections and inline pipes remain table cel
   assert.ok(basics.body.includes('## Not a section'));
   assert.ok(basics.body.includes('| G | `\\| grep` | `echo G` |'));
 });
+
+test('search text follows Markdown structure without altering shell code', () => {
+  const body = '## Read **this**\n\n1. **Fixed path.** Use __care__ and *attention*.\n\n> [Setup](/setup/)\n\n```text\n**/*.js and **/*(D)\n```\n\n`x_y` and `| grep`.';
+  assert.equal(guideSearchIndex([{ title: 'Test', slug: 'test', body }])[0].text,
+    'Read this Fixed path. Use care and attention. Setup **/*.js and **/*(D) x_y and | grep.');
+});
+
+test('fence contents, info strings and indentation follow CommonMark', () => {
+  const example = '```zsh\n| `literal | pipe` |\n```not-a-closer\n## Still code\n    ```\n## Still code too\n```\n';
+  const result = generateGuideDocs(guide.replace('Content for Aliases.', example));
+  assert.ok(result.pages.find((page) => page.slug === 'shell-basics').body.includes(example.trim()));
+  assert.ok(!Object.hasOwn(result.anchors, 'still-code'));
+  assert.ok(!Object.hasOwn(result.anchors, 'still-code-too'));
+});
+
+test('duplicate Contents and literal hash headings produce accurate diagnostics', () => {
+  assert.throws(() => generateGuideDocs(guide + '\n## Contents\nDuplicate.'), /duplicate Contents/);
+  assert.throws(() => generateGuideDocs(guide + '\n## C#\nUnknown.'), /Unassigned GUIDE.md section: C#/);
+});
+
+test('formatted heading text and link destinations use rendered heading slugs', () => {
+  const result = generateGuideDocs(guide.replace('Content for Aliases.', '### See [Setup](#setup-and-scope) & `C#`\n\n### See [Setup](#setup-and-scope) & `C#`'));
+  assert.equal(result.anchors['see-setup--c'], '/docs/shell-basics/#see-setup--c');
+  assert.equal(result.anchors['see-setup--c-1'], '/docs/shell-basics/#see-setup--c-1');
+});

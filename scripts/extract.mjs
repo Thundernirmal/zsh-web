@@ -993,7 +993,7 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 6,
+    schemaVersion: 7,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);

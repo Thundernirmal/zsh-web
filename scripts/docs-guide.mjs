@@ -1,4 +1,7 @@
 import GithubSlugger from 'github-slugger';
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { gfm } from 'micromark-extension-gfm';
+import { gfmFromMarkdown } from 'mdast-util-gfm';
 
 // One navigation/section map shared by extraction and the custom documentation.
 export const guideTopics = [
@@ -14,46 +17,54 @@ export const guideTopics = [
   { slug: 'maintenance', title: 'Maintenance and verification', description: 'Explore the modules and verify changes to the config.', sections: ['Module layout', 'Maintenance and verification'] },
 ];
 
-function headingText(text) {
-  return text.replace(/[`*_]/g, '').replace(/<[^>]*>/g, '');
+function parseMarkdown(markdown) {
+  return fromMarkdown(markdown, { extensions: [gfm()], mdastExtensions: [gfmFromMarkdown()] });
+}
+
+function inlineText(node) {
+  if (node.type === 'html') return node.value.replace(/<[^>]*>/g, '');
+  if (node.type === 'image' || node.type === 'imageReference') return node.alt ?? '';
+  if (node.type === 'break') return ' ';
+  return node.children ? node.children.map(inlineText).join('') : node.value ?? '';
+}
+
+function searchText(node) {
+  if (node.type === 'definition' || node.type === 'thematicBreak') return '';
+  if (['paragraph', 'heading', 'tableCell'].includes(node.type)) return inlineText(node);
+  return node.children ? node.children.map(searchText).filter(Boolean).join(' ') : inlineText(node);
 }
 
 export function guideSearchIndex(pages) {
   return pages.map((page) => ({
     title: page.title,
     url: page.slug === 'index' ? '/docs/' : `/docs/${page.slug}/`,
-    text: page.body
-      .replace(/^\|(?:\s*:?-+:?\s*\|)+\s*$/gm, '')
-      .replace(/^\|.*\|\s*$/gm, (row) => row.replace(/(?<!\\)\|/g, ' ').replace(/\\\|/g, '|'))
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/^#{1,6}\s+/gm, '').replace(/`+/g, '').replace(/\s+/g, ' ').trim(),
+    text: searchText(parseMarkdown(page.body)).replace(/\s+/g, ' ').trim(),
   }));
 }
 
 export function generateGuideDocs(guide) {
-  // Preserve table cells containing literal shell pipes.
-  guide = guide.replace(/^\|.*$/gm, (row) => row.replace(/`[^`\n]+`/g, (code) => code.replace(/(?<!\\)\|/g, '\\|')));
-  const sections = [];
-  let fence;
-  let position = 0;
-  const headings = [];
-  const originalSlugger = new GithubSlugger();
-  for (const line of guide.split('\n')) {
-    const delimiter = line.match(/^\s*(`{3,}|~{3,})/);
-    if (delimiter) {
-      if (!fence) fence = delimiter[1];
-      else if (delimiter[1][0] === fence[0] && delimiter[1].length >= fence.length) fence = undefined;
-    } else if (!fence) {
-      const heading = line.match(/^(#{1,6})\s+(.+?)\s*#*$/);
-      if (heading) {
-        const text = headingText(heading[2]);
-        const item = { level: heading[1].length, text, offset: position, oldAnchor: originalSlugger.slug(text) };
-        headings.push(item);
-        if (item.level === 2) sections.push(item);
-      }
+  // CommonMark code spans supply exact source ranges. Fenced/indented code
+  // stays opaque, so table compatibility escaping cannot mutate examples.
+  const edits = [];
+  const visit = (node) => {
+    if (node.type === 'inlineCode') {
+      const start = node.position.start.offset;
+      const end = node.position.end.offset;
+      const line = guide.slice(guide.lastIndexOf('\n', start - 1) + 1, start);
+      if (/^\s*\|/.test(line)) edits.push({ start, end, text: guide.slice(start, end).replace(/(?<!\\)\|/g, '\\|') });
     }
-    position += line.length + 1;
-  }
+    for (const child of node.children ?? []) visit(child);
+  };
+  visit(fromMarkdown(guide));
+  for (const edit of edits.reverse()) guide = guide.slice(0, edit.start) + edit.text + guide.slice(edit.end);
+  const tree = parseMarkdown(guide);
+  const originalSlugger = new GithubSlugger();
+  const headings = tree.children.filter((node) => node.type === 'heading').map((node) => {
+    const text = inlineText(node);
+    return { level: node.depth, text, offset: node.position.start.offset, oldAnchor: originalSlugger.slug(text) };
+  });
+  const sections = headings.filter((heading) => heading.level === 2);
+  if (sections.filter((section) => section.text === 'Contents').length > 1) throw new Error('GUIDE.md contains duplicate Contents sections');
   const assigned = guideTopics.flatMap((topic) => topic.sections);
   for (const title of assigned) {
     if (sections.filter((section) => section.text === title).length !== 1) throw new Error(`GUIDE.md must contain exactly one section: ${title}`);
