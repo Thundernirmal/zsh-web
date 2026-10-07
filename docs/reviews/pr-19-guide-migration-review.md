@@ -12,7 +12,225 @@
 
 **CI at time of review:** `verify` **failed** (run `37573837801`); `e2e` was **skipped** because it depends on `verify`. The preceding run (`37571833320`, commit `164ff01`) was green.
 
-## Independent assessment and remediation of R1–R17 — 7 October 2026
+## Third follow-up review — 7 October 2026
+
+**Commit reviewed:** `11a94d4403d209d5d6574a682e463f8d16e49f9f` — 29 commits, 59 files, +5,100 −2,227 against `main` (`c6d3cde`).
+
+**Extractor schema:** 8. Dataset sizes are unchanged in substance: 53 commands, 82 tips, 61 legacy anchor mappings, 11 search index entries.
+
+**CI at time of review:** `verify`, `e2e` and the Cloudflare Pages preview all pass.
+
+This round supersedes the earlier review rounds below; its remediation assessment follows these findings. It re-measures the previous round's remediation independently rather than reading the repair commits, applies the shadcn and Web Interface Guidelines review skills to the changed UI, and runs a fresh correctness pass over the whole diff — ten finder angles plus a sweep — whose findings are verified individually here rather than relayed.
+
+### Verdict
+
+All seventeen items from the previous round are addressed, and the fixes are structural rather than cosmetic: the link rewriter now uses own-property access, table escaping is driven by parsed table ranges rather than the line's first character, the taxonomy moved to a dependency-free module, the index version is a content hash, and the guide controllers share a named chunk instead of depending on a filename regex.
+
+This round's findings are of a different character again. The branch works and CI is green. The remaining risk has concentrated in two places: the interaction between the new client-side legacy navigation and Astro's router, and the narrow margins the budget gate now operates on. Two are worth fixing before merge — the URL/DOM desync after a legacy redirect (T1), which is a navigation correctness bug on exactly the deep-link path the compatibility layer exists to serve, and the symlink-following deletion in `npm run sync` (T2), which can destroy files outside the repository.
+
+### Verification of the previous round's remediation
+
+Measured against a fresh build of this commit, not read from the repair commits.
+
+| Previous finding | Independent result | Measurement |
+| --- | --- | --- |
+| R1 — truncated query on reload/Back | Confirmed fixed | Typing `fakeroot` in ~175 ms still leaves the URL at `?q=f`, which is deliberate for Safari safety, but the restored value is now the full query: after Back the input reads `fakeroot` and after reload it reads `fakeroot` (previously `f` in both cases). The recovery layer decouples what the reader sees from what the URL can safely carry. |
+| R2 — prototype-chain lookup | Confirmed fixed | `scripts/docs-guide.mjs:94` now reads `Object.hasOwn(anchors, anchor)`. |
+| R4 — table escaping keyed on the line | Confirmed fixed | Code-span pipes are masked at equal offsets, table ranges come from parsed `table` nodes (`:47–49`), and only spans inside real tables are escaped. |
+| R9 — index cache policy | Confirmed fixed | `public/_headers` now declares the same policy for `/docs-search.json` as for `/tips.json` (both `max-age=300, stale-while-revalidate=86400`), and the version key is a content hash: the built page carries `?v=2b8bf226c60ed6c5`, derived from the serialized index. |
+| R11 — repeated lowercasing | Confirmed fixed | Lowercased title and text are computed once when the catalog resolves (`search.ts:11`) and reused for filtering, ranking and excerpt matching. |
+| R12 — taxonomy in the parser module | Confirmed fixed | `src/lib/guide-topics.mjs` exists, is dependency-free, and is imported by the layout, the budget gate and the specs. |
+| R13 — duplicated navigation markup | Confirmed fixed | Both surfaces render the same `DocsTopicNav` component. The assessment is right that extracting the component does not by itself reduce rendered DOM, since both responsive surfaces remain in server HTML. |
+| R15 — stale agent instructions | Confirmed fixed | `.github/copilot-instructions.md` no longer states a Node range; it defers to `README.md` and `package.json#engines`. |
+| R7 — budget headroom | Partially addressed; still a constraint | The misleading "~15% headroom" comment was corrected rather than the margin. Measured now: the overview sits at 318 of 320 elements and 7,938 of 8,000 gzip JS. See T8. |
+| R9 wording | Corrected fairly | The previous round's phrasing implied `public/_headers` repeated the `tips.json` value; in fact the file and the route disagreed (300 vs 3600). The assessment's correction is accurate and the two are now aligned. |
+
+### Findings raised in this round
+
+Ordered by user impact. Each was reproduced unless marked otherwise.
+
+#### T1 (high) — Back leaves the URL and the DOM out of sync after a legacy redirect
+
+`src/components/docs/layout.ts:10`.
+
+The legacy redirect performs `location.replace(target)` where only the fragment differs — a same-document fragment navigation, which sets the entry's `history.state` to `null`. Astro's `ClientRouter` uses `state.index` for its own bookkeeping and skips popstates whose state is null, so a Back onto that entry restores the URL but not the document. Reproduced in Chromium against the built site:
+
+```
+1) after legacy redirect : /docs/#explore-the-guide   history.state === null
+2) on topic page        : /docs/shell-basics/        h1 "Shell basics"
+3) after Back           : /docs/#explore-the-guide   h1 "Shell basics"
+                          #explore-the-guide present in DOM: false
+```
+
+The reader lands on a URL that claims to be the overview while the previous topic's article is still rendered, and the next Back lands on the same desynchronised entry. The trigger is arriving on any mapped `/docs/#anchor` link and then navigating — exactly the audience the compatibility mapping exists to serve. The same null state means the session-storage key for that load is `docs-query:undefined:/docs/`, which no later load reads.
+
+**Fix:** re-apply the router's state after a fragment-only replace (pass `history.state` through, or use `pushState`/`replaceState` rather than a fragment navigation), and assert URL/DOM agreement in a browser test.
+
+#### T2 (high) — `npm run sync` can delete files outside the repository
+
+`scripts/extract.mjs:1036`, with the scan at `:1014`.
+
+```js
+const obsoleteDocs = fs.existsSync(docsDir)
+  ? fs.readdirSync(docsDir, { recursive: true }).filter((name) => name.endsWith('.md') && !expectedDocs.has(name))
+  : [];
+...
+for (const name of obsoleteDocs) fs.unlinkSync(path.join(docsDir, name));
+```
+
+`readdirSync` with `recursive: true` follows symlinked directories. Verified directly: with `docs/linked -> /tmp/symtest/outside`, the scan returns `linked/keep.md`, the filter selects it as obsolete, and `path.join(docsDir, 'linked/keep.md')` resolves through the symlink to the file outside the tree. `npm run sync` would unlink it, silently. `--check` reports the same path as stale, which at least makes the state visible before it is acted on.
+
+Any hand-authored `.md` placed in the generated directory is deleted the same way, which is by design — but the symlink case reaches outside the repository entirely. **Fix:** reject symlinked entries during the scan, or resolve each candidate and assert it stays within `docsDir` before unlinking.
+
+#### T3 (medium) — the search index cannot find text the page displays
+
+`scripts/docs-guide.mjs:29`.
+
+The index is generated from raw Markdown while the pages render through Astro's Markdown pipeline with Smartypants typography enabled. Measured: `dist/docs/finders/index.html` renders `zoxide’s interactive picker` with 5 U+2019 characters and zero ASCII apostrophes, while `src/data/docs-search.json` stores `zoxide's interactive picker`. The index carries 19 straight apostrophes across six entries. A reader who selects a phrase from the page and pastes it into the guide search gets *No matches*, and the result excerpts display straight quotes the page never renders.
+
+This is the failure mode with the largest user-visible surface in this round: copying text from a page and searching for it is the natural way to use an in-page search. **Fix:** normalise typographic punctuation in the indexed text (or generate the index from the rendered text so the two cannot diverge).
+
+#### T4 (medium) — a `:has()` selector disables a whole rule on older browsers
+
+`src/styles/docs.css:76`.
+
+```css
+[data-legacy-links]:not(:has(> a:target)), [data-legacy-links] > a { display: none; }
+```
+
+A plain comma-separated selector list is not forgiving — unlike `:is()` and `:where()`, one invalid or unsupported selector invalidates the entire rule. In a browser without `:has()` support (Firefox ≤ 120, Safari ≤ 15.3, Chrome ≤ 104) the whole declaration is dropped, including the plain `[data-legacy-links] > a { display: none }` half, so all 61 legacy anchors render inline above the search box on every visit. Verified that `:has()` survives untransformed into the shipped `dist/_astro/*.css`, so nothing in the build protects this. **Fix:** split into two rules, or wrap the `:has()` term in `:is()`.
+
+#### T5 (medium) — a failed index load disables search for the rest of the session
+
+`src/components/docs/search.ts:6` and `:19`.
+
+This is a regression introduced by the R3 repair, which correctly stopped per-keystroke refetching but keyed the failure to the index URL. The URL only changes when the content version changes, so after a single transient failure, navigating to another topic and typing still shows *Search unavailable* with no fetch attempt — only the Retry button recovers. Relatedly, `performance.getEntriesByType('navigation')[0]?.type !== 'navigate'` evaluates to `true` when the entry is absent, so an unknown navigation type is treated as a restore rather than a fresh load. **Fix:** clear the failure on navigation, and invert the navigation-timing default.
+
+#### T6 (medium) — the shadcn generator still targets the old stylesheet
+
+`components.json:8`.
+
+`"css": "src/styles/global.css"` while `global.css` now contains **zero** `:root` blocks and `tokens.css` holds the single one. A future `shadcn add` merges its generated `cssVars` into `global.css`, after the `@import` at line 12, shadowing `tokens.css` and recreating exactly the second token source this PR removed. `.github/copilot-instructions.md` already points at `tokens.css`, so the config and the instructions now disagree.
+
+#### T7 (medium) — the docs budget is coupled to the guide's heading count
+
+`scripts/check-budget.mjs:15`. Measured: `docs/index.html` is 318 of 320 elements and 7,938 of 8,000 gzip JS. Each legacy anchor becomes an element on the overview, so three new headings in `GUIDE.md` push the page over the element ceiling and fail `npm run verify` on a documentation-only change. The 62-byte JS slack is smaller than the 29–40 byte cross-Node zlib spread this repository has already documented, so a green local run can be a red CI run for identical code.
+
+The R7 response — retaining the ceilings and correcting the headroom comment rather than loosening the gate — is defensible, but "retain" only holds while nothing grows. This remains a live constraint, not a settled question.
+
+#### T8 (medium) — per-route asset budgets are silently overwritten
+
+`scripts/check-budget.mjs:34`. Topic entries use `??=` for the HTML/DOM budget but plain `=` for `ASSET_BUDGETS[file] = docsAssets`, so a per-route asset ceiling added next to the explicit entries is overwritten by the discovery loops, and a new docs route about 35% heavier than anything shipped receives the looser generic ceiling with no diagnostic.
+
+#### T9 (medium) — `@import` is placed after other rules
+
+`src/styles/global.css:12`. `@import "./tokens.css"` sits after the `@custom-variant` at line 10, which CSS forbids; it works only because Tailwind inlines imports at build time. If the stylesheet is ever processed without that transform, the browser discards the import and every themed surface falls back to initial values while `astro check`, lint and the budget gate all stay green.
+
+#### T10 (medium) — an unknown docs slug produces a broken page
+
+`src/layouts/DocsLayout.astro:21`. `pages.findIndex(...)` returns `-1` for any collection entry not in `guideTopics`, producing a `-1` breadcrumb, `previous = pages[-2]` (absent), `next = pages[0]` (Overview) and `topic` undefined, so `PageHeader` renders an empty description. `src/content.config.ts` uses `glob('**/*.md')`, so a nested page is a legitimate build target; both the extractor's recursive obsolete scan and the budget gate's recursive dist scan contemplate that shape.
+
+#### T11 (low) — the excerpt anchors on a term that may have matched only the title
+
+`src/components/docs/search.ts:90`. Windowing uses `terms[0]`; when that term occurs only in the title, `indexOf` returns `-1`, the offset clamps to zero, and the card shows the page introduction instead of the matched context. The excerpt test only exercises single-term queries.
+
+#### T12 (low) — the overview lede duplicates the generator's description
+
+`src/layouts/DocsLayout.astro:35` hard-codes the same sentence the generator writes into `index.md`'s frontmatter, so the visible paragraph and the `meta`/`og` description have two owners. Editing the generator updates the metadata and leaves the paragraph stale, with no failing test; topic pages avoid this only because they read `topic?.description`.
+
+#### T13 (low) — the route rule and the index label are rebuilt in several places
+
+`src/components/docs/DocsTopicNav.astro:5`, `src/layouts/DocsLayout.astro:20`, `scripts/docs-guide.mjs:98` and the budget tooling each rebuild the synthetic `{ slug: 'index', … }` entry and the `/docs/<slug>/` rule. The copies already disagree: the two UI files label it `Overview`, the generator labels it `Shell guide`.
+
+#### T14 (low) — the search field is inert without JavaScript
+
+`src/components/docs/DocsSearch.astro:12`. The input is enabled, labelled and focusable, but it has no enclosing form and the index is fetched only by the controller, so with JavaScript disabled typing and pressing Enter do nothing while the static status text still claims *Search across the whole guide.* The legacy anchors deliberately gained a native fallback in the same series, so the two degrade inconsistently.
+
+#### T15 (low) — the layout-shift test can pass without measuring
+
+`tests/e2e/performance.spec.ts:25`. `Number(attr ?? 0)` converts a missing measurement into `0`, and `0 < 0.1` passes, so an absent observer attribute reports success rather than failure.
+
+#### T16 (low) — a test hard-codes a count derived from guide content
+
+`tests/e2e/docs.spec.ts:151` asserts the literal `2 matching topics`. A routine `npm run sync` that moves a mention into a third section changes the count and fails the run with no application change.
+
+#### T17 (low) — one test performs 50 document loads against a 30-second cap
+
+`tests/e2e/docs.spec.ts:68` iterates five widths across ten topics: 50 full document loads in a single test, measured at 15.8 s on WebKit locally against the 30 s per-test default, with four browser projects competing for two workers in CI.
+
+#### T18 (medium, reported but not reproduced) — intermittent WebKit restore failure
+
+`src/components/docs/search.ts:34`. The restore key embeds the router's history index; when it misses, the input falls back to the URL query, which may be up to a second stale, and the next write persists the truncated value. Reported as reproducing 2 of 12 runs of `tests/e2e/docs.spec.ts:195` on mobile-webkit. My own six repeats of that suite — 96 passed, 6 skipped, 0 failed — did not reproduce it, so the rate is low and the finding is recorded as plausible rather than confirmed.
+
+#### T19 (low, reported not verified) — test-timing and content coupling
+
+Two further items were reported without independent reproduction: that the sweep's reflow timings interact with CI contention, and that a generated-content change can shift other asserted strings. Both are covered by T16/T17 where they overlap; the remainder is recorded as unverified.
+
+### Limits of this round
+
+- Physical-device Safari remains untested throughout; WebKit findings come from the Playwright WebKit build.
+- T18 was reported by the correctness pass and not reproduced in six independent repeats; it is recorded as plausible, not confirmed.
+- The reflow-timing figure (T17) is a single local WebKit measurement and indicates magnitude rather than a CI prediction.
+- T4 rests on the CSS selector-list specification plus the presence of `:has()` in the shipped CSS; no browser without `:has()` support was available to run against.
+- This round did not re-audit the shell-reference datasets or the generated guide content; it reviewed the application, tooling and test surfaces.
+
+### Remediation order for this round
+
+1. **T1** — re-apply router state after the fragment-only legacy redirect, with a browser assertion that URL and DOM agree after Back.
+2. **T2** — refuse to unlink anything that resolves outside the generated docs directory.
+3. **T3** — normalise typographic punctuation in the search index so displayed text is findable.
+4. **T4**, **T6** — split the `:has()` rule; point `components.json` at `tokens.css`.
+5. **T5**, **T9**, **T10** — failure recovery across navigation, import placement, and the unknown-slug guard.
+6. **T7**, **T8** — decide deliberately whether the budget margins are acceptable and make per-route asset ceilings enforceable.
+7. **T11–T17** — excerpt anchoring, description ownership, route/label duplication, no-JS search, and the three test-robustness items.
+
+### Method notes for this round
+
+- Remediation claims were verified by measurement against a fresh `npm run build` served as static files, not by reading the repair commits.
+- The legacy-redirect desync was captured by driving the real flow in Chromium: arrive on `/docs/#contents`, read `history.state`, click a sidebar topic, press Back, and compare `location.href` against the rendered `h1` and the presence of `#explore-the-guide`.
+- The symlink deletion was reproduced with a purpose-built tree in the system temporary directory, using the real `readdirSync(…, { recursive: true })` call shape and the extractor's own filter.
+- The typography mismatch was measured by counting U+2019 against ASCII apostrophes in both `dist/docs/finders/index.html` and `src/data/docs-search.json`.
+- The budget figures are from `npm run budget` on this head.
+- The intermittent restore failure was probed by running `tests/e2e/docs.spec.ts` six times on mobile-webkit (`--repeat-each=6 --workers=1`).
+- The full diff was additionally reviewed by a ten-angle correctness pass plus a sweep; their findings are verified individually above, and duplicates between them are reported once.
+
+## Independent assessment and remediation of T1–T19 — 7 October 2026
+
+Every finding from the third follow-up was checked against the current implementation. The original findings above are preserved as review history. These repairs are local only; nothing was pushed or posted to GitHub.
+
+| Finding | Decision and outcome |
+| --- | --- |
+| T1 | **Confirmed and fixed.** Fragment-only legacy redirects use `history.replaceState(history.state, '', target)` and scroll to the destination rather than invoking a fragment navigation that clears Astro's state. Cross-page destinations still replace the document. A browser regression asserts the history index survives and URL, H1 and destination DOM agree after Back, Forward and a second Back. |
+| T2 | **Confirmed and fixed.** Sync scans with directory entries and rejects symbolic links before writing or deleting any generated outputs. It rejects nested directory links, file links, dangling links and a linked root directory; it never descends through them. Standalone temporary-tree tests exercise these cases, and the source-backed integration test checks both sync and `--check` refuse a linked directory while leaving its external file intact. Obsolete regular Markdown files remain removable. |
+| T3 | **Confirmed and fixed at matching time.** Query and cached title/body matching normalize straight and typographic single/double quotes alike. The browser regression copies the actual rendered `zoxide’s interactive picker` phrase and finds the correct topic with both apostrophe forms. Raw index text and excerpts retain authored punctuation, including literal shell syntax; blanket Smartypants transformation of code in the index would change command text. This solution needs no larger or eagerly loaded index. |
+| T4 | **Confirmed and fixed.** The plain legacy-link hiding selector has its own declaration. Unsupported `:has()` can no longer invalidate it; the independent `:target` destination remains available. No unsupported historical browser was available for execution. |
+| T5 | **Confirmed and fixed.** A failed promise is cleared on the next Astro navigation, while further typing on the failed page still makes no requests. Retry remains explicit on that page and restores input focus. Browser coverage checks recovery after navigation with an unchanged version. Missing navigation timing now defaults to a fresh load; only explicit `reload` or `back_forward` restores session state, with a missing-timing regression. |
+| T6 | **Confirmed and fixed.** `components.json` points the generator at `src/styles/tokens.css`, the existing variable owner. `global.css` continues to import it. The installed CLI's context command could not complete its registry request because DNS for `ui.shadcn.com` was unavailable. A local in-memory check using the installed registry's real helpers confirms the new config still detects Tailwind v4 and merges a test variable into the single existing tokens root without changing files. |
+| T7 | **Confirmed narrow margins; explicit performance decision.** Ten redundant card wrappers were removed, reducing the overview from 318 to 308 elements without changing card contents or layout. The 320-element ceiling is retained: native fallback anchors intentionally count as DOM, and sufficiently large guide growth should still trigger review. The docs JS ceiling advances separately from 8,000 to 8,500 gzip bytes to accommodate the confirmed navigation/search fixes and compression variance. The fixed controllers measure 8,060 bytes on Node 26.10.0, leaving 440 bytes of slack instead of the former 62. HTML, CSS, font and lazy-index ceilings are unchanged. This is finite headroom, not a promise that any future guide size fits. |
+| T8 | **Confirmed and fixed.** Both expected-route and recursive discovery use `??=` for asset budgets, including the overview fallback. Explicit per-route ceilings now survive discovery. The generic topic ceiling remains intentional, rather than a claim that every topic has equal current transfer. |
+| T9 | **Confirmed ordering issue and fixed.** The tokens import precedes `@custom-variant` and all declaration-bearing rules; the permitted layer-order statement stays first. Tailwind no longer needs to compensate for its placement. |
+| T10 | **Confirmed latent invalid state and fixed.** `DocsLayout` throws an actionable build error for any unregistered collection slug before computing pagination or rendering breadcrumbs. Nested or extra collection pages must first be registered in the guide taxonomy. |
+| T11 | **Confirmed and fixed.** Excerpts select the first query term that actually occurs in the body; a title-only first term no longer forces the introduction. A controlled multi-term browser fixture asserts the body context is shown. All-title queries still reasonably use the introduction. |
+| T12 | **Confirmed and fixed.** The visible lede reads the same frontmatter `description` passed to metadata. The overview summary itself now belongs to the taxonomy, which the generator consumes. |
+| T13 | **Confirmed duplication and consolidated.** The dependency-free taxonomy exports the overview definition, ordered page list and `guideUrl`. Navigation, pagination, generation, search-index URLs and expected budget routes consume them. `Shell guide` is deliberately the page title and `Overview` the navigation title; these distinct roles are explicitly named in the one overview definition. Generated files are unchanged after regeneration. |
+| T14 | **Confirmed and fixed.** Server HTML disables the search input and explains that JavaScript is required while pointing readers toward guide topics. The controller enables the input when initialized and replaces the status. The no-JavaScript browser test checks the disabled control and honest status before using native topic navigation. |
+| T15 | **Confirmed and fixed.** The performance test registers an observer only when `layout-shift` is supported and publishes an explicit initial zero after DOM readiness. It requires a present, finite, nonnegative measurement before comparing the threshold; an absent or unsupported observer no longer passes by defaulting to zero. |
+| T16 | **Confirmed and fixed.** The live-region test derives its expected count from actual rendered results, verifies the count is positive, and still asserts zero repeated mutations for whitespace edits. It no longer ties correctness to today's `fakeroot` distribution. |
+| T17 | **Confirmed test-structure risk and fixed.** Each of the five widths is its own test with ten topic loads and a separate timeout/report. No timeout ceiling was increased. |
+| T18 | **Unverified report; no speculative state rewrite.** The existing immediate reload/Back/Forward regression remains, and T1 removes one confirmed route to a null history state. Additional WebKit repetition is recorded below. A history-key miss remains plausible, but the report provides no reproducible trigger warranting a second recovery mechanism that could overwrite an explicit fresh URL query. |
+| T19 | **No additional actionable finding established.** The concrete count and fifty-navigation coupling are addressed by T16/T17. The remaining unspecified timing/content reports have no reproduced behavior or particular assertion to fix; retained here as unverified observations. |
+
+### Validation of this remediation
+
+- `npm run verify` passes on Node 26.10.0/npm 11.19.1: all 21 extractor/tooling tests, pinned-source consistency, lint, unused-code checks, Astro diagnostics, build and budgets. Final lint also passes after the performance assertion adjustment.
+- `npm run sync` ran from the clean pinned source checkout. Commands, tips, all guide pages, legacy mappings, search index and source metadata remain byte-for-byte unchanged; no snapshot SHA or extraction schema was advanced.
+- `npm run test:e2e -- --workers=2` exercised the complete four-browser matrix: 312 passed, 4 intentionally skipped, 2 Firefox failures during an accidentally concurrent verification rebuild (a transient 404 and a React hydration error). After builds stopped, a focused rerun of both failures on Firefox and Chromium plus the final layout-shift test passed all 5 cases. All 314 non-skipped matrix cases therefore passed across the matrix and focused rerun. No production code was changed in response to those transient failures.
+- Additional mobile-WebKit stress run: both the immediate-query restore regression and the legacy-fragment history regression repeated twelve times each, **24 passed**, with two workers. T18 was not reproduced; this result does not establish behavior on physical-device Safari.
+- Docs regressions pass in all four browsers, including history-state preservation, missing navigation timing, typographic-quote matching, body-context excerpts, navigation recovery after fetch failure, and honest no-JavaScript search controls. Existing successful-index cache reuse and changed-version invalidation coverage remain green.
+- Overview: 33,424 raw / 6,928 gzip bytes / 308 elements. Docs assets: 8,060 gzip JS / 22,143 gzip CSS / 188,744 font bytes, under the deliberately revised JS ceiling and unchanged remaining ceilings.
+- At 390px, the collaborative preview was manually inspected for overview/cards, topic headings, curly-quote search results and code/table overflow. Shell-basics tables and long code blocks scroll inside their own containers; page content does not overflow the viewport. Physical-device Safari and browsers predating `:has()` support remain untested.
+
+## Independent assessment and remediation of R1–R17 (historical) — 7 October 2026
 
 This assessment preserves the follow-up findings below as review history. Each item was checked against the implementation; recommended fixes were treated as hypotheses rather than copied. The pinned shell revision remains unchanged; the extractor contract advances to schema 8 and all generated outputs were regenerated together from the clean source checkout.
 
@@ -47,7 +265,7 @@ Research used the [GFM table specification](https://github.github.com/gfm/#table
 - An additional 16-case cache/recovery run passed across all four browsers, including changed-version invalidation and unchanged-version request reuse.
 - Existing GitHub review comments were rechecked: the engine-range correction and inclusion of generated guide pages in snapshot artifacts remain fixed.
 
-## Second follow-up review — 7 October 2026
+## Second follow-up review (historical) — 7 October 2026
 
 **Commit reviewed:** `a029c786b0f2e512fa5c2eebd8933f2010901e4b` — 24 commits, 52 files, +4,687 −2,221 against `main` (`c6d3cde`).
 
