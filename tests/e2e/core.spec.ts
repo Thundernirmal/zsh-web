@@ -34,39 +34,46 @@ test('maintenance instructions have their own accessible guide page', async ({ p
   await page.goto('/docs/#maintenance-and-verification');
   await expect(page.getByRole('heading', { name: 'Maintenance and verification', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Required checks', level: 3, exact: true })).toBeVisible();
-  const table = page.locator('.sl-markdown-content table').first();
+  const table = page.locator('.markdown-doc table').first();
   await expect(table).toHaveAttribute('tabindex', '0');
   await table.focus();
   await expect(table).toBeFocused();
   await page.getByRole('link', { name: '← Back to the shell guide', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Shared Zsh Configuration Guide', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
 });
 
-test('Starlight navigation preserves the shared theme and supports mobile menus', async ({ page }) => {
+test('custom docs share site chrome and support mobile topic navigation', async ({ page }) => {
   await page.goto('/docs/');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.locator('[data-site-header]')).toHaveCount(1);
+  await expect(page.locator('html')).toHaveClass(/dark/);
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
   const styles = await page.locator('body').evaluate((node) => ({ color: getComputedStyle(node).backgroundColor, font: getComputedStyle(node).fontFamily }));
   expect(styles.color).toBe('rgb(30, 30, 46)');
   expect(styles.font).toContain('Plus Jakarta Sans');
-  const menu = page.locator('button[popovertarget="starlight__sidebar"]');
-  if (await menu.isVisible()) {
-    const box = await menu.boundingBox();
-    expect(box?.width).toBeGreaterThanOrEqual(44);
+  const menu = page.locator('[data-docs-menu]');
+  await expect(menu).toHaveAttribute('data-ready', 'true');
+  if ((page.viewportSize()?.width ?? 0) < 1024) {
+    await expect(menu).not.toHaveAttribute('open');
+    const summary = menu.locator('summary');
+    const box = await summary.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
-    await menu.click();
-    await expect(page.locator('#starlight__sidebar')).toBeVisible();
-    await expect(page.locator('.main-frame')).toHaveAttribute('inert', '');
+    await summary.focus();
+    await summary.press('Enter');
+    await expect(menu).toHaveAttribute('open');
   }
-  await page.locator('#starlight__sidebar').getByRole('link', { name: 'Nix profiles and pickers', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link', { name: /Nix profiles and pickers/ }).click();
   await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
-  await expect(page.locator('#starlight__sidebar a[aria-current="page"]')).toHaveText('Nix profiles and pickers');
+  await expect(menu.locator('a[aria-current="page"]')).toContainText('Nix profiles and pickers');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await page.goto('/docs/#nix-profile-manager-npkg');
   await expect(page).toHaveURL(/\/docs\/nix\/#nix-profile-manager-npkg$/);
   await expect(page.getByRole('heading', { name: 'Nix profile manager: npkg', level: 2 })).toBeVisible();
-  if (await menu.isVisible()) await menu.click();
-  await page.locator('#starlight__sidebar').getByRole('link', { name: 'Commands', exact: true }).click();
+  const outline = page.locator('.docs-outline');
+  await outline.locator('summary').click();
+  await page.getByRole('navigation', { name: 'On this page', exact: true }).getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
+  await expect(page).toHaveURL(/#picker-cache-and-dependencies$/);
+  await expect(page.getByRole('heading', { name: 'Picker cache and dependencies', exact: true })).toBeInViewport();
+  await page.locator('[data-site-header]').getByRole('link', { name: 'Commands', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Command Reference', level: 1 })).toBeVisible();
   const commandSearch = page.getByRole('searchbox');
   await expect.poll(async () => {
@@ -77,27 +84,53 @@ test('Starlight navigation preserves the shared theme and supports mobile menus'
   await expect(page).toHaveURL(/q=npkg/);
 });
 
-test('Starlight search finds topic content and restores focus when dismissed', async ({ page }) => {
+test('inline docs search loads on demand, clears, and links to topic content', async ({ page }) => {
+  const indexRequests: string[] = [];
+  page.on('request', (request) => { if (request.url().includes('/docs-search.json')) indexRequests.push(request.url()); });
   await page.goto('/docs/');
-  const search = page.getByRole('button', { name: 'Search docs', exact: true });
-  await expect(search).toBeEnabled();
-  await search.click();
-  const dialog = page.getByRole('dialog', { name: 'Search docs', exact: true });
-  await expect(dialog).toBeVisible();
-  const input = dialog.locator('.pagefind-ui__search-input');
-  await expect(input).toBeVisible();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  expect(indexRequests).toHaveLength(0);
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await page.keyboard.press('/');
+  await expect(input).toBeFocused();
   await input.fill('fakeroot');
-  const installation = dialog.locator('a.pagefind-ui__result-link[href*="/docs/installation/"]').first();
+  const results = page.getByRole('list', { name: 'Guide search results', exact: true });
+  const installation = results.getByRole('link', { name: /^Installation and requirements/ });
   await expect(installation).toBeVisible();
+  expect(indexRequests).toHaveLength(1);
   await input.press('Escape');
-  await expect(dialog).not.toBeVisible();
-  await expect(search).toBeFocused();
-  await search.click();
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await expect(results).not.toBeVisible();
+  await input.fill('not-a-real-guide-topic');
+  await expect(page.getByRole('status')).toContainText('No matches');
+  await page.getByRole('button', { name: 'Clear search', exact: true }).click();
+  await expect(input).toBeFocused();
   await input.fill('fakeroot');
   await expect(installation).toBeVisible();
+  expect(indexRequests).toHaveLength(1);
   await installation.click();
   await expect(page).toHaveURL(/\/docs\/installation\//);
   await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+});
+
+test('docs search reports a load failure and retries without losing the query', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/docs-search.json?*', async (route) => {
+    requests += 1;
+    if (requests === 1) await route.abort();
+    else await route.continue();
+  });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.fill('fakeroot');
+  await expect(page.getByRole('alert')).toContainText('Couldn’t load guide search');
+  await expect(input).toHaveValue('fakeroot');
+  await page.getByRole('button', { name: 'Retry search', exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await expect(page.getByRole('alert')).not.toBeVisible();
+  expect(requests).toBe(2);
 });
 
 for (const route of siteRoutes) {
@@ -416,7 +449,7 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 	const docsAction = page.locator('main').getByRole('link', { name: 'Read Docs', exact: true });
 	await expect(docsAction).toHaveAttribute('href', '/docs/');
 	await docsAction.click();
-	await expect(page.getByRole('heading', { name: 'Shared Zsh Configuration Guide', level: 1 })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
 	await expect(page.getByText('Documentation snapshot', { exact: true })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'View GUIDE.md source' })).toHaveAttribute(
 		'href',
@@ -426,9 +459,9 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 		'href',
 		/\/blob\/[0-9a-f]{40}\/README\.md$/,
 	);
-	await page.locator('.sl-markdown-content').getByRole('link', { name: 'Installation and requirements', exact: true }).click();
+	await page.locator('.docs-card-grid').getByRole('link', { name: /Installation and requirements/ }).click();
 	await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
-	const firstTable = page.locator('.sl-markdown-content table').first();
+	const firstTable = page.locator('.markdown-doc table').first();
 	await expect(firstTable).toHaveAttribute('tabindex', '0');
 	await firstTable.focus();
 	await expect(firstTable).toBeFocused();

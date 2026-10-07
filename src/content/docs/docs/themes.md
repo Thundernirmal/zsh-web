@@ -1,7 +1,6 @@
 ---
 title: "Themes and terminal output"
 description: "Themes and terminal output from Nirmal's shared Zsh configuration."
-editUrl: false
 ---
 
 ## Terminal output modes

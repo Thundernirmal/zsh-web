@@ -1,7 +1,6 @@
 ---
 title: "Credentials"
 description: "Credentials from Nirmal's shared Zsh configuration."
-editUrl: false
 ---
 
 ## Credential manager: cgm

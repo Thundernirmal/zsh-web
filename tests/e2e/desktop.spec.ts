@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html'];
+const siteRoutes = ['/', '/commands/', '/tips/', '/docs/', '/404.html'];
 const desktopViewports = [
 	{ width: 1024, height: 768 },
 	{ width: 1280, height: 800 },

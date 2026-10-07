@@ -1,21 +1,33 @@
 import GithubSlugger from 'github-slugger';
 
-// One navigation/section map shared by extraction, Starlight, and budget checks.
+// One navigation/section map shared by extraction and the custom documentation.
 export const guideTopics = [
-  { slug: 'installation', title: 'Installation and requirements', sections: ['Setup and scope', 'Dependencies'] },
-  { slug: 'shell-basics', title: 'Shell basics', sections: ['Shell options and history', 'Completion', 'Aliases'] },
-  { slug: 'finders', title: 'Navigation and finders', sections: ['Zoxide and fzf'] },
-  { slug: 'commands', title: 'Command discovery and helpers', sections: ['Command discovery', 'Function reference'] },
-  { slug: 'packages', title: 'Package workflows', sections: ['Package manager: upkg'] },
-  { slug: 'nix', title: 'Nix profiles and pickers', sections: ['Nix profile manager: npkg'] },
-  { slug: 'credentials', title: 'Credentials', sections: ['Credential manager: cgm'] },
-  { slug: 'themes', title: 'Themes and terminal output', sections: ['Terminal output modes'] },
-  { slug: 'safety', title: 'Gotchas and safety', sections: ['Gotchas and safety boundaries'] },
-  { slug: 'maintenance', title: 'Maintenance and verification', sections: ['Module layout', 'Maintenance and verification'] },
+  { slug: 'installation', title: 'Installation and requirements', description: 'Set up your shell and check the tools it needs.', sections: ['Setup and scope', 'Dependencies'] },
+  { slug: 'shell-basics', title: 'Shell basics', description: 'History, completion, aliases, and everyday shortcuts.', sections: ['Shell options and history', 'Completion', 'Aliases'] },
+  { slug: 'finders', title: 'Navigation and finders', description: 'Move between directories and make the most of fzf.', sections: ['Zoxide and fzf'] },
+  { slug: 'commands', title: 'Command discovery and helpers', description: 'Find commands and learn the helpers behind them.', sections: ['Command discovery', 'Function reference'] },
+  { slug: 'packages', title: 'Package workflows', description: 'Check, search, upgrade, and clean with upkg.', sections: ['Package manager: upkg'] },
+  { slug: 'nix', title: 'Nix profiles and pickers', description: 'Manage profiles, select packages, and compare outputs.', sections: ['Nix profile manager: npkg'] },
+  { slug: 'credentials', title: 'Credentials', description: 'Store and load shell credentials with cgm.', sections: ['Credential manager: cgm'] },
+  { slug: 'themes', title: 'Themes and terminal output', description: 'Choose colors, glyphs, and finder layouts.', sections: ['Terminal output modes'] },
+  { slug: 'safety', title: 'Gotchas and safety', description: 'Understand the boundaries before changing shell state.', sections: ['Gotchas and safety boundaries'] },
+  { slug: 'maintenance', title: 'Maintenance and verification', description: 'Explore the modules and verify changes to the config.', sections: ['Module layout', 'Maintenance and verification'] },
 ];
 
 function headingText(text) {
   return text.replace(/[`*_]/g, '').replace(/<[^>]*>/g, '');
+}
+
+export function guideSearchIndex(pages) {
+  return pages.map((page) => ({
+    title: page.title,
+    url: page.slug === 'index' ? '/docs/' : `/docs/${page.slug}/`,
+    text: page.body
+      .replace(/^\|(?:\s*:?-+:?\s*\|)+\s*$/gm, '')
+      .replace(/^\|.*\|\s*$/gm, (row) => row.replace(/(?<!\\)\|/g, ' ').replace(/\\\|/g, '|'))
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '').replace(/`+/g, '').replace(/\s+/g, ' ').trim(),
+  }));
 }
 
 export function generateGuideDocs(guide) {
@@ -68,9 +80,9 @@ export function generateGuideDocs(guide) {
   });
   const rewrite = (body) => body.replace(/\]\(#([^)]*)\)/g, (match, anchor) => anchors[anchor] ? `](${anchors[anchor]})` : match);
   const intro = guide.slice(0, sections[0]?.offset ?? guide.length).replace(/^# .+\n/, '').trim();
-  const overview = `${intro}\n\n## Explore the guide\n\n${pages.map((page) => `- [${page.title}](/docs/${page.slug}/)`).join('\n')}\n\n## Command reference\n\n[Browse searchable commands](/commands/) or [explore shell tips](/tips/).\n`;
+  const overview = `${intro}\n`;
   return {
-    pages: [{ slug: 'index', title: 'Shared Zsh Configuration Guide', body: overview }, ...pages].map((page) => ({ ...page, body: rewrite(page.body) })),
+    pages: [{ slug: 'index', title: 'Shell guide', body: overview }, ...pages].map((page) => ({ ...page, body: rewrite(page.body) })),
     anchors,
   };
 }

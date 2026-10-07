@@ -1,7 +1,6 @@
 ---
 title: "Gotchas and safety"
 description: "Gotchas and safety from Nirmal's shared Zsh configuration."
-editUrl: false
 ---
 
 ## Gotchas and safety boundaries

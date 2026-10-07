@@ -1,7 +1,6 @@
 ---
 title: "Shell basics"
 description: "Shell basics from Nirmal's shared Zsh configuration."
-editUrl: false
 ---
 
 ## Shell options and history

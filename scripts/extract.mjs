@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { describeCommandCondition, parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
-import { generateGuideDocs } from './docs-guide.mjs';
+import { generateGuideDocs, guideSearchIndex } from './docs-guide.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -993,7 +993,7 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 5,
+    schemaVersion: 6,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
@@ -1003,9 +1003,10 @@ function main() {
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
     { filePath: path.join(DATA_DIR, 'docs-links.json'), contents: serializeJson(guidePages.anchors) },
+    { filePath: path.join(DATA_DIR, 'docs-search.json'), contents: serializeJson(guideSearchIndex(guidePages.pages)) },
     ...guidePages.pages.map((page) => ({
       filePath: path.join(DATA_DIR, '../content/docs/docs', `${page.slug}.md`),
-      contents: `---\ntitle: ${JSON.stringify(page.title)}\ndescription: ${JSON.stringify(`${page.title} from Nirmal's shared Zsh configuration.`)}\neditUrl: false\n---\n\n${page.body.trim()}\n`,
+      contents: `---\ntitle: ${JSON.stringify(page.title)}\ndescription: ${JSON.stringify(`${page.title} from Nirmal's shared Zsh configuration.`)}\n---\n\n${page.body.trim()}\n`,
     })),
   ];
   const docsDir = path.join(DATA_DIR, '../content/docs/docs');

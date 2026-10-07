@@ -31,7 +31,6 @@
   "dependencies": {
     "@astrojs/react": "^6.0.2",
     "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/starlight": "^0.42.5",
     "@base-ui/react": "^1.7.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/outfit": "^5.3.0",
@@ -67,7 +66,6 @@
     "zod": "^4.1.0"
   },
   "overrides": {
-    "postcss-nested": "^7.0.2",
     "eslint-plugin-jsx-a11y": {
       "eslint": "$eslint"
     }

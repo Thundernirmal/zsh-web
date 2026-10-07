@@ -1,7 +1,6 @@
 ---
 title: "Maintenance and verification"
 description: "Maintenance and verification from Nirmal's shared Zsh configuration."
-editUrl: false
 ---
 
 ## Module layout

@@ -1,7 +1,6 @@
 import { defineCollection } from 'astro:content';
-import { file } from 'astro/loaders';
-import { docsLoader, i18nLoader } from '@astrojs/starlight/loaders';
-import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
+import { file, glob } from 'astro/loaders';
+import { z } from 'zod';
 import { shellCommandSchema, shellTipSchema } from '@/lib/content-schemas';
 
 const commands = defineCollection({
@@ -14,6 +13,8 @@ const tips = defineCollection({
 	schema: shellTipSchema,
 });
 
-const docs = defineCollection({ loader: docsLoader(), schema: docsSchema() });
-const i18n = defineCollection({ loader: i18nLoader(), schema: i18nSchema() });
-export const collections = { commands, tips, docs, i18n };
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/docs/docs' }),
+  schema: z.object({ title: z.string(), description: z.string() }),
+});
+export const collections = { commands, tips, docs };
