@@ -19,7 +19,7 @@ test('guide sidebar keeps every keyboard-focused topic visible in a short viewpo
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 500 });
   await page.goto('/docs/maintenance/');
-  await expect(page.locator('[data-docs-menu]')).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   const links = page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link');
   await expect(links).toHaveCount(guideTopics.length + 1);
   for (const fontSize of ['100%', '200%']) {
@@ -190,4 +190,96 @@ test('narrow guide tables preserve copy-sensitive identifiers and scroll by keyb
   await table.focus();
   await table.press('ArrowRight');
   await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+});
+
+test('immediate reload and history traversal restore the complete pending query', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Docs', exact: true }).first().click();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.pressSequentially('fakeroot', { delay: 15 });
+  await page.goBack();
+  await expect.poll(() => new URL(page.url()).pathname).toBe('/');
+  await page.goForward();
+  await expect(input).toHaveValue('fakeroot');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await input.fill('nix profiles');
+  await page.reload();
+  await expect(input).toHaveValue('nix profiles');
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  // A new navigation with an explicit query must not reuse an old entry snapshot.
+  await page.goto('/docs/?q=upkg');
+  await expect(input).toHaveValue('upkg');
+});
+
+test('failed search stays failed while typing and only Retry fetches again', async ({ page }) => {
+  let attempts = 0;
+  await page.route('**/docs-search.json?*', (route) => { attempts += 1; return route.abort(); });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.pressSequentially('fakeroot', { delay: 50 });
+  const retry = page.getByRole('button', { name: 'Retry search' });
+  await expect(retry).toBeVisible();
+  expect(attempts).toBe(1);
+  await retry.focus();
+  await retry.press('Enter');
+  await expect(input).toBeFocused();
+  await expect.poll(() => attempts).toBe(2);
+  await expect(retry).toBeVisible();
+});
+
+test('legacy redirects retain query state', async ({ page }) => {
+  await page.goto('/docs/?q=nix&keep=1#aliases');
+  await expect(page).toHaveURL(/\/docs\/shell-basics\/\?q=nix&keep=1#aliases$/);
+  await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toHaveValue('nix');
+});
+
+test('legacy anchors offer an actionable destination without JavaScript', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await page.goto(new URL('/docs/#setup-and-scope', baseURL).href);
+    const link = page.locator('#setup-and-scope');
+    await expect(link).toBeVisible();
+    await expect(link).toBeInViewport();
+    await link.focus();
+    await link.press('Enter');
+    await expect(page).toHaveURL(/\/docs\/installation\/#setup-and-scope$/);
+    await expect(page.getByRole('heading', { name: 'Setup and scope', exact: true })).toBeVisible();
+  } finally { await context.close(); }
+});
+
+test('docs routes use the same external controller chunk', async ({ page }) => {
+  const controllers = new Set<string>();
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (/\/_astro\/docs\.[^/]+\.js$/.test(path)) controllers.add(path);
+  });
+  for (const path of ['/docs/', '/docs/nix/']) {
+    await page.goto(path);
+    await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+    expect(controllers.size).toBe(1);
+  }
+});
+
+
+test('a changed index version refreshes the cache after topic navigation', async ({ page }) => {
+  const requests: string[] = [];
+  await page.route('**/docs-search.json?*', (route) => {
+    requests.push(route.request().url());
+    const updated = new URL(route.request().url()).searchParams.get('v') === 'updated';
+    return route.fulfill({ json: [{ title: updated ? 'Updated index' : 'Original index', url: '/docs/nix/', text: updated ? 'newterm' : 'oldterm' }] });
+  });
+  await page.route('**/docs/nix/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/data-index-url="[^"]+"/, 'data-index-url="/docs-search.json?v=updated"');
+    await route.fulfill({ response, body });
+  });
+  await page.goto('/docs/?q=oldterm');
+  await page.getByRole('link', { name: /^Original index/ }).click();
+  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('newterm');
+  await expect(page.getByRole('link', { name: /^Updated index/ })).toBeVisible();
+  expect(requests).toHaveLength(2);
 });

@@ -51,7 +51,7 @@ test('custom docs share site chrome and support mobile topic navigation', async 
   expect(styles.color).toBe('rgb(30, 30, 46)');
   expect(styles.font).toContain('Plus Jakarta Sans');
   const menu = page.locator('[data-docs-menu]');
-  await expect(menu).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   if ((page.viewportSize()?.width ?? 0) < 1024) {
     await expect(menu).not.toHaveAttribute('open');
     const summary = menu.locator('summary');

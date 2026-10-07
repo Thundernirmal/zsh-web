@@ -22,9 +22,13 @@ export default defineConfig({
 	vite: {
 		plugins: [tailwindcss()],
 		build: {
-			// Cache the shared guide controllers once rather than repeat them in
-			// every topic's HTML. Keep unrelated asset inlining unchanged.
-			assetsInlineLimit: (file) => /(?:DocsSearch|DocsLayout)\.astro/.test(file) ? false : undefined,
+			rolldownOptions: {
+				output: {
+					// A shared chunk makes controller caching structural: Astro cannot
+					// inline importing entry points, regardless of component filenames.
+					codeSplitting: { groups: [{ name: 'docs', test: (id) => id.includes('/src/components/docs/') && id.endsWith('.ts') }] },
+				},
+			},
 		},
 		// Discover router dependencies before the first request so late
 		// optimization does not invalidate the dev toolbar's module URLs.

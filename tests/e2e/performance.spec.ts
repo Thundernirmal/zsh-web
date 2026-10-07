@@ -17,7 +17,7 @@ test('mobile guide navigation stays stable while controllers load slowly', async
     await route.continue();
   });
   await page.goto('/docs/');
-  await expect(page.locator('[data-docs-menu]')).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   await page.evaluate(async () => {
     await document.fonts.ready;
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));

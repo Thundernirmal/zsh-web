@@ -1,0 +1,11 @@
+---
+import { guideTopics } from '@/lib/guide-topics.mjs';
+interface Props { slug: string }
+const { slug } = Astro.props;
+const pages = [{ slug: 'index', title: 'Overview' }, ...guideTopics];
+---
+<nav aria-label="Guide navigation" class="docs-topic-nav">
+  {pages.map((page, index) => <a href={page.slug === 'index' ? '/docs/' : `/docs/${page.slug}/`} aria-current={page.slug === slug ? 'page' : undefined}>
+    <span class="docs-topic-number" aria-hidden="true">{index === 0 ? '—' : String(index).padStart(2, '0')}</span>{page.title}
+  </a>)}
+</nav>

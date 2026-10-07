@@ -2,6 +2,7 @@
 import Layout from '@/layouts/Layout.astro';
 import PageHeader from '@/components/PageHeader.astro';
 import DocsSearch from '@/components/docs/DocsSearch.astro';
+import DocsTopicNav from '@/components/docs/DocsTopicNav.astro';
 import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, ChevronDownIcon } from 'lucide-react';
 import { guideTopics } from '../../src/lib/guide-topics.mjs';
 import source from '@/data/source.json';
@@ -39,23 +40,18 @@ const topic = guideTopics.find((page) => page.slug === slug);
     <aside class="docs-sidebar">
       <div class="docs-menu docs-desktop-menu">
         <div class="docs-menu-title"><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span></div>
-        <nav aria-label="Guide navigation" class="docs-topic-nav">
-          {pages.map((page, index) => <a href={url(page)} aria-current={page.slug === slug ? 'page' : undefined}>
-            <span class="docs-topic-number" aria-hidden="true">{index === 0 ? '—' : String(index).padStart(2, '0')}</span><span>{page.title}</span>
-          </a>)}
-        </nav>
+        <DocsTopicNav slug={slug} />
       </div>
       <details class="docs-menu docs-mobile-menu" data-docs-menu>
         <summary><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span><ChevronDownIcon className="docs-menu-chevron size-4" aria-hidden="true" /></summary>
-        <nav aria-label="Guide navigation" class="docs-topic-nav">
-          {pages.map((page, index) => <a href={url(page)} aria-current={page.slug === slug ? 'page' : undefined}>
-            <span class="docs-topic-number" aria-hidden="true">{index === 0 ? '—' : String(index).padStart(2, '0')}</span><span>{page.title}</span>
-          </a>)}
-        </nav>
+        <DocsTopicNav slug={slug} />
       </details>
     </aside>
 
     <div class="docs-reading">
+      {overview && <div data-legacy-links>
+        {Object.entries(legacyLinks).map(([anchor, href]) => <a id={anchor} href={href} class="text-link">Open {guideTopics.find((page) => href.startsWith(`/docs/${page.slug}/`))?.title ?? 'Shell guide'}</a>)}
+      </div>}
       <DocsSearch />
       {!overview && headings.length > 0 && <details class="docs-outline">
         <summary>On this page<ChevronDownIcon className="size-4" aria-hidden="true" /></summary>
@@ -70,7 +66,7 @@ const topic = guideTopics.find((page) => page.slug === slug);
         <div class="docs-section-heading"><h2 id="explore-the-guide">Explore the guide</h2><span>{guideTopics.length} topics</span></div>
         <div class="docs-card-grid">
           {guideTopics.map((page, index) => <a class="docs-topic-card" href={url(page)}>
-            <div><span class="docs-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><span aria-hidden="true">↗</span></div>
+            <div><span class="docs-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
             <h3>{page.title}</h3><p>{page.description}</p>
           </a>)}
         </div>
@@ -87,34 +83,9 @@ const topic = guideTopics.find((page) => page.slug === slug);
       </nav>
     </div>
   </div>
-  {overview && <div hidden data-guide-links={JSON.stringify(legacyLinks)}></div>}
+
 </Layout>
 
 <script>
-  const initDocs = () => {
-    const menu = document.querySelector<HTMLDetailsElement>('[data-docs-menu]');
-    if (menu) {
-      menu.dataset.ready = 'true';
-    }
-    document.querySelectorAll<HTMLElement>('.markdown-doc :is(table, pre)').forEach((element) => { element.tabIndex = 0; });
-    const legacy = document.querySelector<HTMLElement>('[data-guide-links]');
-    if (!legacy || !location.hash) return;
-    const links = JSON.parse(legacy.dataset.guideLinks ?? '{}') as Record<string, string>;
-    let anchor: string;
-    try { anchor = decodeURIComponent(location.hash.slice(1)); } catch { return; }
-    if (Object.hasOwn(links, anchor)) location.replace(links[anchor]);
-  };
-  const wide = matchMedia('(min-width: 1024px)');
-  document.addEventListener('focusin', (event) => {
-    const link = event.target instanceof Element ? event.target.closest<HTMLElement>('.docs-topic-nav a') : null;
-    // Firefox can leave a tall focused link only partially visible in a scrollport.
-    if (wide.matches && link) requestAnimationFrame(() => {
-      if (link === document.activeElement) link.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
-    });
-  });
-  document.addEventListener('astro:page-load', initDocs);
-  window.addEventListener('hashchange', () => {
-    if (document.querySelector('[data-guide-links]')) initDocs();
-  });
-  initDocs();
+  import '../components/docs/controller';
 </script>
