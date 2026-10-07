@@ -20,7 +20,7 @@ const BUDGETS = {
 
 const DIST_DIR = path.resolve(process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist'));
 
-// Measured after the reference/guide changes, with approximately 15% headroom.
+// Explicit transfer ceilings. Headroom varies by route; new changes must fit.
 // Font transfer is already compressed WOFF/WOFF2; all reachable subsets count.
 const ASSET_BUDGETS = {
   'index.html': { jsGzip: 9_000, cssGzip: 23_000, fontBytes: 220_000 },
@@ -34,9 +34,9 @@ for (const topic of guideTopics) {
   BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
   ASSET_BUDGETS[file] = docsAssets;
 }
-for (const entry of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(path.join(DIST_DIR, 'docs'), { withFileTypes: true }) : []) {
-  if (entry.isDirectory()) {
-    const file = `docs/${entry.name}/index.html`;
+for (const name of fs.existsSync(path.join(DIST_DIR, 'docs')) ? fs.readdirSync(path.join(DIST_DIR, 'docs'), { recursive: true }) : []) {
+  if (name.endsWith('.html')) {
+    const file = `docs/${name.split(path.sep).join('/')}`;
     BUDGETS[file] ??= { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
     ASSET_BUDGETS[file] = docsAssets;
   }

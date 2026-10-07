@@ -19,6 +19,13 @@ test('budget gate rejects a missing mapped topic even when dist omits its direct
     fs.writeFileSync(path.join(dist, 'tips.json'), '[]');
     const script = fileURLToPath(new URL('./check-budget.mjs', import.meta.url));
     assert.equal(spawnSync(process.execPath, [script, dist], { encoding: 'utf8' }).status, 0);
+    fs.mkdirSync(path.join(dist, 'docs/notes/extra'), { recursive: true });
+    fs.writeFileSync(path.join(dist, 'docs/notes/extra/index.html'), 'x'.repeat(55_001));
+    const nested = spawnSync(process.execPath, [script, dist], { encoding: 'utf8' });
+    assert.equal(nested.status, 1);
+    assert.match(nested.stderr, /docs\/notes\/extra\/index.html rawBytes/);
+    assert.ok(!nested.stderr.includes('docs/notes/index.html: missing'));
+    fs.rmSync(path.join(dist, 'docs/notes'), { recursive: true });
     fs.rmSync(path.join(dist, 'docs/themes'), { recursive: true });
     const result = spawnSync(process.execPath, [script, dist], { encoding: 'utf8' });
     assert.equal(result.status, 1);
