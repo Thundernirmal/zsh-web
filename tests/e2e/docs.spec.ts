@@ -538,3 +538,18 @@ test('a stalled index times out and exposes working retry without losing the que
   await expect(page.getByRole('link', { name: /^Timeout recovery/ })).toBeVisible();
   expect(attempts).toBe(2);
 });
+
+test('docs command shortcuts accept either case and select the existing query', async ({ page }) => {
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  for (const key of ['Control+k', 'Control+Shift+K', 'Meta+k', 'Meta+Shift+K']) {
+    await input.fill('seed query');
+    await page.getByRole('link', { name: 'Commands', exact: true }).first().focus();
+    await page.keyboard.press(key);
+    await expect(input).toBeFocused();
+    expect(await input.evaluate((element) => [(element as HTMLInputElement).selectionStart, (element as HTMLInputElement).selectionEnd])).toEqual([0, 'seed query'.length]);
+    await page.keyboard.insertText('replacement');
+    await expect(input).toHaveValue('replacement');
+  }
+});

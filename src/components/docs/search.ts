@@ -156,8 +156,10 @@ function initSearch() {
 document.addEventListener('keydown', (event) => {
   const input = document.querySelector<HTMLInputElement>('[data-docs-search] input');
   const typing = event.target instanceof HTMLElement && (event.target.matches('input, textarea, select') || event.target.isContentEditable);
-  if (input && !input.disabled && (((event.ctrlKey || event.metaKey) && event.key === 'k') || (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey))) {
+  const commandK = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
+  if (input && !input.disabled && (commandK || (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey))) {
     event.preventDefault(); input.focus();
+    if (commandK) input.select();
   }
 });
 document.addEventListener('astro:page-load', initSearch);
