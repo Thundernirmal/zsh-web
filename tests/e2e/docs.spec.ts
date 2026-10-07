@@ -340,6 +340,30 @@ test('separate document loads of one route retain independent query snapshots', 
   await expect.poll(() => page.evaluate(() => history.state.docsQueryId)).toBe(second);
 });
 
+test('a late rejected index request cannot disable search on the next topic', async ({ page }) => {
+  let attempts = 0;
+  let abortOld: (() => Promise<void>) | undefined;
+  await page.route('**/docs-search.json?*', async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      await new Promise<void>((resolve) => { abortOld = async () => { await route.abort(); resolve(); }; });
+    } else await route.fulfill({ json: [{ title: 'Recovered index', url: '/docs/nix/', text: 'fresh query' }] });
+  });
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('old query');
+  await expect.poll(() => Boolean(abortOld)).toBe(true);
+  await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(input).toBeEnabled();
+  await abortOld!();
+  await input.fill('fresh query');
+  await expect(page.getByRole('link', { name: /^Recovered index/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry search' })).not.toBeVisible();
+  expect(attempts).toBe(2);
+});
+
 test('legacy redirects retain query state', async ({ page }) => {
   await page.goto('/docs/?q=nix&keep=1#aliases');
   await expect(page).toHaveURL(/\/docs\/shell-basics\/\?q=nix&keep=1#aliases$/);

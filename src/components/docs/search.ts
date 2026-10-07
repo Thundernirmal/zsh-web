@@ -1,27 +1,32 @@
 interface Entry { title: string; url: string; text: string; lower: [string, string] }
 let catalog: Promise<Entry[]> | undefined;
 let failed = false;
+let loaded = false;
 let catalogUrl = '';
 let lastHistoryWrite = 0;
 const navigationType = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type;
 let restoreEntry = navigationType === 'reload' || navigationType === 'back_forward';
 const normalize = (text: string) => text.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+const resetCatalog = () => { catalog = undefined; failed = false; loaded = false; };
 document.addEventListener('astro:before-preparation', (event) => {
   restoreEntry = event.navigationType === 'traverse';
-  if (failed) { catalog = undefined; failed = false; }
+  if (!loaded) resetCatalog();
 });
 function load(url: string) {
-  return catalog ??= fetch(url).then(async (response) => {
+  if (catalog) return catalog;
+  const request = fetch(url).then(async (response) => {
     if (!response.ok) throw new Error('Search unavailable');
     const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(entry.title), normalize(entry.text)] as [string, string] }));
+    if (catalog === request) loaded = true;
     return entries;
-  }).catch((error: unknown) => { failed = true; throw error; });
+  }).catch((error: unknown) => { if (catalog === request) failed = true; throw error; });
+  return catalog = request;
 }
 function initSearch() {
   const root = document.querySelector<HTMLElement>('[data-docs-search]');
   if (!root || root.dataset.ready) return;
   root.dataset.ready = 'true';
-  if (catalogUrl !== root.dataset.indexUrl) { catalogUrl = root.dataset.indexUrl!; catalog = undefined; failed = false; }
+  if (catalogUrl !== root.dataset.indexUrl) { catalogUrl = root.dataset.indexUrl!; resetCatalog(); }
   const select = <T extends Element = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const input = select<HTMLInputElement>('input');
   input.disabled = false;
@@ -117,7 +122,7 @@ function initSearch() {
   input.addEventListener('input', () => { remember(); void search(); syncUrl(); });
   const reset = () => { input.value = ''; remember(); void search(); syncUrl(true); input.focus(); };
   clear.addEventListener('click', reset);
-  root.querySelector('[data-search-retry]')!.addEventListener('click', () => { catalog = undefined; failed = false; input.focus(); void search(); });
+  root.querySelector('[data-search-retry]')!.addEventListener('click', () => { resetCatalog(); input.focus(); void search(); });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') reset();
     if (event.key === 'Enter') syncUrl(true);
