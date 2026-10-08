@@ -302,16 +302,27 @@ test('client-side route transitions complete without console errors', async ({ p
 	});
 	page.on('pageerror', (error) => errors.push(error.message));
 
+	const waitForSearchHydration = async () => {
+		await expect.poll(async () => {
+			await page.keyboard.press('ControlOrMeta+k');
+			return page.getByRole('searchbox').evaluate((element) => element === document.activeElement);
+		}).toBe(true);
+	};
+
 	await page.goto('/');
 	await page.evaluate(() => document.fonts.ready);
 	await page.getByRole('link', { name: 'Commands', exact: true }).click();
 	await expect(page).toHaveURL(/\/commands\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Command Reference' })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
+	// Complete client:visible hydration before leaving the React island.
+	await waitForSearchHydration();
 	await page.getByRole('link', { name: 'Tips', exact: true }).click();
 	await expect(page).toHaveURL(/\/tips\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Shell Tips', level: 1 })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
+	// Complete client:visible hydration before leaving the React island.
+	await waitForSearchHydration();
 	await page.locator('header a[href="/"]:visible').first().click();
 	await expect(page).toHaveURL(/\/$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: "Nirmal's Shell", level: 1 })).toBeVisible();
