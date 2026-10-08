@@ -1,6 +1,8 @@
 import fs from 'node:fs';
-import { parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
+import { describeCommandCondition, parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
+import { generateGuideDocs, guideSearchIndex } from './docs-guide.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
+import { generatedDocsFiles } from './generated-docs.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -170,6 +172,7 @@ function hashString(value) {
 }
 
 function writeGeneratedFile(filePath, contents) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const tmpPath = `${filePath}.tmp`;
   fs.writeFileSync(tmpPath, contents);
   fs.renameSync(tmpPath, filePath);
@@ -419,15 +422,7 @@ function describeCondition(condition) {
     return 'Available when the lt alias is available';
   }
 
-  // Fallback: avoid leaking raw shell syntax; keep human-readable and short
-  const cleaned = condition
-    .replace(/^if\s+/, '')
-    .replace(/;?\s*then$/, '')
-    .replace(/^\(\(|\)\)$/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 80);
-  return cleaned ? `Requires: ${cleaned}` : 'Conditional';
+  return describeCommandCondition(condition) ?? 'Conditional on shell configuration';
 }
 
 function inferTipSource(condition, text) {
@@ -999,22 +994,32 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 3,
+    schemaVersion: 8,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
+  const guidePages = generateGuideDocs(guide);
   const outputs = [
     { filePath: path.join(DATA_DIR, 'source.json'), contents: serializeJson(manifest) },
     { filePath: path.join(DATA_DIR, 'commands.json'), contents: serializeJson(contentCommands) },
     { filePath: path.join(DATA_DIR, 'tips.json'), contents: serializeJson(contentTips) },
-    { filePath: path.join(DATA_DIR, 'guide.md'), contents: guide },
+    { filePath: path.join(DATA_DIR, 'docs-links.json'), contents: serializeJson(guidePages.anchors) },
+    { filePath: path.join(DATA_DIR, 'docs-search.json'), contents: serializeJson(guideSearchIndex(guidePages.pages)) },
+    ...guidePages.pages.map((page) => ({
+      filePath: path.join(DATA_DIR, '../content/docs/docs', `${page.slug}.md`),
+      contents: `---\ntitle: ${JSON.stringify(page.title)}\ndescription: ${JSON.stringify(page.description)}\n---\n\n${page.body.trim()}\n`,
+    })),
   ];
+  const docsDir = path.join(DATA_DIR, '../content/docs/docs');
+  const expectedDocs = new Set(guidePages.pages.map((page) => `${page.slug}.md`));
+  const obsoleteDocs = generatedDocsFiles(docsDir).filter((name) => !expectedDocs.has(name));
 
   if (CHECK_ONLY) {
     const staleFiles = outputs
       .filter(({ filePath, contents }) => !isCurrentFile(filePath, contents))
       .map(({ filePath }) => path.relative(process.cwd(), filePath));
 
+    staleFiles.push(...obsoleteDocs.map((name) => path.relative(process.cwd(), path.join(docsDir, name))));
     if (staleFiles.length > 0) {
       throw new Error(`Generated data is stale: ${staleFiles.join(', ')}. Run npm run sync.`);
     }
@@ -1027,6 +1032,7 @@ function main() {
   for (const { filePath, contents } of outputs) {
     writeGeneratedFile(filePath, contents);
   }
+  for (const name of obsoleteDocs) fs.unlinkSync(path.join(docsDir, name));
 
   console.log(`[extract] Synced ${commands.length} commands and ${tips.length} tips from ${ZSH_DIR}.`);
 }

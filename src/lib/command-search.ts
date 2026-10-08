@@ -32,7 +32,10 @@ function literalUsageTokens(usage: string): string[] {
 }
 
 function splitFeature(feature: string) {
-  const parts = feature.match(/^(.+?)\s{2,}(.+)$/);
+  // Long optional-argument syntax can consume the shell help column's padding.
+  // Recognize that boundary without treating ordinary prose as command syntax.
+  const parts = feature.match(/^(.+?)\s{2,}(.+)$/)
+    ?? feature.match(/^([a-z][\w-]*(?:\s+(?:\[[^\]]+\]|<[^>]+>))+)\s+([A-Z].+)$/);
   return parts
     ? { usage: parts[1].trim(), description: parts[2].trim() }
     : { usage: '', description: feature.trim() };

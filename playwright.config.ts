@@ -14,16 +14,16 @@ export default defineConfig({
 		trace: 'on-first-retry',
 	},
 	projects: [
-        { name: 'desktop-firefox', testMatch: ['**/core.spec.ts'], use: { ...devices['Desktop Firefox'] } },
-        { name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
+        { name: 'desktop-firefox', testMatch: ['**/core.spec.ts', '**/docs.spec.ts'], use: { ...devices['Desktop Firefox'] } },
+        { name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
 		{
 			name: 'desktop-chrome',
-			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/performance.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/docs.spec.ts', '**/performance.spec.ts'],
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{
 			name: 'mobile-chrome',
-			testMatch: ['**/core.spec.ts', '**/mobile.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'],
 			use: { ...devices['Pixel 7'], viewport: { width: 320, height: 800 } },
 		},
 	],

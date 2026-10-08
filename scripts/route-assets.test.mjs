@@ -11,17 +11,21 @@ test('route assets traverse shared chunks and fonts once and reject missing asse
   try {
     fs.mkdirSync(path.join(dist, '_astro'));
     fs.writeFileSync(path.join(dist, 'index.html'), '<script src="/_astro/main.js"></script><link href="/_astro/site.css">');
-    const main = 'import "./shared.js"; import("./shared.js");';
+    const main = 'import "./shared.js"; import(`./lazy.js`); import("./shared.js");';
     const shared = 'export const version = 1;';
     const css = '@font-face{src:url(/_astro/text.woff2)}';
     fs.writeFileSync(path.join(dist, '_astro/main.js'), main);
     fs.writeFileSync(path.join(dist, '_astro/shared.js'), shared);
+    fs.writeFileSync(path.join(dist, '_astro/lazy.js'), 'export const lazy = true;');
     fs.writeFileSync(path.join(dist, '_astro/site.css'), css);
     fs.writeFileSync(path.join(dist, '_astro/text.woff2'), 'font');
     assert.deepEqual(routeAssets(dist, 'index.html'), {
-      jsGzip: gzipSync(main).length + gzipSync(shared).length,
+      jsGzip: gzipSync(main).length + gzipSync(shared).length + gzipSync('export const lazy = true;').length,
       cssGzip: gzipSync(css).length, fontBytes: 4,
     });
+    fs.writeFileSync(path.join(dist, '_astro/main.js'), 'import(`./chunks/${name}.js`)');
+    assert.throws(() => routeAssets(dist, 'index.html'), /Cannot statically measure interpolated asset/);
+    fs.writeFileSync(path.join(dist, '_astro/main.js'), main);
     fs.unlinkSync(path.join(dist, '_astro/shared.js'));
     assert.throws(() => routeAssets(dist, 'index.html'), /ENOENT/);
   } finally { fs.rmSync(dist, { recursive: true, force: true }); }

@@ -1,5 +1,6 @@
 import { defineCollection } from 'astro:content';
-import { file } from 'astro/loaders';
+import { file, glob } from 'astro/loaders';
+import { z } from 'zod';
 import { shellCommandSchema, shellTipSchema } from '@/lib/content-schemas';
 
 const commands = defineCollection({
@@ -12,4 +13,8 @@ const tips = defineCollection({
 	schema: shellTipSchema,
 });
 
-export const collections = { commands, tips };
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/docs/docs' }),
+  schema: z.object({ title: z.string(), description: z.string() }),
+});
+export const collections = { commands, tips, docs };

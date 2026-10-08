@@ -1,3 +1,17 @@
+export function describeCommandCondition(condition) {
+  const expression = condition.trim()
+    .replace(/^if\s+\(\(\s*/, '')
+    .replace(/\s*\)\)\s*;?\s*then$/, '');
+  if (!/^\$\+commands\[[\w.+-]+\](?:\s*(?:&&|\|\|)\s*\$\+commands\[[\w.+-]+\])*$/.test(expression)) return undefined;
+  const names = [...expression.matchAll(/\$\+commands\[([\w.+-]+)\]/g)].map((match) => match[1]);
+  const any = expression.includes('||');
+  if (any && expression.includes('&&')) return undefined;
+  const joined = names.length < 2 ? names[0]
+    : names.length === 2 ? names.join(any ? ' or ' : ' and ')
+      : `${names.slice(0, -1).join(', ')}, ${any ? 'or' : 'and'} ${names.at(-1)}`;
+  return `Available when ${joined} ${any || names.length === 1 ? 'is' : 'are'} installed`;
+}
+
 export function parseShellWords(line) {
   const words = [];
   let current = '';

@@ -28,3 +28,6 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 /sitemap-0.xml
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/docs-search.json
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400

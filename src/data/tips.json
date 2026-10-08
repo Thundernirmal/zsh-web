@@ -1,15 +1,15 @@
 [
   {
-    "id": "tip-db881a81",
-    "text": "Press Alt+C to select and enter a directory",
-    "category": "fzf",
+    "id": "tip-fa2dd961",
+    "text": "On short terminals hide previews with Ctrl+P or enlarge the window; Ctrl+/ wraps",
+    "category": "utility",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
-    "id": "tip-d6cb48b4",
-    "text": "Press Ctrl+P in preview pickers to toggle the preview; use Ctrl+/ to wrap",
-    "category": "utility",
+    "id": "tip-db881a81",
+    "text": "Press Alt+C to select and enter a directory",
+    "category": "fzf",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
   },
@@ -89,6 +89,13 @@
     "commandName": "cgm"
   },
   {
+    "id": "tip-3d712284",
+    "text": "Run checkupdates for a fresh Arch repo inventory without changing the live DB",
+    "category": "utility",
+    "source": "core",
+    "availability": "Available when pacman, checkupdates, and fakeroot are installed"
+  },
+  {
     "id": "tip-13f052a7",
     "text": "Run croot to jump to the current Git repository root",
     "category": "git",
@@ -114,15 +121,6 @@
     "commandName": "dusage"
   },
   {
-    "id": "tip-9f02f72a",
-    "text": "Run extract --destination existing-dir archive.tar.gz to choose where to unpack",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available",
-    "commandId": "command-extract",
-    "commandName": "extract"
-  },
-  {
     "id": "tip-917f81b8",
     "text": "Run extract --keep file.gz to preserve the compressed input",
     "category": "utility",
@@ -141,8 +139,8 @@
     "commandName": "fanprofile"
   },
   {
-    "id": "tip-e8497f28",
-    "text": "Run fbr to scan aligned branch details and enter or check out the result",
+    "id": "tip-7e6d0c2b",
+    "text": "Run fbr to select exact branches even when branch and tag names collide",
     "category": "git",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell",
@@ -276,20 +274,20 @@
     "commandName": "npkg"
   },
   {
-    "id": "tip-070fa3e7",
-    "text": "Run npkg find nvim to open a seeded package picker",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready",
-    "commandId": "command-npkg",
-    "commandName": "npkg"
-  },
-  {
     "id": "tip-b270e9f8",
     "text": "Run npkg list to show the current Nix profile",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix is installed",
+    "commandId": "command-npkg",
+    "commandName": "npkg"
+  },
+  {
+    "id": "tip-608d534c",
+    "text": "Run npkg outdated to check every active profile entry for output changes",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed and fzf is ready",
     "commandId": "command-npkg",
     "commandName": "npkg"
   },
@@ -303,8 +301,8 @@
     "commandName": "npkg"
   },
   {
-    "id": "tip-ff2d4bd0",
-    "text": "Run npkg refresh to rebuild the nixpkgs attribute cache",
+    "id": "tip-b5b77e02",
+    "text": "Run npkg refresh --help for usage without rebuilding the attribute cache",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed",
@@ -312,8 +310,8 @@
     "commandName": "npkg"
   },
   {
-    "id": "tip-9286f889",
-    "text": "Run npkg remove with no arguments to select installed packages",
+    "id": "tip-10758b13",
+    "text": "Run npkg remove with no arguments to select active installed packages",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready",
@@ -357,6 +355,15 @@
     "commandName": "ports"
   },
   {
+    "id": "tip-78b2552c",
+    "text": "Run upkg clean --dry-run --only dnf to preview cache removal; check failures",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when dnf is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg"
+  },
+  {
     "id": "tip-1d0d10fa",
     "text": "Run upkg clean --dry-run before package cleanup",
     "category": "packages",
@@ -384,8 +391,26 @@
     "commandName": "upkg"
   },
   {
-    "id": "tip-51c2af62",
-    "text": "Run upkg plan to preview package upgrades",
+    "id": "tip-2fa1847f",
+    "text": "Run upkg outdated --only flatpak to include hidden extension update refs",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when flatpak is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg"
+  },
+  {
+    "id": "tip-85829f20",
+    "text": "Run upkg outdated --only npm for a stable table and visible native warnings",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when npm is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg"
+  },
+  {
+    "id": "tip-dbdab84a",
+    "text": "Run upkg plan to inventory updates; review the native upgrade transaction",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
@@ -393,8 +418,17 @@
     "commandName": "upkg"
   },
   {
-    "id": "tip-0d1ceb2d",
-    "text": "Run upkg search ripgrep to search detected package managers",
+    "id": "tip-e228355b",
+    "text": "Run upkg search ripgrep --only=dnf to search RPM package names",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when dnf is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg"
+  },
+  {
+    "id": "tip-c51c27c3",
+    "text": "Run upkg search ripgrep; native warnings stay separate from package results",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
@@ -402,11 +436,20 @@
     "commandName": "upkg"
   },
   {
-    "id": "tip-83c176c5",
-    "text": "Run upkg to check detected package managers for updates",
-    "category": "packages",
+    "id": "tip-1a56ff27",
+    "text": "Run upkg to check detected package managers; review warnings on stderr",
+    "category": "pipe",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg"
+  },
+  {
+    "id": "tip-8b265b82",
+    "text": "Run upkg upgrade --sudo --only=apt after resolving APT refresh errors",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when apt is installed",
     "commandId": "command-upkg",
     "commandName": "upkg"
   },
@@ -429,9 +472,9 @@
     "commandName": "weather"
   },
   {
-    "id": "tip-8b1a163c",
-    "text": "Run zdoctor to diagnose setup and integration status",
-    "category": "utility",
+    "id": "tip-2ecce445",
+    "text": "Run zdoctor in an interactive shell; repair blocked fzf and restart",
+    "category": "shell",
     "source": "core",
     "availability": "Always available",
     "commandId": "command-zdoctor",
@@ -449,15 +492,6 @@
   {
     "id": "tip-e9bb5a14",
     "text": "Run ztheme current to preview glyphs; set NO_NERD_FONT=1 if needed",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available",
-    "commandId": "command-ztheme",
-    "commandName": "ztheme"
-  },
-  {
-    "id": "tip-6190b50a",
-    "text": "Run ztheme use nord to switch dashboard and finder colors for this session",
     "category": "utility",
     "source": "core",
     "availability": "Always available",
@@ -516,6 +550,13 @@
     "availability": "Always available"
   },
   {
+    "id": "tip-f6de397f",
+    "text": "Use a nonempty existing directory with extract --destination DIR archive.tar.gz",
+    "category": "navigation",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
     "id": "tip-a0dd13a3",
     "text": "Use command substitutions safely; helper errors stay on stderr",
     "category": "pipe",
@@ -523,9 +564,41 @@
     "availability": "Always available"
   },
   {
+    "id": "tip-38fb8d53",
+    "text": "Use Ctrl+C during upkg to stop remaining managers and cleanup phases",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
+  },
+  {
+    "id": "tip-4ffcd4be",
+    "text": "Use Devel in paru.conf to enable development-package commit update checks",
+    "category": "utility",
+    "source": "core",
+    "availability": "Available when paru is installed"
+  },
+  {
+    "id": "tip-b5b75082",
+    "text": "Use extract --destination DIR link.gz to retain a compressed link target",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available",
+    "commandId": "command-extract",
+    "commandName": "extract"
+  },
+  {
     "id": "tip-26969a72",
     "text": "Use ff --no-ignore or ft --hidden --no-ignore to broaden a search",
     "category": "search",
+    "source": "core",
+    "availability": "Available when fd, fdfind, or GNU find is installed",
+    "commandId": "command-ff",
+    "commandName": "ff"
+  },
+  {
+    "id": "tip-efe8f93f",
+    "text": "Use ff or ft stderr to diagnose failed searches on fallback backends",
+    "category": "pipe",
     "source": "core",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "commandId": "command-ff",
@@ -557,6 +630,22 @@
     "commandName": "NE"
   },
   {
+    "id": "tip-16ba4ce9",
+    "text": "Use npkg find -- --help to search for the literal --help query",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix and jq are installed and fzf is ready",
+    "commandId": "command-npkg",
+    "commandName": "npkg"
+  },
+  {
+    "id": "tip-93de5642",
+    "text": "Use plain scalars with cgm env; padding and case conversion are rejected",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool"
+  },
+  {
     "id": "tip-c4aecacd",
     "text": "Use quotes around 'H' to keep a global alias literal",
     "category": "globbing",
@@ -564,11 +653,11 @@
     "availability": "Available when the G global alias is defined"
   },
   {
-    "id": "tip-5e8dc39f",
-    "text": "Use upkg --only=brew,npm to select specific backends",
+    "id": "tip-f824451a",
+    "text": "Use upkg --only dnf to select DNF even when another distro backend is active",
     "category": "packages",
     "source": "upkg",
-    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
+    "availability": "Available when dnf is installed",
     "commandId": "command-upkg",
     "commandName": "upkg"
   },
@@ -596,5 +685,14 @@
     "category": "utility",
     "source": "core",
     "availability": "Always available"
+  },
+  {
+    "id": "tip-3cf31d92",
+    "text": "Use ztheme show custom to inspect; ztheme use custom applies the palette",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available",
+    "commandId": "command-ztheme",
+    "commandName": "ztheme"
   }
 ]

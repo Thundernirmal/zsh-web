@@ -1,0 +1,161 @@
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-terminal-background: var(--terminal-background);
+  --color-terminal-toolbar: var(--terminal-toolbar);
+  --color-category-navigation: var(--category-navigation);
+  --color-category-git: var(--category-git);
+  --color-category-search: var(--category-search);
+  --color-category-utility: var(--category-utility);
+  --color-category-packages: var(--category-packages);
+  --color-category-pipe: var(--category-pipe);
+  --color-category-globbing: var(--category-globbing);
+  --color-category-history: var(--category-history);
+  --color-category-fzf: var(--category-fzf);
+  --color-category-nix: var(--category-nix);
+  --color-category-shell: var(--category-shell);
+  --color-category-network: var(--category-network);
+  --color-category-process: var(--category-process);
+  --color-category-safety: var(--category-safety);
+  --color-category-viewing: var(--category-viewing);
+  --color-command-alias: var(--command-alias);
+  --color-command-global: var(--command-global);
+  --color-command-function: var(--command-function);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Catppuccin Mocha */
+  --ctp-rosewater: #f5e0dc;
+  --ctp-flamingo: #f2cdcd;
+  --ctp-pink: #f5c2e7;
+  --ctp-mauve: #cba6f7;
+  --ctp-red: #f38ba8;
+  --ctp-maroon: #eba0ac;
+  --ctp-peach: #fab387;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #a6e3a1;
+  --ctp-teal: #94e2d5;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext1: #bac2de;
+  --ctp-subtext0: #a6adc8;
+  --ctp-overlay2: #9399b2;
+  --ctp-overlay1: #7f849c;
+  --ctp-overlay0: #6c7086;
+  --ctp-surface2: #585b70;
+  --ctp-surface1: #45475a;
+  --ctp-surface0: #313244;
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+
+  --font-display: "Outfit Variable", "Outfit", sans-serif;
+  --font-body: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+
+  /* shadcn semantic tokens */
+  --background: var(--ctp-base);
+  --foreground: var(--ctp-text);
+  --card: var(--ctp-mantle);
+  --card-foreground: var(--ctp-text);
+  --popover: var(--ctp-mantle);
+  --popover-foreground: var(--ctp-text);
+  --primary: var(--ctp-mauve);
+  --primary-foreground: var(--ctp-crust);
+  --secondary: var(--ctp-surface0);
+  --secondary-foreground: var(--ctp-text);
+  --muted: var(--ctp-surface0);
+  --muted-foreground: var(--ctp-subtext0);
+  --accent: var(--ctp-surface1);
+  --accent-foreground: var(--ctp-text);
+  --destructive: var(--ctp-red);
+  --destructive-foreground: var(--ctp-crust);
+  --border: var(--ctp-surface1);
+  --input: var(--ctp-surface1);
+  --ring: var(--ctp-mauve);
+  --chart-1: var(--ctp-blue);
+  --chart-2: var(--ctp-peach);
+  --chart-3: var(--ctp-green);
+  --chart-4: var(--ctp-pink);
+  --chart-5: var(--ctp-mauve);
+  --radius: 0.5rem;
+  --sidebar: var(--ctp-mantle);
+  --sidebar-foreground: var(--ctp-text);
+  --sidebar-primary: var(--ctp-mauve);
+  --sidebar-primary-foreground: var(--ctp-crust);
+  --sidebar-accent: var(--ctp-surface0);
+  --sidebar-accent-foreground: var(--ctp-text);
+  --sidebar-border: var(--ctp-surface1);
+  --sidebar-ring: var(--ctp-mauve);
+
+  /* Terminal window surfaces */
+  --terminal-background: color-mix(in srgb, var(--ctp-crust) 78%, var(--ctp-mantle));
+  --terminal-toolbar: var(--ctp-mantle);
+
+  /* Named domain accents */
+  --category-navigation: var(--ctp-blue);
+  --category-git: var(--ctp-peach);
+  --category-search: var(--ctp-green);
+  --category-utility: var(--ctp-teal);
+  --category-packages: var(--ctp-flamingo);
+  --category-pipe: var(--ctp-pink);
+  --category-globbing: var(--ctp-yellow);
+  --category-history: var(--ctp-lavender);
+  --category-fzf: var(--ctp-sky);
+  --category-nix: var(--ctp-mauve);
+  --category-shell: var(--ctp-red);
+  --category-network: var(--ctp-sapphire);
+  --category-process: var(--ctp-maroon);
+  --category-safety: var(--ctp-red);
+  --category-viewing: var(--ctp-lavender);
+  --command-alias: var(--ctp-blue);
+  --command-global: var(--ctp-peach);
+  --command-function: var(--ctp-mauve);
+}

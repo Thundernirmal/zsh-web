@@ -22,6 +22,7 @@ export default [
   ...astro.configs['jsx-a11y-recommended'],
   {
     files: ['src/**/*.{astro,tsx}'],
+    plugins: { 'jsx-a11y': jsxA11y },
     languageOptions: {
       globals: globals.browser,
     },

@@ -1,0 +1,90 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import PageHeader from '@/components/PageHeader.astro';
+import DocsSearch from '@/components/docs/DocsSearch.astro';
+import DocsTopicNav from '@/components/docs/DocsTopicNav.astro';
+import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, ChevronDownIcon } from 'lucide-react';
+import { guideNavigationTitle, guideOverview, guidePages, guideTopics, guideUrl } from '@/lib/guide-topics.mjs';
+import source from '@/data/source.json';
+import legacyLinks from '@/data/docs-links.json';
+import '../styles/docs.css';
+
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  headings: { depth: number; slug: string; text: string }[];
+}
+const { title, description, slug, headings } = Astro.props;
+const overview = slug === 'index';
+const position = guidePages.findIndex((page) => page.slug === slug);
+if (position < 0) throw new Error(`Unknown guide topic: ${slug}. Register it in src/lib/guide-topics.mjs.`);
+const previous = guidePages[position - 1];
+const next = guidePages[position + 1];
+const destinationTitles = new Map(guidePages.map((page) => [guideUrl(page.slug), page.title]));
+---
+
+<Layout title={title} description={description}>
+  <div class="docs-heading">
+    <nav aria-label="Breadcrumb" class="docs-breadcrumb">
+      {overview ? <span>Documentation</span> : <a href="/docs/">← Back to the shell guide</a>}
+      {!overview && <><span aria-hidden="true">/</span><span>{String(position).padStart(2, '0')}</span></>}
+    </nav>
+    <PageHeader title={title} accent={overview ? 'guide' : undefined} id="_top">
+      <p>{description}</p>
+    </PageHeader>
+  </div>
+
+  <div class="docs-grid" data-docs-layout>
+    <aside class="docs-sidebar">
+      <div class="docs-menu docs-desktop-menu">
+        <div class="docs-menu-title"><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span></div>
+        <DocsTopicNav slug={slug} />
+      </div>
+      <details class="docs-menu docs-mobile-menu" data-docs-menu>
+        <summary><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span><ChevronDownIcon className="docs-menu-chevron size-4" aria-hidden="true" /></summary>
+        <DocsTopicNav slug={slug} />
+      </details>
+    </aside>
+
+    <div class="docs-reading">
+      {overview && <div data-legacy-links>
+        {Object.entries(legacyLinks).map(([anchor, href]) => <a id={anchor} href={href} class="text-link">Open {destinationTitles.get(href.split('#')[0]) ?? guideOverview.title}</a>)}
+      </div>}
+      <DocsSearch />
+      {!overview && headings.length > 0 && <details class="docs-outline">
+        <summary>On this page<ChevronDownIcon className="size-4" aria-hidden="true" /></summary>
+        <nav aria-label="On this page">
+          {headings.filter((heading) => heading.depth <= 3).map((heading) => <a href={`#${heading.slug}`} class:list={{ 'docs-outline-nested': heading.depth > 2 }}>{heading.text}</a>)}
+        </nav>
+      </details>}
+
+      <article class="markdown-doc" aria-label={title}><slot /></article>
+
+      {overview && <section class="docs-topics" aria-labelledby="explore-the-guide">
+        <div class="docs-section-heading"><h2 id="explore-the-guide">Explore the guide</h2><span>{guideTopics.length} topics</span></div>
+        <div class="docs-card-grid">
+          {guideTopics.map((page, index) => <a class="docs-topic-card" href={guideUrl(page.slug)}>
+            <span class="docs-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <h3>{page.title}</h3><p>{page.description}</p>
+          </a>)}
+        </div>
+        <div id="command-reference" class="docs-reference-links"><a class="text-link" href="/commands/">Browse searchable commands</a><span aria-hidden="true">·</span><a class="text-link" href="/tips/">Explore shell tips</a></div>
+      </section>}
+
+      <aside class="docs-snapshot" aria-label="Documentation source">
+        <span>Documentation snapshot</span><a class="text-link" href={`${source.repository}/tree/${source.commit}`}>Source commit {source.commit.slice(0, 8)}</a><a class="text-link" href={`${source.repository}/blob/${source.commit}/GUIDE.md`}>View GUIDE.md source</a>
+      </aside>
+
+      <nav class="docs-pagination" aria-label="Guide pagination">
+        {previous ? <a href={guideUrl(previous.slug)}><ArrowLeftIcon className="size-4" aria-hidden="true" /><div><span>Previous</span><strong>{guideNavigationTitle(previous)}</strong></div></a> : <span></span>}
+        {next && <a href={guideUrl(next.slug)} class="docs-pagination-next"><div><span>Next</span><strong>{guideNavigationTitle(next)}</strong></div><ArrowRightIcon className="size-4" aria-hidden="true" /></a>}
+      </nav>
+    </div>
+  </div>
+
+</Layout>
+
+<script>
+  import '../components/docs/controller';
+</script>

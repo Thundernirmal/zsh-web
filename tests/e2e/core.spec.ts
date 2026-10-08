@@ -1,7 +1,153 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { guideTopics } from '../../src/lib/guide-topics.mjs';
 
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', '/troubleshooting/'];
+const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', ...guideTopics.map((topic) => `/docs/${topic.slug}/`), '/troubleshooting/'];
+
+test('Nix picker syntax remains a subcommand with its matching example', async ({ page }) => {
+  await page.goto('/commands/?command=function%3Anpkg');
+  const details = page.locator('[data-command="npkg"] [data-slot="accordion-content"]');
+  await expect(details).toBeVisible();
+  const row = details.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true });
+  await expect(row).toHaveCount(1);
+  await expect(row.locator('dt, th').filter({ visible: true })).toHaveText('find [--] [query ...]');
+  await expect(row.getByText('npkg find nvim', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Read npkg reference', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'npkg', level: 1 })).toBeVisible();
+  await expect(page.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true }).getByText('npkg find nvim', { exact: true })).toBeVisible();
+});
+
+test('tip requirements read naturally and remain searchable', async ({ page }) => {
+  await page.goto('/tips/?q=fakeroot');
+  await expect.poll(() => page.getByRole('searchbox').inputValue()).toBe('fakeroot');
+  await expect(page.getByText('Available when pacman, checkupdates, and fakeroot are installed', { exact: true })).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('$+commands[');
+});
+
+test('maintenance instructions have their own accessible guide page', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/docs/shell-basics/');
+  const pipeAlias = page.getByRole('row').filter({ has: page.getByRole('cell', { name: 'G', exact: true }) });
+  await expect(pipeAlias.getByRole('cell')).toHaveCount(3);
+  await expect(pipeAlias.getByRole('cell').nth(1)).toHaveText('| grep');
+  await expect(pipeAlias.getByRole('cell').nth(2)).toHaveText('git log G fix');
+  await page.goto('/docs/#maintenance-and-verification');
+  await expect(page.getByRole('heading', { name: 'Maintenance and verification', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Required checks', level: 3, exact: true })).toBeVisible();
+  const table = page.locator('.markdown-doc table').first();
+  await expect(table).toHaveAttribute('tabindex', '0');
+  await table.focus();
+  await expect(table).toBeFocused();
+  await page.getByRole('link', { name: '← Back to the shell guide', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+});
+
+test('custom docs share site chrome and support mobile topic navigation', async ({ page }) => {
+  await page.goto('/docs/');
+  await expect(page.locator('[data-site-header]')).toHaveCount(1);
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
+  const styles = await page.locator('body').evaluate((node) => ({ color: getComputedStyle(node).backgroundColor, font: getComputedStyle(node).fontFamily }));
+  expect(styles.color).toBe('rgb(30, 30, 46)');
+  expect(styles.font).toContain('Plus Jakarta Sans');
+  const menu = page.locator('[data-docs-menu]');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  if ((page.viewportSize()?.width ?? 0) < 1024) {
+    await expect(menu).not.toHaveAttribute('open');
+    const summary = menu.locator('summary');
+    const box = await summary.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await summary.press('Enter');
+    await expect(menu).toHaveAttribute('open');
+  }
+  await page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link', { name: /Nix profiles and pickers/ }).click();
+  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await expect(menu.locator('a[aria-current="page"]')).toContainText('Nix profiles and pickers');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await page.goto('/docs/#nix-profile-manager-npkg');
+  await expect(page).toHaveURL(/\/docs\/nix\/#nix-profile-manager-npkg$/);
+  await expect(page.getByRole('heading', { name: 'Nix profile manager: npkg', level: 2 })).toBeVisible();
+  const outline = page.locator('.docs-outline');
+  await outline.locator('summary').click();
+  await page.getByRole('navigation', { name: 'On this page', exact: true }).getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
+  await expect(page).toHaveURL(/#picker-cache-and-dependencies$/);
+  await expect(page.getByRole('heading', { name: 'Picker cache and dependencies', exact: true })).toBeInViewport();
+  await page.locator('[data-site-header]').getByRole('link', { name: 'Commands', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Command Reference', level: 1 })).toBeVisible();
+  const commandSearch = page.getByRole('searchbox');
+  await expect.poll(async () => {
+    await page.keyboard.press('ControlOrMeta+k');
+    return commandSearch.evaluate((node) => node === document.activeElement);
+  }).toBe(true);
+  await commandSearch.fill('npkg');
+  await expect(page).toHaveURL(/q=npkg/);
+});
+
+test('inline docs search loads on demand, clears, and links to topic content', async ({ page }) => {
+  const indexRequests: string[] = [];
+  page.on('request', (request) => { if (request.url().includes('/docs-search.json')) indexRequests.push(request.url()); });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  expect(indexRequests).toHaveLength(0);
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await page.keyboard.press('/');
+  await expect(input).toBeFocused();
+  await input.fill('fakeroot');
+  await expect(page).toHaveURL(/\?q=fakeroot$/);
+  const results = page.getByRole('list', { name: 'Guide search results', exact: true });
+  const installation = results.getByRole('link', { name: /^Installation and requirements/ });
+  await expect(installation).toBeVisible();
+  expect(indexRequests).toHaveLength(1);
+  await input.press('Escape');
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await expect(results).not.toBeVisible();
+  expect(new URL(page.url()).searchParams.has('q')).toBe(false);
+  await input.fill('not-a-real-guide-topic');
+  await expect(page.getByRole('status')).toContainText('No matches');
+  await page.getByRole('button', { name: 'Clear search', exact: true }).click();
+  await expect(input).toBeFocused();
+  await input.fill('fakeroot');
+  await expect(installation).toBeVisible();
+  expect(indexRequests).toHaveLength(1);
+  await installation.click();
+  await expect(page).toHaveURL(/\/docs\/installation\//);
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await page.goBack();
+  await expect(input).toHaveValue('fakeroot');
+  await expect(installation).toBeVisible();
+  expect(indexRequests).toHaveLength(1);
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(input).toHaveValue('');
+});
+
+test('docs search reports a load failure and retries without losing the query', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/docs-search.json?*', async (route) => {
+    requests += 1;
+    if (requests === 1) await route.abort();
+    else await route.continue();
+  });
+  await page.goto('/docs/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await input.fill('fakeroot');
+  await expect(page.getByRole('alert')).toContainText('Couldn’t load guide search');
+  await expect(input).toHaveValue('fakeroot');
+  const retry = page.getByRole('button', { name: 'Retry search', exact: true });
+  await retry.focus();
+  await retry.press('Enter');
+  await expect(input).toBeFocused();
+  await expect(page.getByRole('list', { name: 'Guide search results' })).toBeVisible();
+  await expect(page.getByRole('alert')).not.toBeVisible();
+  await input.press('Tab');
+  await expect(page.getByRole('button', { name: 'Clear search', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('list', { name: 'Guide search results' }).getByRole('link').first()).toBeFocused();
+  expect(requests).toBe(2);
+});
 
 for (const route of siteRoutes) {
 	test(`${route} has no serious accessibility violations`, async ({ page }) => {
@@ -146,25 +292,39 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await expect(page.getByRole('button', { name: 'Show Random Tip' })).toBeEnabled();
 });
 
-test('client-side route transitions complete without console errors', async ({ page }) => {
+test('client-side route transitions complete without console errors', async ({ page, browserName }) => {
 	const errors: string[] = [];
+	// Allow extra time for WebKit navigation under parallel Linux workers;
+	// performance budgets remain in performance.spec.ts.
+	const navigationTimeout = browserName === 'webkit' ? 10_000 : 5_000;
 	page.on('console', (message) => {
 		if (message.type() === 'error') errors.push(message.text());
 	});
 	page.on('pageerror', (error) => errors.push(error.message));
 
+	const waitForSearchHydration = async () => {
+		await expect.poll(async () => {
+			await page.keyboard.press('ControlOrMeta+k');
+			return page.getByRole('searchbox').evaluate((element) => element === document.activeElement);
+		}).toBe(true);
+	};
+
 	await page.goto('/');
 	await page.evaluate(() => document.fonts.ready);
 	await page.getByRole('link', { name: 'Commands', exact: true }).click();
-	await expect(page).toHaveURL(/\/commands\/?$/);
+	await expect(page).toHaveURL(/\/commands\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Command Reference' })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
+	// Complete client:visible hydration before leaving the React island.
+	await waitForSearchHydration();
 	await page.getByRole('link', { name: 'Tips', exact: true }).click();
-	await expect(page).toHaveURL(/\/tips\/?$/);
+	await expect(page).toHaveURL(/\/tips\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Shell Tips', level: 1 })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
+	// Complete client:visible hydration before leaving the React island.
+	await waitForSearchHydration();
 	await page.locator('header a[href="/"]:visible').first().click();
-	await expect(page).toHaveURL(/\/$/);
+	await expect(page).toHaveURL(/\/$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: "Nirmal's Shell", level: 1 })).toBeVisible();
 	await page.goto('/404.html');
 	await expect(page.getByRole('heading', { name: 'Command not found.' })).toBeVisible();
@@ -263,28 +423,38 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 	await page.addInitScript(() => {
 		let calls = 0;
 		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => {
-			if (++calls === 1) throw new Error('Clipboard blocked');
+			document.documentElement.dataset.clipboardCalls = String(++calls);
+			if (calls === 1) throw new Error('Clipboard blocked');
 		} } });
 	});
 	await page.goto('/commands/?command=function%3Aupkg');
+	const command = page.locator('[data-command="upkg"]');
+	// The deep link finishes restoring focus and scroll in an animation frame.
+	// Wait for that visible state before focusing the clipboard control.
+	await expect.poll(() => command.locator('[data-slot="accordion-trigger"]').evaluate((element) => element === document.activeElement)).toBe(true);
 	const searchbox = page.getByRole('searchbox');
 	await expect.poll(async () => {
 		await page.keyboard.press('ControlOrMeta+k');
 		return searchbox.evaluate((element) => element === document.activeElement);
 	}).toBe(true);
-	const command = page.locator('[data-command="upkg"]');
 	const copy = command.getByRole('button', { name: 'Copy example: upkg', exact: true });
-	await copy.click();
+	await copy.focus();
+	await copy.press('Enter');
+	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '1');
 	await expect(command.getByRole('status').filter({ hasText: 'Could not copy; select the text manually.' })).toBeVisible();
 	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 	await expect(command.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
-	await copy.click();
+	await copy.press('Enter');
+	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '2');
 	await expect(command.getByRole('status').filter({ hasText: 'Copied to clipboard' })).toHaveCount(1);
 	await expect(command.getByText('Could not copy; select the text manually.')).toHaveCount(0);
 });
 
 test('tips lead to static command documentation', async ({ page }) => {
 	await page.goto('/tips/?q=croot');
+	// Wait for the visible island to restore the query before its rows replace
+	// the initial static catalogue, so navigation tests the hydrated link.
+	await expect.poll(() => page.getByRole('searchbox').inputValue()).toBe('croot');
 	const link = page.getByRole('link', { name: 'croot', exact: true });
 	await expect(link).toHaveAttribute('href', '/commands/croot/');
 	await link.click();
@@ -306,7 +476,7 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 	const docsAction = page.locator('main').getByRole('link', { name: 'Read Docs', exact: true });
 	await expect(docsAction).toHaveAttribute('href', '/docs/');
 	await docsAction.click();
-	await expect(page.getByRole('heading', { name: 'Shared Zsh Configuration Guide', level: 1 })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
 	await expect(page.getByText('Documentation snapshot', { exact: true })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'View GUIDE.md source' })).toHaveAttribute(
 		'href',
@@ -316,6 +486,8 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 		'href',
 		/\/blob\/[0-9a-f]{40}\/README\.md$/,
 	);
+	await page.locator('.docs-card-grid').getByRole('link', { name: /Installation and requirements/ }).click();
+	await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
 	const firstTable = page.locator('.markdown-doc table').first();
 	await expect(firstTable).toHaveAttribute('tabindex', '0');
 	await firstTable.focus();

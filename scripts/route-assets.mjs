@@ -16,8 +16,9 @@ export function routeAssets(dist, entry) {
     if (extension === '.js') totals.jsGzip += gzipSync(bytes).length;
     if (extension === '.css') totals.cssGzip += gzipSync(bytes).length;
     if (/^\.woff2?$/.test(extension)) { totals.fontBytes += bytes.length; return; }
-    for (const match of bytes.toString().matchAll(/["'(]((?:\/_astro\/|\.\.?\/)[^"'()\s<>]+?\.(?:js|css|woff2?))(?:\?[^"'()\s<>]*)?["')]/g)) {
+    for (const match of bytes.toString().matchAll(/["'`(]((?:\/_astro\/|\.\.?\/)[^"'`()\s<>]+?\.(?:js|css|woff2?))(?:\?[^"'`()\s<>]*)?["'`)]/g)) {
       const reference = match[1];
+      if (reference.includes('${')) throw new Error(`Cannot statically measure interpolated asset: ${reference}`);
       const target = reference.startsWith('/') ? path.join(dist, reference) : path.resolve(path.dirname(file), reference);
       if (!target.startsWith(`${dist}${path.sep}`)) throw new Error(`Asset escapes dist: ${reference}`);
       visit(target);
