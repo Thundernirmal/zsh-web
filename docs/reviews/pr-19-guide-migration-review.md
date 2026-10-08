@@ -12,7 +12,119 @@
 
 **CI at time of review:** `verify` **failed** (run `37573837801`); `e2e` was **skipped** because it depends on `verify`. The preceding run (`37571833320`, commit `164ff01`) was green.
 
-## Fifth follow-up review and merge decision — 7 October 2026
+## Sixth follow-up review and merge decision — 8 October 2026
+
+**Commit reviewed:** `de55937b51207c5e8a0ee06764143e7e7b83cab5` — 61 commits, 65 files, +6,341 −2,310 against `main` (`c6d3cde`).
+
+**Published PR head:** `de55937` — identical to the reviewed revision and to the remote branch. `git rev-list --left-right --count` reports `0 0` after an explicit fetch.
+
+**Extractor schema:** 8.
+
+**CI at time of review:** `verify`, `e2e` and the Cloudflare Pages preview all **pass** on this head.
+
+This round re-measures the previous round's remediation against a fresh build, applies the shadcn and Web Interface Guidelines review skills to the changed UI, and runs a fresh correctness pass over the whole diff (ten finder angles plus a sweep). Each item marked *verified* below was reproduced here.
+
+### Merge decision
+
+# YES
+
+Merge this pull request. The condition that blocked the previous two rounds is resolved, every blocker from every prior round is fixed and independently re-measured, and the findings that remain are degradations and polish on a feature that works — not correctness breaks, data loss, accessibility failures or gate failures.
+
+**Everything I previously blocked on is now verified closed:**
+
+| Prior blocker | Independent verification |
+| --- | --- |
+| PR body denied a budget raise the code performs (V1) | The body now documents both raises explicitly — "deliberately increase the docs JavaScript ceiling from **8,000 to 8,500 bytes gzip** (`ef2d338`), then to **9,500 bytes** (`d28e6b4`)", citing standalone commits, rationale and measured usage (`9,051 B gzip (9,500 B ceiling)`). This is exactly what AGENTS.md requires. |
+| Per-entry query snapshot stranded the router index (V2) | Re-ran the original probe: state is now `{index:0, scrollX:0, scrollY:1671}` on fragment arrival, `{index:0, …, docsQueryId:"…"}` after typing, and `index:0` still after push-and-Back. Router index corrupted: **false** (previously **true**). The fix lives in a dedicated `history.ts` that restores the router's fields and explicitly clears `docsQueryId` so a fragment entry cannot inherit an identity. |
+| Snapshot commit link lost its label and link styling (V3) | The link now reads **"Source commit 9334c409"** with `text-decoration: underline`, matching its sibling. The colour-only distinction is gone. |
+| Unpushed remediation; CI green on a stale head | Resolved two rounds ago and still holding: local, remote and PR head are identical and CI is green on that exact commit. |
+| `:has()` repair defeated by the build | Resolved two rounds ago and still holding: `:has()` is gone entirely, replaced by `:not(:target)`. |
+
+**Why the remaining findings do not block.** They fall into three groups, none of which changes what the site does correctly:
+
+- *Degradations in an otherwise working feature.* With a query active, in-page anchor navigation takes the router's full transition path instead of a native hash scroll (W1): the search results rebuild and an opened outline collapses. I verified that navigation itself still works — the URL updates, and the skip link still lands focus on `main-content` in both states. It is wasteful and mildly annoying, not broken.
+- *Narrow content edge cases.* One en dash (`0.60–0.67`) is unreachable by an ASCII-hyphen query (W2), and taxonomy-rendered text such as topic-card descriptions is not indexed (W5). Both are real and both are single-line fixes in the indexer, affecting a handful of phrases.
+- *Efficiency, duplication and test hygiene.* The guide is parsed three times per sync, the docs spec runs its width matrix in all four projects, and the docs shortcut re-implements the shared one. These are maintenance costs, not defects.
+
+The one item worth a deliberate decision rather than a deferral is the overview's margin (W8): 34,139 raw of 35,000 and 313 of 320 elements. Adding a guide topic will fail `npm run verify` on a content-only change, and AGENTS.md requires a stated rationale to raise a limit. That is a known constraint the branch already documents; it does not block this merge, but the next content change will meet it.
+
+### Correction to the previous round's record
+
+The previous round's **V10** disposition stated that `normalize()` folds quotes only and that prose dashes and ellipses "would remain unfindable" but that there was **no live mismatch today**. That last clause was wrong, and this round's pass found the counterexample: `src/data/docs-search.json` already contains `0.60–0.67.` with a U+2013 en dash, and `normalize(index).includes(normalize('0.60-0.67.'))` evaluates to **false**. The mismatch was live when I wrote that line; I had checked quotes and generalised to dashes without testing them. V10 is corrected here — the class is live, not hypothetical (see W2).
+
+### Findings raised in this round
+
+Ordered by user impact. *Verified* means reproduced here; the remainder are from the correctness pass and its verifier agents, none refuted.
+
+#### W1 (medium) — with a query active, in-page anchor navigation triggers a full router transition *(verified)*
+
+`src/components/docs/search.ts:72`. The search writes `?q=` into the URL via `history.replaceState`, which desynchronises Astro's internal `originalLocation`; the router's same-page test compares pathname *and* search, so the live `?q=` no longer matches and the transition takes the full path. Measured on `/docs/nix/` by clicking an outline link with and without a query:
+
+```
+A) no query typed : documentRequests 0   after: url /docs/nix/#picker-cache-and-dependencies   outline still open  results 0
+B) query "nix"    : documentRequests 0   after: url /docs/nix/?q=nix#picker-cache-and-dependencies  outline CLOSED  results rebuilt to 7
+```
+
+I measured 0 document requests where the correctness pass measured 1 — likely a cache-served fetch — but the DOM-swap symptoms reproduce regardless: the opened `<details>` collapses and the result list is rebuilt. The skip link still moves focus to `main-content` in both states, so the accessibility affordance is intact. **Fix:** keep the query out of the router's equality surface, or restore `originalLocation` after the write.
+
+#### W2 (medium) — the index cannot be searched for displayed text containing an en dash *(verified)*
+
+`src/components/docs/search.ts:11`. `normalize()` folds `‘’` and `“”` but not `–`, and the shipped index contains one. Measured: `0.60–0.67.` is in the index; querying the keyboard form `0.60-0.67.` returns no match. Narrow today, but it is the same class as the quote mismatch fixed earlier, and it is only half fixed. **Fix:** normalise the full typographic punctuation set in one place.
+
+#### W3 (medium) — keystrokes during an in-flight traversal write into the destination entry
+
+`src/components/docs/search.ts:140`. The input listener is not bound to the `listeners` AbortController, and `entryKey()`/`syncUrl()` read the *current* `history.state` — which during a traversal already names the destination entry. Reported as reproduced end-to-end: typing one character while the Back fetch is held overwrote the destination entry's stored query and rewrote its URL (`nixquery` → `credqueryZ`), so arriving at that page showed the wrong query. Commit `4296f79` cancels the deferred timer, but the synchronous `remember()`/`syncUrl()` calls from the input handler are unguarded.
+
+#### W4 (medium) — fragment-created entries share their parent's router index
+
+`src/components/docs/history.ts:8`. `preserveRouterState()` synthesises `index` from the cached value when an entry has none, so a fragment entry gets the *same* index as its parent, where Astro's own push path increments. Reported as verified: a later Forward onto that entry is classified as direction `back`, fails the router's same-page fast path, and performs a full document swap for what should be a hash jump. This is the mirror of the V2 fix — the state is no longer corrupt, but the index is not unique per entry either.
+
+#### W5 (medium) — text rendered from the taxonomy cannot be found by the search
+
+`scripts/docs-guide.mjs:29`. The index contains guide body text only. Text the pages render from `guide-topics.mjs` — topic-card descriptions such as "History, completion, aliases, and everyday shortcuts." and the "Overview" label — is displayed but unindexed. Measured: the phrase is present in `dist/docs/index.html` and absent from every `docs-search.json` entry. This is the same failure mode as T3, one layer out.
+
+#### W6 (medium) — a documented pre-push command can show a false red on many-core machines
+
+`tests/e2e/docs.spec.ts:212`. The WebKit traversal assertion runs against Playwright's 5 s default, which the router-mediated traversal exceeds under parallel load. Reported as reproduced once at `--workers=8` (1 failed / 37 passed) and green at `--workers=4` and in isolation; CI hides it behind `workers: 2, retries: 2`. Another spec in this repository grants WebKit a 10 s budget for exactly this slowness.
+
+#### W7–W14 (low) — validation, margins, and hygiene
+
+- **W7** `src/lib/guide-topics.mjs:30` — `validateGuideSlugs()` checks set membership only, so a duplicated slug in the taxonomy passes validation; a bare `npm run build` then ships duplicate navigation and cards for one route. `npm run verify` catches it via the extractor, but the README documents Cloudflare Pages building with `npm run build` alone.
+- **W8** `scripts/check-budget.mjs:15` — the overview carries the tightest ceiling of any docs route with 861 raw bytes and 7 elements of slack; one added guide topic fails the gate on a content-only change.
+- **W9** `src/components/docs/DocsSearch.astro:31` — the recovery watchdog dereferences `[data-search-status]` and `[data-search-reload]` without null checks, so the partial-render case it exists to cover can make the watchdog itself throw.
+- **W10** `src/components/docs/search.ts:165` — the docs shortcut re-implements `src/hooks/useSlashFocus.ts` with divergent Escape and editable-target behaviour.
+- **W11** `src/components/docs/search.ts:115` — matching and the `?q=` contract are implemented a second and third time rather than reusing `matchesQuery` from `src/lib/command-search.ts`, which is type-only and importable at no React cost.
+- **W12** `scripts/docs-guide.mjs:41` — the guide is parsed three times per run and the eleven page bodies are re-parsed in `guideSearchIndex`, roughly half of the `--check` runtime, including when nothing is written.
+- **W13** `tests/e2e/docs.spec.ts:68` — the width matrix runs in all four Playwright projects and the axe loop grew from 8 to 18 routes per project, repeating work on the same engine.
+- **W14** `.github/copilot-instructions.md:34` — the instruction that counts be tabular is not applied to the new guide counts, while equivalent counts in Commands and Tips use `tabular-nums`.
+
+### Conditions attached to this decision
+
+None of these blocks the merge; they are the follow-up list, in the order I would take them.
+
+1. **W1** — keep the in-page anchor path a native hash navigation while a query is present.
+2. **W2** — complete the typographic normalisation so displayed text stays searchable.
+3. **W8** — decide the overview's ceiling deliberately before the next guide topic is added.
+4. **W3** and **W4** — bind the input handler to the traversal lifecycle and give fragment entries their own index.
+5. **W5**, **W6**, **W7**, **W9–W14** — index the taxonomy text, give the WebKit traversal a realistic timeout, assert slug uniqueness, and take the hygiene items.
+
+### Limits of this round
+
+- W1, W2 and the V2/V3 re-measurements were reproduced directly; W3–W14 are recorded from the correctness pass and its verifier agents and were not re-run here.
+- W1's request count differed from the correctness pass (0 versus 1 document requests); the DOM-swap symptoms reproduce in both, and the discrepancy is noted rather than reconciled.
+- W6 is a single reproduction at high parallelism; it is green at the configured worker count and in CI.
+- Physical-device Safari remains untested throughout this series.
+- This round did not re-audit the shell-reference datasets or generated guide content; schema 8 is unchanged.
+
+### Method notes for this round
+
+- Parity with the published PR was established with an explicit `git fetch` followed by `git rev-list --left-right --count`, and CI was re-read at decision time.
+- The previous round's two headline blockers were re-tested with the *same* probes that originally exposed them, so the before/after comparison is like for like.
+- The history-state fix was verified by arriving on a fragment through a same-document navigation, typing, then pushing and traversing, reading `history.state` at each step.
+- The in-page anchor behaviour was measured by clicking an outline link with and without a query active, comparing the URL, the opened `<details>` state and the rebuilt result count; the skip link was exercised the same way.
+- The en-dash mismatch was measured by counting U+2013 occurrences in `src/data/docs-search.json` and evaluating the normalised comparison directly.
+
+## Fifth follow-up review and merge decision (historical) — 7 October 2026
 
 **Commit reviewed:** `856f5873ea3b74c464c6eaf6eed7cd589290ed11` — 48 commits, 64 files, +5,934 −2,297 against `main` (`c6d3cde`).
 
@@ -154,7 +266,7 @@ Ordered by user impact. *Verified* means reproduced here; the remainder are reco
 - The snapshot regression was measured by reading the aside's accessible names, computed `text-decoration-line` and colours, and counting `.docs-source` matches in the built page.
 - The budget discrepancy was measured with `npm run budget` and compared against the published PR description.
 
-## Independent assessment and remediation of V1–V15 — 8 October 2026
+## Independent assessment and remediation of V1–V15 (historical) — 8 October 2026
 
 Assessed the fifth round against `856f587`. The findings above are preserved as the historical record; this section records the implementation decisions and final verification for the new repairs.
 
