@@ -12,7 +12,201 @@
 
 **CI at time of review:** `verify` **failed** (run `37573837801`); `e2e` was **skipped** because it depends on `verify`. The preceding run (`37571833320`, commit `164ff01`) was green.
 
-## Fourth follow-up review and merge decision — 7 October 2026
+## Fifth follow-up review and merge decision — 7 October 2026
+
+**Commit reviewed:** `856f5873ea3b74c464c6eaf6eed7cd589290ed11` — 48 commits, 64 files, +5,934 −2,297 against `main` (`c6d3cde`).
+
+**Published PR head:** `856f587` — identical to the reviewed revision. Local, remote and PR head agree; `git rev-list --left-right --count` reports `0 0`. The divergence that blocked the previous round is resolved.
+
+**Extractor schema:** 8.
+
+**CI at time of review:** `verify`, `e2e` and the Cloudflare Pages preview all **pass** on this head.
+
+This round supersedes the earlier rounds; its remediation assessment follows these findings. It re-measures the previous round's remediation against a fresh build, applies the shadcn and Web Interface Guidelines review skills to the changed UI, and runs a fresh correctness pass over the whole diff (ten finder angles plus a sweep) whose findings are reproduced individually where marked *verified* below.
+
+### Merge decision
+
+# NO
+
+Do not merge yet. This is a much closer call than the previous round — the structural blocker is gone and the remaining list is short — but three verified items should be cleared first, one of which is a correctness regression this branch introduced.
+
+**The previous round's blocking condition is resolved.** All nine previously-unpushed commits are now published, the PR head equals the reviewed revision, and CI is green on it. The `:has()` repair is also genuinely fixed this time, and in the right way: rather than splitting the selector list around the problem, `:has()` was removed entirely and replaced with `:not(:target)`. The emitted stylesheet now carries three separate, universally-supported rules with nothing for the minifier to recombine:
+
+```
+dist/_astro/_..Cgz_smbj.css:[data-legacy-links]{display:contents}
+dist/_astro/_..Cgz_smbj.css:[data-legacy-links]>a:not(:target){display:none}
+dist/_astro/_..Cgz_smbj.css:[data-legacy-links]>a:target{scroll-margin-top:…;display:block}
+```
+
+**What still blocks.**
+
+**1. The per-entry query snapshot corrupts the router's history state (V2, verified).** The snapshot identity is stamped onto `history.state` — an object the router also owns. When the entry's state is `null`, which is exactly what a same-document fragment navigation leaves behind, the spread produces a state object with no `index` field and the entry never regains one. Verified in Chromium:
+
+```
+1) arrive at /docs/nix/#picker-cache-and-dependencies via fragment:  state null
+2) type in the guide search:  state {"docsQueryId":"5b891b75-…","scrollX":0,"scrollY":236}   ← no index
+3) after a later push and Back:  state unchanged, index undefined
+```
+
+Arriving on a fragment and then searching is an ordinary path — it is precisely what the legacy compatibility layer exists to serve. Astro's router derives its traversal bookkeeping from `state.index`; the reported consequences are misclassified transition direction and lost scroll restoration. The deeper issue is ownership: application data does not belong in the router's state object. Storing the query directly in `history.state` (which the browser already keeps per entry) would give stable identity without writing into the router's namespace.
+
+**2. The PR body is materially inaccurate about a raised performance ceiling (V1, verified).** The body states, in three separate places, that no budget moved:
+
+> "Restore the docs JavaScript allowance to **8 KB gzip**"
+> "No existing ceiling is raised; narrow JS/DOM headroom is documented as a continuing constraint"
+> "Budget limits remain unchanged."
+
+The code says otherwise: `scripts/check-budget.mjs:33` sets `docsAssets = { jsGzip: 9_500, … }`, and the build measures **8,778 gzip** — above the former 8,000 ceiling, so the raise is load-bearing rather than headroom. The body's own measurement table still reads `7,905 B gzip`. AGENTS.md is explicit that raising a limit in this file is a deliberate performance decision needing its own commit and stated rationale, and that the PR body must let a reviewer map every body line to commits and back. Here a reviewer following the description would conclude the opposite of what the diff does. This is a documentation fix, not a code fix, but it is the item most directly governed by a written project convention.
+
+**3. A navigation link lost its label and its link affordance (V3, verified).** The documentation-snapshot commit link now renders as a bare hash with no styling, where `main` labelled it:
+
+```
+aside text: "Documentation snapshot9334c409View GUIDE.md source"
+commit link:  name "9334c409",  text-decoration: none,  color rgb(203,166,247)
+sibling link: name "View GUIDE.md source",  text-decoration: underline
+.docs-source elements matching: 0
+```
+
+The accessible name is an unlabelled eight-character SHA, the two links in the same list are distinguished only by colour (WCAG 1.4.1), and `.docs-source` — the selector `global.css` still styles — matches nothing, so those rules are dead. Link lists read a bare hash to screen readers with no indication of what it points at.
+
+### What would make this a yes
+
+1. Stop writing application data into `history.state`; give the query snapshot an identity the router does not own, so a null-state entry cannot lose its `index` (V2).
+2. Correct the PR body's budget statements and record the docs JS raise from 8,000 to 9,500 as the deliberate, justified decision AGENTS.md requires — or bring usage back under the original ceiling (V1).
+3. Restore the commit link's label and link styling in the snapshot block, or confirm the removal is intentional (V3).
+4. Worth doing alongside, though not blocking on its own: give the lazy index fetch a timeout or `AbortSignal` (V4), and pick up the smaller consistency items listed below.
+
+### Verification of the previous round's remediation
+
+Measured against a fresh build of `856f587`.
+
+| Previous finding | Independent result | Evidence |
+| --- | --- | --- |
+| U1 — `:has()` repair defeated by the build | **Confirmed fixed** | `:has()` removed entirely in favour of `:not(:target)`; the emitted CSS contains three separate rules with no selector list for the minifier to recombine. Verified by building and inspecting `dist/_astro/*.css`. |
+| U2 — `components.json` breaks the shadcn CLI | Confirmed addressed | The shadcn import and font mapping were moved so the configured stylesheet is the one the CLI reads (commit `3cf4fc8`). |
+| U3 — legacy redirect leaks a link, leaves null state | Confirmed addressed for the full-load path | Native fragment targets and router history are preserved (commit `ffbb5f0`). The in-page path is where V2 now surfaces. |
+| U4 — restore key not unique per entry | Addressed in intent; replaced by a new defect | Identity is now a per-entry id, but it is stored in the router's state object, which is the mechanism behind V2. |
+| U5 — stale rejection re-arms the failure | Confirmed addressed | Stale index failures are ignored after navigation (commit `a9a9d34`). |
+| U6 — disabled input is a dead end | Confirmed addressed | Native recovery is offered when initialisation fails (commit `4aa07d9`). |
+| U7, U15 — route validation and label derivation | Confirmed addressed | Routes are validated and labels derived from the guide taxonomy (commit `339ef7c`). |
+| U11 — commands loop overwrites explicit ceilings | Confirmed fixed | `ec883f0` applies the `??=` policy to command routes as well. See V12 for the remaining duplicate literal. |
+| U14 — test pinned generated prose | Confirmed fixed | `d70c37c` decouples the quote-search coverage from guide text. |
+
+### Findings raised in this round
+
+Ordered by user impact. *Verified* means reproduced here; the remainder are recorded from the correctness pass and its verifier agents, none of which were refuted.
+
+#### V1 (high) — the PR body denies a budget raise the code performs *(verified)*
+
+`scripts/check-budget.mjs:33` against the PR description. See the merge decision above for the quoted text and measurements.
+
+#### V2 (high) — the query snapshot writes into the router's history state and can strand an entry without an index *(verified)*
+
+`src/components/docs/search.ts:48`. See the merge decision above for the reproduction.
+
+#### V3 (medium) — the snapshot commit link lost its label and link styling *(verified)*
+
+`src/layouts/DocsLayout.astro:76`. See the merge decision above for the measurements.
+
+#### V4 (medium) — the lazy index fetch has no timeout, so a stalled request pins search in "Searching…"
+
+`src/components/docs/search.ts:95`. `load()` memoises the pending promise and the fetch carries no `AbortSignal`, so a request that accepts but never completes leaves the status at *Searching…* indefinitely, with the error block, Retry and reload affordances all gated on state that is never reached. Reported as reproduced against the built site with a never-fulfilling route: after 13 s the status was unchanged, every recovery affordance was hidden, and a second query reused the same pending promise.
+
+#### V5 (medium) — the legacy redirect can truncate a just-typed query
+
+`src/components/docs/layout.ts:13`. The redirect copies the 1-second-throttled `location.search` into the destination, so a query typed within the coalescing window is carried across as its earlier value, and the fresh load reads the stale URL rather than the session snapshot. Reported as reproduced in Chromium and WebKit.
+
+#### V6 (medium) — the docs keyboard shortcut diverges from the site's shared contract
+
+`src/components/docs/search.ts:148`. It accepts only lowercase `k`, so `Shift+Ctrl/Cmd+K` does nothing on docs pages while `/commands/` and `/tips/` accept either case via `src/hooks/useSlashFocus.ts`, and it omits `select()`, so typing appends to the existing query instead of replacing it.
+
+#### V7 (medium) — route validation is one-directional
+
+`src/pages/docs/[...slug].astro:8`. Registered topics with no generated page are not caught, so `npm run build` alone can ship links to routes that do not exist — and `README.md` documents Cloudflare Pages building with exactly that command.
+
+#### V8 (medium) — `crypto.randomUUID` is unavailable outside secure contexts
+
+`src/components/docs/search.ts:47`. On a plain-HTTP origin — a normal way to review mobile widths over a LAN — `entryKey()` throws on every keystroke and all three call sites swallow it, so the entire snapshot layer silently no-ops and restore degrades to the possibly-truncated URL value.
+
+#### V9–V15 (low) — consistency and dead-code items
+
+- **V9** `search.ts:64` — `remember()` sits inside the same `try` as `history.replaceState`, so an edit whose history write is rejected never reaches session storage.
+- **V10** `search.ts:9` — `normalize()` reconciles quote characters only; prose dashes and ellipses would remain unfindable if the upstream guide ever uses them. No live mismatch today.
+- **V11** `search.ts:28` — the `data-ready` flag is published before the element lookups and listener wiring, so a partial initialisation disables both recovery paths.
+- **V12** `scripts/check-budget.mjs:36` — the docs payload/DOM budget literal is duplicated verbatim in two loops, unlike the shared `docsAssets` constant.
+- **V13** `src/pages/docs-search.json.ts:5` — the endpoint's `Cache-Control` is inert for static output and duplicates `public/_headers`, which has already drifted once for `/tips.json`.
+- **V14** `src/components/docs/DocsSearch.astro:18` — the server-rendered `href` on the reload link can never be followed; the watchdog overwrites it before revealing it.
+- **V15** `scripts/docs-guide.mjs:29` — `guideSearchIndex` re-parses all eleven page bodies even though the same run has already parsed them three times.
+
+### Limits of this round
+
+- V1, V2 and V3 were reproduced directly; V4–V15 are recorded from the correctness pass and its verifier agents and were not re-run here.
+- The downstream consequences of V2 (misclassified transition direction, lost scroll restoration) are as reported by the verifier; this review confirmed the corrupted state object itself, which is the mechanism.
+- CI status was read at the time of review and may change; re-check before merging.
+- Physical-device Safari remains untested throughout this series; WebKit findings come from the Playwright WebKit build.
+- This round did not re-audit the shell-reference datasets or generated guide content.
+
+### Method notes for this round
+
+- Published-versus-local parity was established with an explicit `git fetch` followed by `git rev-list --left-right --count`, not from cached remote-tracking refs.
+- The `:has()` repair was confirmed by building the working tree and inspecting the emitted `dist/_astro/*.css`.
+- The history-state defect was reproduced in Chromium by arriving on a fragment through a same-document navigation, typing into the guide search, then pushing and traversing, reading `history.state` at each step.
+- The snapshot regression was measured by reading the aside's accessible names, computed `text-decoration-line` and colours, and counting `.docs-source` matches in the built page.
+- The budget discrepancy was measured with `npm run budget` and compared against the published PR description.
+
+## Independent assessment and remediation of V1–V15 — 8 October 2026
+
+Assessed the fifth round against `856f587`. The findings above are preserved as the historical record; this section records the implementation decisions and final verification for the new repairs.
+
+| Finding | Disposition | Change or evidence |
+| --- | --- | --- |
+| V1 — PR body denies the docs JS increase | **Fixed in PR metadata** | Updated PR #19 to state the deliberate increase from 8,000 to 8,500 (`ef2d338`) and then 9,500 bytes (`d28e6b4`), its rationale, current measurements, every subsequent review repair and final validation. Read back the published body and confirmed it matches the prepared description. These changes fit 9,500 without another ceiling increase. |
+| V2 — native fragment query state lacks a router index | **Fixed** | A shared helper restores complete router fields before a native fragment receives a new query identity; ordinary fragments now go through Astro's navigator as well as legacy fragments. Legacy replacement passes custom state through Astro's supported `state` option. Query-result restoration no longer triggers desktop scroll anchoring that overrides the router's saved position. Pending URL timers are canceled at navigation preparation so an outgoing controller cannot overwrite a traversal destination before the document swap. Browser coverage checks numeric index/scroll fields, full query restoration, exact saved scroll, Back and Forward, and a held traversal fetch across the URL timer deadline. |
+| V3 — source commit label and link affordance | **Fixed** | The snapshot link reads `Source commit <sha>` and uses the shared underlined `text-link` style. Removed unused `.docs-source` rules while retaining the Markdown link rules. Browser coverage checks the accessible name, pinned destination, computed underline and actual keyboard focus. |
+| V4 — indefinitely pending index | **Fixed** | Each index request has an AbortController and ten-second timeout, cleared on settlement. Timeout reaches the existing error/Retry path without losing the query. A controlled stalled-request test advances time, retries successfully and checks returned input focus; successful lazy caching and stale-request protection remain covered. |
+| V5 — legacy redirect copies a stale query URL | **Fixed** | Before navigating, the active search controller supplies the full current input to the destination URL. The bridge preserves unrelated URL parameters and does not depend on the coalesced URL write succeeding first. Browser cases cover both cross-topic `#aliases` and same-topic `#contents` while the URL still contains the earlier query. |
+| V6 — shortcut case/selection differs from shared search | **Fixed** | Ctrl/Cmd+K accepts either case and selects the query; slash retains focus-only behavior. Tests execute all four Control/Meta and shifted/unshifted combinations, assert focus and selection, and type replacement text. |
+| V7 — registered pages can be missing from the collection | **Fixed** | The existing `getStaticPaths` validation now rejects missing registered ids alongside unknown ids, with aggregate diagnostics. `npm run build` therefore enforces the complete route set independently of CI's snapshot/budget gates. Unit coverage checks missing pages and combined errors. |
+| V8 — randomUUID requires a secure context | **Fixed** | Identity generation uses `crypto.getRandomValues`, available on insecure HTTP origins, rather than `randomUUID`. A browser fixture serves the site at a controlled plain-HTTP origin, asserts `isSecureContext === false`, and verifies complete pending-query restoration and identity persistence on reload. |
+| V9 — a rejected URL write loses the snapshot | **Not a live defect** | The input handler already calls `remember()` before `syncUrl()`, and Clear does the same. A rejected URL write cannot erase that stored edit. Strengthened the existing rejection test to check the stored query before the retry succeeds. The extra remember call inside the successful URL flush is not the only storage path. |
+| V10 — future typography could need dash/ellipsis matching | **Deferred; no present mismatch** | The review explicitly reports no current mismatch. Broader punctuation folding would need defined behavior for literal shell syntax such as `--` and `...`, plus a demonstrated rendered/authored mismatch. Existing curly/straight quote coverage and authored code preservation remain intact. |
+| V11 — readiness published before initialization completes | **Fixed** | Required controls are validated before listener installation, and the input is enabled and `data-ready` published only after setup completes. A missing-template fixture confirms the control stays disabled, readiness stays absent, the independent watchdog reveals native reload, and reloading repaired HTML initializes normally. |
+| V12 — repeated docs HTML/DOM limit object | **Fixed** | Both taxonomy and discovered-route loops consume one `docsBudget` constant. Values and explicit-route precedence are unchanged. |
+| V13 — static endpoint repeats an inert cache header | **Fixed** | Removed the static JSON endpoint's Cache-Control declaration. `public/_headers` owns the production cache policy; the endpoint retains the JSON content type. The generated JSON bytes are unchanged. |
+| V14 — reload link's initial href is overwritten | **Intentional; retained** | The hidden server anchor has a valid route destination, satisfying native-link markup and accessibility lint. The independent watchdog assigns the full live URL before exposing it, preserving query/hash. It is not a user-visible dead destination; existing failed-chunk and partial-init tests activate the revealed native link successfully. Removing a required valid href or replacing it with a placeholder would not improve behavior. |
+| V15 — index re-parses page bodies | **Retained; different parse inputs** | The earlier passes parse the whole source for code-span ranges, the pipe-masked probe for GFM table recognition, and the repaired whole guide for heading ownership. They are not trees for the eleven final page bodies after partitioning and link rewriting. Reusing them directly would change parser semantics; no measurable extraction bottleneck was demonstrated. Existing semantic and snapshot tests validate the current output. |
+
+### Repair commits
+
+- `3f2aed1` — V2/V8 router-state, scroll restoration and HTTP-safe snapshot identity; strengthened V9 evidence.
+- `e26a5d4` — V5 complete live query on legacy redirects.
+- `afe53fe` — V4 stalled-index timeout and retry.
+- `e3fd9f8` — V6 keyboard shortcut case and selection.
+- `eeccc9b` — V11 complete initialization before readiness.
+- `605cff8` — V3 labelled, underlined source link and obsolete styles.
+- `89ec555` — V7 missing registered route rejection.
+- `dcd5f8f` — V12 shared default docs page limit object, unchanged ceilings.
+- `164158a` — V13 static cache policy owned by hosting headers.
+- `0b4c3ce` — updated behavior documentation.
+- `4296f79` — cancel outgoing URL timers at navigation preparation; deterministic slow-traversal regression and settled Back/Forward reload fixture.
+- `ef0a914` — poll actual search island hydration before leaving Commands/Tips in the shared navigation fixture, preserving `client:visible`.
+
+### History-state ownership clarification
+
+The reproduced missing-index defect in V2 is valid. The broader claim that application data cannot coexist with router state is not Astro's contract: the installed navigator exposes `NavigateOptions.state`, and its router spreads that state alongside its reserved `index`, `scrollX` and `scrollY` fields. The repair preserves those fields and keeps only the query identity in its separate field; query text remains in tab-local storage. Moving the full query into history on every keystroke would also undo the existing Safari-safe write cadence. The defect was incomplete state after native fragment creation, rather than the mere presence of custom state.
+
+### Full-matrix race investigation
+
+The first complete rerun exposed two WebKit query-restoration failures. Temporary event diagnostics confirmed a connected outgoing controller could flush an empty query into the already-selected Back destination before `astro:before-swap`. Canceling the URL timer at `astro:before-preparation` closes that interval. The regression now holds the Back fetch and advances the clock beyond the timer deadline, then checks the destination URL, snapshot and restored scroll. The older reload fixture also waits for the actual home document before Forward, so it no longer cancels a still-pending Back swap and reloads an intermediate document. Both cases pass **24 repeated executions** across all four browser projects after the repair. Temporary diagnostics were removed. A separate intermittent React #424 failure in the existing Commands/Tips navigation fixture was resolved by polling actual shortcut focus before leaving each visible island, following the repository hydration contract without changing the directives. That fixture passes **20 repeated executions** across the matrix. Final complete-matrix results follow below.
+
+### Validation and publication
+
+- `npm run verify` passes on Node 26.10.0: all **25** tooling/extractor tests, source consistency, lint, dead-code checks, Astro diagnostics, production build and every payload/DOM budget. Docs JavaScript is **9,051 B gzip** against the existing **9,500 B** ceiling; overview HTML is 34,139 B raw / 7,168 B gzip with 313 elements, docs CSS is 22,122 B gzip, and the lazy index is 65,597 B raw / 24,513 B gzip. No ceiling is changed in this repair round; generated snapshots are unchanged.
+- Final `npm run test:e2e -- --workers=2` passes the complete Firefox, WebKit, desktop Chromium and mobile Chromium matrix: **366 passed, 4 intentionally skipped**, no failures. The targeted repeated traversal/reload and navigation checks also pass, as recorded above.
+- Manual collaborative-browser review at **320px and 390px** covers readable search results, the labelled and underlined source commit, ordinary and legacy native heading navigation, valid router state, and contained code/table overflow. A focused overflowing table scrolls horizontally with ArrowRight (0 → 40px) without page overflow. Physical-device Safari remains untested.
+- PR #19 description is corrected and verified by reading it back. The latest user request explicitly authorizes committing **and pushing**, superseding earlier local-only handoffs. After a fresh fetch, the remote has no commits absent locally (`0 12` before this record commit); publication follows committing this record. The final published head and fresh CI status are checked and reported in the handoff, rather than attributing the older head’s green checks to these repairs.
+
+## Fourth follow-up review and merge decision (historical) — 7 October 2026
 
 **Commit reviewed:** `105633aa4af3d7aec245485b343af50e3e725952` — 38 commits, 62 files, +5,472 −2,229 against `main` (`c6d3cde`).
 
@@ -155,7 +349,7 @@ On the in-page path — an old bookmark activated while `/docs/` is already open
 - The shadcn regression was reproduced by running the project's installed CLI (`node node_modules/shadcn/dist/index.js eject -y`) in a scratch copy of `components.json`, `package.json`, `tsconfig.json` and `src/styles/`, toggling only the `tailwind.css` value between runs.
 - The redirect leak was measured in Chromium by comparing an in-page fragment arrival against a fresh deep link on the same build, reading `document.querySelector(':target')`, the container's computed `display`, the link's client rects, and `history.state` on both paths.
 
-## Independent assessment and remediation of U1–U15 — 7 October 2026
+## Independent assessment and remediation of U1–U15 (historical) — 7 October 2026
 
 Assessed the fourth round against local `105633a` and implemented the confirmed defects in nine local commits, `d28e6b4` through `d70c37c`. The fourth-round findings above remain as the historical record; this assessment describes their disposition in the repaired revision.
 
