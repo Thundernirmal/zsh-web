@@ -746,3 +746,13 @@ test('registry flag notes render as an options list', async ({ page }) => {
 	await expect(page.getByText(/^Flag:/)).toHaveCount(0);
 	await expect(page.getByText('upgrades never inject sudo automatically')).toBeVisible();
 });
+
+test('syntax tokens wrap whole instead of breaking after their hyphens', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await page.goto('/commands/upkg/');
+	const flag = page.locator('[data-feature-table] table pre span', { hasText: /^--only=apt,nix$/ });
+	await expect(flag).toBeVisible();
+	// One client rect means the token sits on a single line.
+	expect(await flag.evaluate((element) => element.getClientRects().length)).toBe(1);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
