@@ -471,6 +471,18 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
 });
 
+test('homepage introduction reads as one spaced sentence', async ({ page }) => {
+	await page.goto('/');
+	const intro = page.locator('#home-page-header p');
+	await expect(intro).toHaveText(
+		'A living guide to aliases, functions, tips, and workflows, extracted directly from the Thundernirmal/zsh (opens in a new tab) repository.',
+	);
+	await expect(intro.getByRole('link', { name: 'Thundernirmal/zsh (opens in a new tab)' })).toHaveAttribute(
+		'href',
+		'https://github.com/Thundernirmal/zsh',
+	);
+});
+
 test('the committed shell guide is reachable from the homepage', async ({ page }) => {
 	await page.goto('/');
 	const docsAction = page.locator('main').getByRole('link', { name: 'Read Docs', exact: true });
