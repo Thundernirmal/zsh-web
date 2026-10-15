@@ -217,3 +217,12 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 	await expect(page).toHaveURL(/cat=navigation/);
 	await expect(page.getByRole('listitem').first()).toContainText('Navigation');
 });
+
+test('tips search follows the page introduction without a stats row', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	await page.goto('/tips/');
+	const intro = await page.locator('main header').first().boundingBox();
+	const search = await page.getByRole('searchbox', { name: 'Search tips' }).boundingBox();
+	expect((search?.y ?? Infinity) - ((intro?.y ?? 0) + (intro?.height ?? 0))).toBeLessThan(48);
+	await expect(page.getByText('tip records')).toHaveCount(0);
+});
