@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSlashFocus } from '@/hooks/useSlashFocus';
+import { matchesQuery } from '@/lib/command-search';
 import { commandHref, formatLabel, tipSourceLabel, type ShellTip } from '@/lib/shell-docs';
 
 const PAGE_SIZE = 24;
@@ -89,7 +90,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
       if (filter !== 'all' && tip.category !== filter) return false;
       if (!nq) return true;
       const text = corpus.get(`${tip.category}:${tip.text}`) ?? '';
-      return text.includes(nq);
+      return matchesQuery(text, nq);
     });
   }, [corpus, filter, normalizedQuery, tips]);
 
@@ -105,7 +106,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     }
     for (const tip of tips) {
       const text = corpus.get(`${tip.category}:${tip.text}`) ?? '';
-      if (!text.includes(normalizedQuery)) continue;
+      if (!matchesQuery(text, normalizedQuery)) continue;
       acc.all += 1;
       acc[tip.category] = (acc[tip.category] ?? 0) + 1;
     }

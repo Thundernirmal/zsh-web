@@ -796,3 +796,10 @@ test('tip source badges never repeat the category or the linked command', async 
 	await page.goto(`/tips/?q=${encodeURIComponent('detailed listing')}`);
 	await expect(page.getByRole('listitem').first().locator('[data-slot="badge"]', { hasText: /^Core$/ })).toBeVisible();
 });
+
+test('tip search matches separate words in any order, like command search', async ({ page }) => {
+	await page.goto(`/tips/?q=${encodeURIComponent('branch git')}`);
+	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
+	await page.goto(`/tips/?q=${encodeURIComponent('git branch')}`);
+	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
+});
