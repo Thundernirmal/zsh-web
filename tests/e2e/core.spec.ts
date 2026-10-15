@@ -854,3 +854,24 @@ test('footer shows the source date in a readable, machine-tagged form', async ({
 	const iso = await date.getAttribute('datetime');
 	expect(await date.textContent()).toBe(new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)));
 });
+
+test('homepage terminal keeps example comments beside their command', async ({ page }) => {
+	await page.goto('/');
+	const command = page.locator('main figure pre span.align-middle', { hasText: 'upkg search ripgrep' });
+	await expect(command).toBeVisible();
+	const comment = command.locator('span', { hasText: /^\s*# compare package search matches$/ });
+	if ((page.viewportSize()?.width ?? 0) < 640) {
+		// Phones drop the comment instead of wrapping it onto a line of its own.
+		await expect(comment).toBeHidden();
+		expect((await command.innerText()).trim()).toBe('upkg search ripgrep');
+	} else {
+		await expect(comment).toBeVisible();
+		// The comment starts on the command's own line.
+		const lines = await command.evaluate((element) => {
+			const commandTop = element.getClientRects()[0].top;
+			const commentTop = element.querySelector('span')!.getClientRects()[0].top;
+			return { commandTop, commentTop };
+		});
+		expect(Math.abs(lines.commentTop - lines.commandTop)).toBeLessThanOrEqual(2);
+	}
+});
