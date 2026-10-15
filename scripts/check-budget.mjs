@@ -27,10 +27,11 @@ const ASSET_BUDGETS = {
   'commands/index.html': { jsGzip: 162_000, cssGzip: 23_000, fontBytes: 220_000 },
   'tips/index.html': { jsGzip: 148_000, cssGzip: 23_000, fontBytes: 220_000 },
 };
-// Docs include shared router navigation, independent entry snapshots and
-// request-race recovery. Reserve compression headroom across Node versions;
+// Docs include shared router navigation, independent entry snapshots,
+// request-race recovery, code-block copy, and search-result highlighting with
+// keyboard navigation. Reserve compression headroom across Node versions;
 // the on-demand index remains separately budgeted below.
-const docsAssets = { jsGzip: 9_500, cssGzip: 23_000, fontBytes: 220_000 };
+const docsAssets = { jsGzip: 10_000, cssGzip: 23_000, fontBytes: 220_000 };
 const docsBudget = { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
 for (const topic of guidePages) {
   const file = `${guideUrl(topic.slug).slice(1)}index.html`;
