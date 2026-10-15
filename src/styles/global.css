@@ -90,6 +90,16 @@
     @apply inline-flex min-h-11 items-center sm:min-h-6;
   }
 
+  /* Header links repeat on every route, so the ghost/secondary small-button
+     treatment lives in one class instead of ~1 KB of utilities per link. */
+  .site-nav-link {
+    @apply inline-flex h-7 min-h-11 w-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-[min(var(--radius-md),12px)] border border-transparent bg-clip-padding px-1 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] outline-none select-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px sm:min-h-7 sm:w-auto sm:px-2.5 sm:text-[0.8rem] sm:has-data-[icon=inline-start]:pl-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5;
+  }
+
+  .site-nav-link[aria-current='page'] {
+    @apply bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)];
+  }
+
   .command-reference-link {
     @apply mt-1 inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-border bg-background px-2 text-xs font-medium whitespace-nowrap text-foreground transition-[color,background-color,border-color,box-shadow,transform,text-decoration-color] before:content-['Docs_↗'] hover:bg-muted hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:translate-y-px sm:mt-3 sm:h-6 sm:before:content-['Reference_↗'];
   }
