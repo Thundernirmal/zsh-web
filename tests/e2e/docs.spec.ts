@@ -20,8 +20,11 @@ test('guide sidebar keeps every keyboard-focused topic visible in a short viewpo
   await page.setViewportSize({ width: 1440, height: 500 });
   await page.goto('/docs/maintenance/');
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
-  const links = page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link');
-  await expect(links).toHaveCount(guideTopics.length + 1);
+  const navigation = page.getByRole('navigation', { name: 'Guide navigation', exact: true });
+  await expect(navigation.locator('[data-topic-link]')).toHaveCount(guideTopics.length + 1);
+  // The active topic's sections are listed in place, so Tab visits them in DOM order too.
+  await expect(navigation.getByRole('list', { name: 'On this page', exact: true })).toBeVisible();
+  const links = navigation.getByRole('link');
   for (const fontSize of ['100%', '200%']) {
     await page.locator('html').evaluate((element, value) => { element.style.fontSize = value; }, fontSize);
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -94,7 +97,7 @@ test('guide navigation has its final responsive state with JavaScript disabled',
         await summary.press('Enter');
       }
       await expect(navigation).toBeVisible();
-      await expect(navigation.getByRole('link')).toHaveCount(guideTopics.length + 1);
+      await expect(navigation.locator('[data-topic-link]')).toHaveCount(guideTopics.length + 1);
       await navigation.getByRole('link', { name: /Nix profiles and pickers/ }).click();
       await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
     } finally { await context.close(); }
@@ -738,4 +741,16 @@ test('guide search highlights matches and supports keyboard result navigation', 
   await page.keyboard.press('Escape');
   await expect(input).toBeFocused();
   await expect(input).toHaveValue('workflow');
+});
+
+test('idle guide search status takes no space until there is a query', async ({ page }) => {
+  await page.goto('/docs/finders/');
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  const status = page.locator('[data-search-status]');
+  await expect(status).toHaveText('Search across the whole guide.');
+  // Still announced to assistive technology, but visually collapsed.
+  expect(await status.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
+  await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('zoxide');
+  await expect(status).toHaveText(/matching section/);
+  expect(await status.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(1);
 });

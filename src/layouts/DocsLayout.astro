@@ -22,6 +22,7 @@ if (position < 0) throw new Error(`Unknown guide topic: ${slug}. Register it in 
 const previous = guidePages[position - 1];
 const next = guidePages[position + 1];
 const destinationTitles = new Map(guidePages.map((page) => [guideUrl(page.slug), page.title]));
+const outline = overview ? [] : headings.filter((heading) => heading.depth <= 3);
 ---
 
 <Layout title={title} description={description}>
@@ -39,7 +40,7 @@ const destinationTitles = new Map(guidePages.map((page) => [guideUrl(page.slug),
     <aside class="docs-sidebar">
       <div class="docs-menu docs-desktop-menu">
         <div class="docs-menu-title"><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span></div>
-        <DocsTopicNav slug={slug} />
+        <DocsTopicNav slug={slug} sections={outline} />
       </div>
       <details class="docs-menu docs-mobile-menu" data-docs-menu>
         <summary><BookOpenIcon className="size-4 text-primary" aria-hidden="true" /><span>Browse the guide</span><ChevronDownIcon className="docs-menu-chevron size-4" aria-hidden="true" /></summary>
@@ -52,10 +53,10 @@ const destinationTitles = new Map(guidePages.map((page) => [guideUrl(page.slug),
         {Object.entries(legacyLinks).map(([anchor, href]) => <a id={anchor} href={href} class="text-link">Open {destinationTitles.get(href.split('#')[0]) ?? guideOverview.title}</a>)}
       </div>}
       <DocsSearch />
-      {!overview && headings.length > 0 && <details class="docs-outline">
+      {outline.length > 0 && <details class="docs-outline">
         <summary>On this page<ChevronDownIcon className="size-4" aria-hidden="true" /></summary>
         <nav aria-label="On this page">
-          {headings.filter((heading) => heading.depth <= 3).map((heading) => <a href={`#${heading.slug}`} class:list={{ 'docs-outline-nested': heading.depth > 2 }}>{heading.text}</a>)}
+          {outline.map((heading) => <a href={`#${heading.slug}`} class:list={{ 'docs-outline-nested': heading.depth > 2 }}>{heading.text}</a>)}
         </nav>
       </details>}
 

@@ -68,9 +68,14 @@ test('custom docs share site chrome and support mobile topic navigation', async 
   await page.goto('/docs/#nix-profile-manager-npkg');
   await expect(page).toHaveURL(/\/docs\/nix\/#nix-profile-manager-npkg$/);
   await expect(page.getByRole('heading', { name: 'Nix profile manager: npkg', level: 2 })).toBeVisible();
-  const outline = page.locator('.docs-outline');
-  await outline.locator('summary').click();
-  await page.getByRole('navigation', { name: 'On this page', exact: true }).getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
+  // Phones open the in-article outline; desktop lists sections under the active topic.
+  const desktop = (page.viewportSize()?.width ?? 0) >= 1024;
+  if (desktop) await expect(page.locator('.docs-outline')).toBeHidden();
+  else await page.locator('.docs-outline summary').click();
+  const sections = desktop
+    ? page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('list', { name: 'On this page', exact: true })
+    : page.getByRole('navigation', { name: 'On this page', exact: true });
+  await sections.getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
   await expect(page).toHaveURL(/#picker-cache-and-dependencies$/);
   await expect(page.getByRole('heading', { name: 'Picker cache and dependencies', exact: true })).toBeInViewport();
   await page.locator('[data-site-header]').getByRole('link', { name: 'Commands', exact: true }).click();
