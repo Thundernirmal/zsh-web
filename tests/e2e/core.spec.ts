@@ -815,3 +815,33 @@ test('showing more tips moves focus to the first newly revealed tip', async ({ p
 	await expect(tips.nth(24)).toBeFocused();
 	await expect(tips.nth(24)).toBeInViewport();
 });
+
+test('tips show runnable commands as code and copy only concrete invocations', async ({ page }) => {
+	await page.addInitScript(() => {
+		const writes: string[] = [];
+		Object.defineProperty(window, '__clipboardWrites', { value: writes });
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (text: string) => { writes.push(text); } } });
+	});
+	await page.goto(`/tips/?q=${encodeURIComponent('npkg search ripgrep')}`);
+	const tip = page.getByRole('listitem').filter({ hasText: 'to search nixpkgs' });
+	await expect(tip.locator('code')).toHaveText('npkg search ripgrep');
+	await expect(tip.locator('code').getByRole('link', { name: 'npkg', exact: true })).toHaveAttribute('href', '/commands/npkg/');
+	await tip.getByRole('button', { name: 'Copy command: npkg search ripgrep' }).click();
+	await expect.poll(() => page.evaluate(() => (window as unknown as { __clipboardWrites: string[] }).__clipboardWrites)).toEqual(['npkg search ripgrep']);
+
+	// Placeholder syntax is shown as code but is not offered for copying.
+	await page.goto(`/tips/?q=${encodeURIComponent('rank files recursively')}`);
+	const bigfiles = page.getByRole('listitem').filter({ hasText: 'rank files recursively' });
+	await expect(bigfiles.locator('code')).toHaveText('bigfiles [path] [count]');
+	await expect(bigfiles.getByRole('button', { name: /^Copy/ })).toHaveCount(0);
+});
+
+test('tip copy buttons are omitted without JavaScript', async ({ browser, baseURL }) => {
+	const context = await browser.newContext({ javaScriptEnabled: false });
+	try {
+		const page = await context.newPage();
+		await page.goto(new URL('/tips/', baseURL).href);
+		await expect(page.locator('main code').first()).toBeVisible();
+		await expect(page.getByRole('button', { name: /^Copy command/ })).toHaveCount(0);
+	} finally { await context.close(); }
+});
