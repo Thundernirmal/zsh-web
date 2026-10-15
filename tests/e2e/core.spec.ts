@@ -808,6 +808,11 @@ test('showing more tips moves focus to the first newly revealed tip', async ({ p
 	await page.goto('/tips/');
 	const tips = page.getByRole('listitem');
 	await expect(tips).toHaveCount(24);
+	// Poll the island's keyboard shortcut so Show More is hydrated before use.
+	await expect.poll(async () => {
+		await page.keyboard.press('/');
+		return page.getByRole('searchbox').evaluate((element) => element === document.activeElement);
+	}).toBe(true);
 	const showMore = page.getByRole('button', { name: /^Show 24 More Tips$/ });
 	await showMore.focus();
 	await page.keyboard.press('Enter');

@@ -91,7 +91,10 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     const index = revealedIndex.current;
     if (index === null) return;
     revealedIndex.current = null;
-    listRef.current?.querySelectorAll<HTMLElement>('[role="listitem"]')[index]?.focus();
+    const tip = listRef.current?.querySelectorAll<HTMLElement>('[role="listitem"]')[index];
+    tip?.focus({ preventScroll: true });
+    // WebKit does not reliably scroll on programmatic focus; scroll explicitly.
+    tip?.scrollIntoView({ block: 'nearest' });
   }, [visibleCount]);
 
   useSlashFocus(searchRef, {
