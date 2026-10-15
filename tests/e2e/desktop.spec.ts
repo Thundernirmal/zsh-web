@@ -41,8 +41,16 @@ test('desktop navigation exposes the full header and remains visible while scrol
 	const header = page.locator('[data-site-header]');
 	await expect(page.getByRole('link', { name: "Nirmal's Shell" })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'GitHub' })).toBeVisible();
-	await expect(page.locator('nav a[href="/"]').filter({ hasText: 'Home' })).toBeHidden();
+	await expect(page.locator('header nav a[aria-label="Home"]')).toBeHidden();
 	await expect(page.getByRole('link', { name: 'Commands', exact: true })).toHaveAttribute('aria-current', 'page');
+	const docsLink = page.locator('[data-site-header]').getByRole('link', { name: 'Docs', exact: true });
+	await expect(docsLink).toBeVisible();
+	await expect(docsLink).not.toHaveAttribute('aria-current', 'page');
+	await docsLink.click();
+	await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+	await page.goto('/docs/finders/');
+	await expect(page.locator('[data-site-header]').getByRole('link', { name: 'Docs', exact: true })).toHaveAttribute('aria-current', 'page');
+	await page.goto('/commands/');
 
 	await page.evaluate(() => window.scrollTo(0, 600));
 	await expect(header).toHaveAttribute('data-scroll-state', 'visible');

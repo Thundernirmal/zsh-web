@@ -32,9 +32,12 @@ test('mobile navigation has stable touch targets and follows scroll direction', 
 		const header = page.locator('[data-site-header]');
 		heights.push(await header.evaluate((element) => element.getBoundingClientRect().height));
 
-		for (const label of ['Home', 'Commands', 'Tips']) {
-			const box = await page.getByRole('link', { name: label, exact: true }).boundingBox();
+		for (const label of ['Home', 'Docs', 'Commands', 'Tips']) {
+			const link = page.locator('[data-site-header]').getByRole('link', { name: label, exact: true });
+			const box = await link.boundingBox();
 			expect(box?.height ?? 0, `${label} should be touch friendly on ${route}`).toBeGreaterThanOrEqual(44);
+			expect(box?.width ?? 0, `${label} should be touch friendly on ${route}`).toBeGreaterThanOrEqual(44);
+			expect(await link.evaluate((element) => element.scrollWidth <= element.clientWidth), `${label} should not clip on ${route}`).toBe(true);
 		}
 	}
 
@@ -48,7 +51,7 @@ test('mobile navigation has stable touch targets and follows scroll direction', 
 	await expect(header).toHaveAttribute('data-scroll-state', 'visible');
 	await page.evaluate(() => window.scrollTo(0, 500));
 	await expect(header).toHaveAttribute('data-scroll-state', 'hidden');
-	await page.getByRole('link', { name: 'Home', exact: true }).focus();
+	await page.locator('[data-site-header]').getByRole('link', { name: 'Home', exact: true }).focus();
 	await expect(header).toHaveAttribute('data-scroll-state', 'visible');
 });
 
