@@ -708,3 +708,34 @@ test('guide search results open the matching section, labelled with its topic', 
   await expect(page).toHaveURL(new RegExp(`${href!.replace(/[/#]/g, '\\$&')}$`));
   await expect(page.getByRole('heading', { name: section, exact: true })).toBeInViewport();
 });
+
+test('guide search highlights matches and supports keyboard result navigation', async ({ page }) => {
+  await page.route('**/docs-search.json?*', (route) => route.fulfill({ json: [
+    { title: 'First Workflow', topic: 'Fixture', url: '/docs/nix/', text: 'A “Workflow” example with workflow steps.' },
+    { title: 'Second', topic: 'Fixture', url: '/docs/finders/', text: 'Another workflow.' },
+  ] }));
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('workflow');
+  const links = page.getByRole('list', { name: 'Guide search results', exact: true }).getByRole('link');
+  await expect(links).toHaveCount(2);
+  // Matches keep their displayed case and punctuation; text content is unchanged.
+  await expect(links.first().locator('strong mark')).toHaveText('Workflow');
+  await expect(links.first().locator('span mark')).toHaveText(['Workflow', 'workflow']);
+  await expect(links.first().locator('span')).toHaveText('A “Workflow” example with workflow steps.');
+
+  await input.press('ArrowDown');
+  await expect(links.first()).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(links.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(links.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowUp');
+  await expect(input).toBeFocused();
+  await input.press('ArrowDown');
+  await page.keyboard.press('Escape');
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue('workflow');
+});

@@ -10,6 +10,24 @@ const navigationType = (performance.getEntriesByType('navigation')[0] as Perform
 let restoreEntry = navigationType === 'reload' || navigationType === 'back_forward';
 const normalize = (text: string) => text.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
 const resetCatalog = () => { catalog = undefined; failed = false; loaded = false; };
+// Wrap matched terms in <mark>. normalize() maps characters one-to-one, so
+// match offsets in the normalized text apply to the displayed text.
+const highlight = (target: Element, text: string, terms: string[]) => {
+  const lower = normalize(text);
+  let index = 0;
+  for (;;) {
+    let start = -1;
+    let length = 0;
+    for (const term of terms) {
+      const at = lower.indexOf(term, index);
+      if (at >= 0 && (start < 0 || at < start)) { start = at; length = term.length; }
+    }
+    if (start < 0) break;
+    target.append(text.slice(index, start), Object.assign(document.createElement('mark'), { textContent: text.slice(start, start + length) }));
+    index = start + length;
+  }
+  target.append(text.slice(index));
+};
 document.addEventListener('astro:before-preparation', (event) => {
   restoreEntry = event.navigationType === 'traverse';
   if (!loaded) resetCatalog();
@@ -119,7 +137,7 @@ function initSearch() {
         const item = template.content.cloneNode(true) as DocumentFragment;
         const link = item.querySelector<HTMLAnchorElement>('a')!;
         link.href = entry.url;
-        item.querySelector('strong')!.textContent = entry.title;
+        highlight(item.querySelector('strong')!, entry.title, terms);
         if (entry.topic) link.prepend(Object.assign(document.createElement('small'), { textContent: entry.topic }));
         const match = terms.map((term) => entry.lower[1].indexOf(term)).find((index) => index >= 0) ?? 0;
         const offset = Math.max(0, match - 55);
@@ -128,7 +146,7 @@ function initSearch() {
         const boundary = entry.text.indexOf(' ', limit);
         const end = boundary < 0 ? entry.text.length : boundary;
         const excerpt = entry.text.slice(start, end);
-        item.querySelector('span')!.textContent = `${start ? '…' : ''}${excerpt}${end < entry.text.length ? '…' : ''}`;
+        highlight(item.querySelector('span')!, `${start ? '…' : ''}${excerpt}${end < entry.text.length ? '…' : ''}`, terms);
         results.append(item);
       }
       panel.hidden = !matches.length;
@@ -142,9 +160,19 @@ function initSearch() {
   const reset = () => { input.value = ''; remember(); void search(); syncUrl(true); input.focus(); };
   clear.addEventListener('click', reset);
   retry.addEventListener('click', () => { resetCatalog(); input.focus(); void search(); });
+  // Arrow keys walk the results; ArrowUp from the first result or Escape returns to the field.
+  results.addEventListener('keydown', (event) => {
+    const links = [...results.querySelectorAll('a')];
+    const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+    if (event.key === 'Escape') input.focus();
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    (event.key === 'ArrowDown' ? links[index + 1] ?? links[index] : links[index - 1] ?? input).focus();
+  }, { signal: listeners.signal });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') reset();
     if (event.key === 'Enter') syncUrl(true);
+    if (event.key === 'ArrowDown' && !panel.hidden) { event.preventDefault(); results.querySelector('a')?.focus(); }
   });
   input.value = new URL(location.href).searchParams.get('q') ?? '';
   if (restoreEntry) {

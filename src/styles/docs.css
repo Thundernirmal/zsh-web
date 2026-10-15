@@ -40,6 +40,7 @@
 .docs-search-result small { font-size: 0.75rem; color: var(--muted-foreground); }
 .docs-search-result strong { font-size: 0.875rem; color: var(--primary); }
 .docs-search-result span { font-size: 0.875rem; line-height: 1.6; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.docs-search-result mark { border-radius: 2px; padding: 0 1px; background: color-mix(in srgb, var(--primary) 28%, transparent); color: var(--foreground); }
 .docs-search [role='alert'] { color: var(--destructive); font-size: 0.875rem; }
 .docs-topics { display: grid; gap: 1rem; }
 .docs-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
