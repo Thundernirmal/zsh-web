@@ -633,3 +633,27 @@ test('guide prose links command mentions to their static references', async ({ p
   });
   expect(perSection).toBe(1);
 });
+
+test('guide headings expose shareable section links', async ({ page }) => {
+  await page.goto('/docs/packages/');
+  const heading = page.getByRole('heading', { name: 'Detection', exact: true, level: 3 });
+  const anchor = page.getByRole('link', { name: 'Link to section: Detection', exact: true });
+  await expect(anchor).toHaveAttribute('href', '#detection');
+  // The self-link sits beside the heading, so its accessible name is untouched.
+  await expect(heading.getByRole('link')).toHaveCount(0);
+  if (await page.evaluate(() => matchMedia('(hover: none)').matches)) {
+    // Touch screens cannot hover, so the mark stays faintly visible.
+    await expect(anchor).toHaveCSS('opacity', '0.6');
+  } else {
+    await expect(anchor).toHaveCSS('opacity', '0');
+    await heading.hover();
+    await expect(anchor).toHaveCSS('opacity', '1');
+    await page.mouse.move(0, 0);
+  }
+  await anchor.focus();
+  await expect(anchor).toHaveCSS('opacity', '1');
+  await anchor.click();
+  await expect(page).toHaveURL(/\/docs\/packages\/#detection$/);
+  await expect(heading).toBeInViewport();
+  await expect(page.locator('.markdown-doc :is(h2, h3, h4)')).toHaveCount(await page.locator('.markdown-doc .heading-anchor').count());
+});

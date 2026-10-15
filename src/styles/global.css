@@ -128,6 +128,47 @@
     @apply mt-3 text-pretty text-lg leading-snug font-semibold;
   }
 
+  /* Headings with a self-link sit in a wrapper so the link stays out of the
+     heading's accessible name; the wrapper takes over spacing and the h2 rule. */
+  .markdown-doc .heading-group {
+    @apply flex min-w-0 items-baseline gap-2;
+  }
+
+  .markdown-doc .heading-group > :is(h2, h3, h4) {
+    @apply mt-0 min-w-0;
+  }
+
+  .markdown-doc .heading-group:has(> h2) {
+    @apply mt-8 border-b pb-3;
+  }
+
+  .markdown-doc .heading-group > h2 {
+    @apply border-b-0 pb-0;
+  }
+
+  .markdown-doc .heading-group:has(> h3) {
+    @apply mt-5;
+  }
+
+  .markdown-doc .heading-group:has(> h4) {
+    @apply mt-3;
+  }
+
+  /* Self-links appear on hover/focus; touch screens without hover keep a faint mark. */
+  .markdown-doc .heading-anchor {
+    @apply inline-flex size-6 shrink-0 items-center justify-center rounded-md font-mono text-base font-normal text-muted-foreground no-underline opacity-0 transition-opacity before:content-['#'] hover:text-primary focus-visible:opacity-100;
+  }
+
+  .markdown-doc .heading-group:hover .heading-anchor {
+    @apply opacity-100;
+  }
+
+  @media (hover: none) {
+    .markdown-doc .heading-anchor {
+      @apply opacity-60;
+    }
+  }
+
   .markdown-doc :where(p, li) {
     @apply text-pretty;
   }
