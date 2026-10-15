@@ -23,7 +23,7 @@ test('guide sidebar keeps every keyboard-focused topic visible in a short viewpo
   const navigation = page.getByRole('navigation', { name: 'Guide navigation', exact: true });
   await expect(navigation.locator('[data-topic-link]')).toHaveCount(guideTopics.length + 1);
   // The active topic's sections are listed in place, so Tab visits them in DOM order too.
-  await expect(navigation.getByRole('list', { name: 'On this page', exact: true })).toBeVisible();
+  await expect(navigation.getByRole('list', { name: 'On This Page', exact: true })).toBeVisible();
   const links = navigation.getByRole('link');
   for (const fontSize of ['100%', '200%']) {
     await page.locator('html').evaluate((element, value) => { element.style.fontSize = value; }, fontSize);
@@ -98,8 +98,8 @@ test('guide navigation has its final responsive state with JavaScript disabled',
       }
       await expect(navigation).toBeVisible();
       await expect(navigation.locator('[data-topic-link]')).toHaveCount(guideTopics.length + 1);
-      await navigation.getByRole('link', { name: /Nix profiles and pickers/ }).click();
-      await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+      await navigation.getByRole('link', { name: /Nix Profiles and Pickers/ }).click();
+      await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
     } finally { await context.close(); }
   }
 });
@@ -241,7 +241,7 @@ test('failed search stays failed while typing until Retry or topic navigation', 
   await expect(retry).toBeVisible();
   await page.route('**/docs-search.json?*', (route) => { attempts += 1; return route.fulfill({ json: [{ title: 'Recovered index', url: '/docs/nix/', text: 'fakeroot' }] }); });
   await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await expect(input).toBeEnabled();
   await input.fill('fakeroot');
   await expect(page.getByRole('link', { name: /^Recovered index/ })).toBeVisible();
@@ -264,15 +264,15 @@ for (const arrival of ['deep link', 'native fragment']) {
       return box.top >= Math.max(0, header.bottom) && box.top < innerHeight;
     })).toBe(true);
     await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-    await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
     await page.goBack();
     await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
-    await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
     await expect(page.locator('#explore-the-guide')).toBeAttached();
     await page.goForward();
-    await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
     await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
   });
 }
 
@@ -365,7 +365,7 @@ test('a late rejected index request cannot disable search on the next topic', as
   await input.fill('old query');
   await expect.poll(() => Boolean(abortOld)).toBe(true);
   await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await expect(input).toBeEnabled();
   await abortOld!();
   await input.fill('fresh query');
@@ -450,7 +450,7 @@ test('a changed index version refreshes the cache after topic navigation', async
   });
   await page.goto('/docs/?q=oldterm');
   await page.getByRole('link', { name: /^Original index/ }).click();
-  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
   await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('newterm');
   await expect(page.getByRole('link', { name: /^Updated index/ })).toBeVisible();
   expect(requests).toHaveLength(2);
@@ -495,7 +495,7 @@ test('ordinary native fragments retain complete router state, query and scroll t
   expect(new URL(page.url()).searchParams.get('q')).toBe('nix profiles');
   release();
   await back;
-  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
   await expect(input).toHaveValue('nix profiles');
   await expect.poll(() => page.evaluate(() => history.state?.index)).toBe(state.index);
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(400);
@@ -702,7 +702,7 @@ test('guide search results open the matching section, labelled with its topic', 
   await expect(input).toBeEnabled();
   await input.fill('fakeroot');
   const result = page.getByRole('list', { name: 'Guide search results', exact: true }).getByRole('link').first();
-  await expect(result.locator('small')).toHaveText('Installation and requirements');
+  await expect(result.locator('small')).toHaveText('Installation and Requirements');
   const href = await result.getAttribute('href');
   expect(href).toMatch(/^\/docs\/installation\/#[a-z0-9-]+$/);
   const section = await result.locator('strong').innerText();

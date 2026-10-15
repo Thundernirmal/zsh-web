@@ -1,5 +1,5 @@
 ---
-title: "Maintenance and verification"
+title: "Maintenance and Verification"
 description: "Explore the modules and verify changes to the config."
 ---
 

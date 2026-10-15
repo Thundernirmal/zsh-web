@@ -1,5 +1,5 @@
 ---
-title: "Installation and requirements"
+title: "Installation and Requirements"
 description: "Set up your shell and check the tools it needs."
 ---
 

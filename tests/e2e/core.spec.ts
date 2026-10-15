@@ -32,14 +32,14 @@ test('maintenance instructions have their own accessible guide page', async ({ p
   await expect(pipeAlias.getByRole('cell').nth(1)).toHaveText('| grep');
   await expect(pipeAlias.getByRole('cell').nth(2)).toHaveText('git log G fix');
   await page.goto('/docs/#maintenance-and-verification');
-  await expect(page.getByRole('heading', { name: 'Maintenance and verification', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Maintenance and Verification', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Required checks', level: 3, exact: true })).toBeVisible();
   const table = page.locator('.markdown-doc table').first();
   await expect(table).toHaveAttribute('tabindex', '0');
   await table.focus();
   await expect(table).toBeFocused();
   await page.getByRole('link', { name: '← Back to the shell guide', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
 });
 
 test('custom docs share site chrome and support mobile topic navigation', async ({ page }) => {
@@ -61,9 +61,9 @@ test('custom docs share site chrome and support mobile topic navigation', async 
     await summary.press('Enter');
     await expect(menu).toHaveAttribute('open');
   }
-  await page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link', { name: /Nix profiles and pickers/ }).click();
-  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
-  await expect(menu.locator('a[aria-current="page"]')).toContainText('Nix profiles and pickers');
+  await page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link', { name: /Nix Profiles and Pickers/ }).click();
+  await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
+  await expect(menu.locator('a[aria-current="page"]')).toContainText('Nix Profiles and Pickers');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await page.goto('/docs/#nix-profile-manager-npkg');
   await expect(page).toHaveURL(/\/docs\/nix\/#nix-profile-manager-npkg$/);
@@ -73,8 +73,8 @@ test('custom docs share site chrome and support mobile topic navigation', async 
   if (desktop) await expect(page.locator('.docs-outline')).toBeHidden();
   else await page.locator('.docs-outline summary').click();
   const sections = desktop
-    ? page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('list', { name: 'On this page', exact: true })
-    : page.getByRole('navigation', { name: 'On this page', exact: true });
+    ? page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('list', { name: 'On This Page', exact: true })
+    : page.getByRole('navigation', { name: 'On This Page', exact: true });
   await sections.getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
   await expect(page).toHaveURL(/#picker-cache-and-dependencies$/);
   await expect(page.getByRole('heading', { name: 'Picker cache and dependencies', exact: true })).toBeInViewport();
@@ -101,7 +101,7 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   await input.fill('fakeroot');
   await expect(page).toHaveURL(/\?q=fakeroot$/);
   const results = page.getByRole('list', { name: 'Guide search results', exact: true });
-  const installation = results.getByRole('link', { name: /^Installation and requirements/ });
+  const installation = results.getByRole('link', { name: /^Installation and Requirements/ });
   await expect(installation).toBeVisible();
   expect(indexRequests).toHaveLength(1);
   await input.press('Escape');
@@ -118,13 +118,13 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   expect(indexRequests).toHaveLength(1);
   await installation.click();
   await expect(page).toHaveURL(/\/docs\/installation\//);
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await page.goBack();
   await expect(input).toHaveValue('fakeroot');
   await expect(installation).toBeVisible();
   expect(indexRequests).toHaveLength(1);
   await page.goForward();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await expect(input).toHaveValue('');
 });
 
@@ -505,7 +505,7 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 	const docsAction = page.locator('main').getByRole('link', { name: 'Read Docs', exact: true });
 	await expect(docsAction).toHaveAttribute('href', '/docs/');
 	await docsAction.click();
-	await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
 	await expect(page.getByText('Documentation snapshot', { exact: true })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'View GUIDE.md source' })).toHaveAttribute(
 		'href',
@@ -515,8 +515,8 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 		'href',
 		/\/blob\/[0-9a-f]{40}\/README\.md$/,
 	);
-	await page.locator('.docs-card-grid').getByRole('link', { name: /Installation and requirements/ }).click();
-	await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+	await page.locator('.docs-card-grid').getByRole('link', { name: /Installation and Requirements/ }).click();
+	await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
 	const firstTable = page.locator('.markdown-doc table').first();
 	await expect(firstTable).toHaveAttribute('tabindex', '0');
 	await firstTable.focus();
@@ -699,8 +699,8 @@ test('reference text reflows at 200% sizing and a 320px viewport', async ({ page
 test('command pages link to the guide sections that mention them', async ({ page }) => {
 	await page.goto('/commands/upkg/');
 	const mentions = page.getByRole('region', { name: 'In the Guide' });
-	await expect(mentions.getByRole('link', { name: 'Package workflows', exact: true })).toHaveAttribute('href', '/docs/packages/');
-	const detection = mentions.getByRole('list', { name: 'Package workflows sections' }).getByRole('link', { name: 'Detection', exact: true });
+	await expect(mentions.getByRole('link', { name: 'Package Workflows', exact: true })).toHaveAttribute('href', '/docs/packages/');
+	const detection = mentions.getByRole('list', { name: 'Package Workflows sections' }).getByRole('link', { name: 'Detection', exact: true });
 	await expect(detection).toHaveAttribute('href', '/docs/packages/#detection');
 	await detection.click();
 	await expect(page).toHaveURL(/\/docs\/packages\/#detection$/);

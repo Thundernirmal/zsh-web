@@ -1,5 +1,5 @@
 ---
-title: "Gotchas and safety"
+title: "Gotchas and Safety"
 description: "Understand the boundaries before changing shell state."
 ---
 

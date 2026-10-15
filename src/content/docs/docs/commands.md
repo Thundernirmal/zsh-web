@@ -1,5 +1,5 @@
 ---
-title: "Command discovery and helpers"
+title: "Command Discovery and Helpers"
 description: "Find commands and learn the helpers behind them."
 ---
 

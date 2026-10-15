@@ -1,5 +1,5 @@
 ---
-title: "Themes and terminal output"
+title: "Themes and Terminal Output"
 description: "Choose colors, glyphs, and finder layouts."
 ---
 
