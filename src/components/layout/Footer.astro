@@ -1,6 +1,11 @@
 ---
 import source from '@/data/source.json';
 import { Separator } from '@/components/ui/separator';
+
+// Format the commit's own calendar date (as written in its offset), not the
+// build machine's: UTC midnight of that date formatted in UTC never shifts.
+const sourceDay = source.sourceDate.slice(0, 10);
+const sourceDateLabel = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${sourceDay}T00:00:00Z`));
 ---
 
 <footer class="w-full" transition:name="site-footer" transition:animate="none">
@@ -17,6 +22,6 @@ import { Separator } from '@/components/ui/separator';
             <span aria-hidden="true">·</span>
             <a class="footer-link" href="/troubleshooting/">Troubleshooting</a>
 		</p>
-    <p>Generated from shell commit <a class="footer-link" href={`${source.repository}/tree/${source.commit}`}>{source.commit.slice(0, 8)}</a> · Source updated {source.sourceDate.slice(0, 10)}</p>
+    <p>Generated from shell commit <a class="footer-link" href={`${source.repository}/tree/${source.commit}`}>{source.commit.slice(0, 8)}</a> · Source updated <time datetime={sourceDay}>{sourceDateLabel}</time></p>
 	</div>
 </footer>

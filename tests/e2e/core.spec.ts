@@ -845,3 +845,12 @@ test('tip copy buttons are omitted without JavaScript', async ({ browser, baseUR
 		await expect(page.getByRole('button', { name: /^Copy command/ })).toHaveCount(0);
 	} finally { await context.close(); }
 });
+
+test('footer shows the source date in a readable, machine-tagged form', async ({ page }) => {
+	await page.goto('/');
+	const date = page.locator('footer time');
+	await expect(date).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
+	await expect(date).toHaveText(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+	const iso = await date.getAttribute('datetime');
+	expect(await date.textContent()).toBe(new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)));
+});
