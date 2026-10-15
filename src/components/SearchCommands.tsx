@@ -406,7 +406,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
               variant="ghost"
               size="xs"
               onClick={clearSearch}
-              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+              className="h-11 px-3 text-xs text-muted-foreground hover:text-foreground sm:h-6 sm:px-2"
             >
               Reset all
             </Button>

@@ -226,6 +226,12 @@ test('filter-removal chips are real buttons keyboard users can activate', async 
 	await expect(queryChip).toBeVisible();
 	await expect(typeChip).toBeVisible();
 	await expect(categoryChip).toBeVisible();
+	// Chips and Reset all share one touch-target size on phones.
+	if ((page.viewportSize()?.width ?? 0) < 640) {
+		for (const control of [queryChip, typeChip, categoryChip, page.getByRole('button', { name: 'Reset all', exact: true })]) {
+			expect((await control.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+		}
+	}
 
 	await categoryChip.focus();
 	await page.keyboard.press('Enter');
