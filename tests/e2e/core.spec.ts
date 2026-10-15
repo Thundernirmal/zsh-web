@@ -678,3 +678,18 @@ test('reference text reflows at 200% sizing and a 320px viewport', async ({ page
 	expect(widths.content).toBeLessThanOrEqual(widths.viewport);
 	await expect(page.locator('main').getByRole('link', { name: 'lib/functions-upkg.zsh', exact: true })).toBeVisible();
 });
+
+test('command pages link to the guide sections that mention them', async ({ page }) => {
+	await page.goto('/commands/upkg/');
+	const mentions = page.getByRole('region', { name: 'In the Guide' });
+	await expect(mentions.getByRole('link', { name: 'Package workflows', exact: true })).toHaveAttribute('href', '/docs/packages/');
+	const detection = mentions.getByRole('list', { name: 'Package workflows sections' }).getByRole('link', { name: 'Detection', exact: true });
+	await expect(detection).toHaveAttribute('href', '/docs/packages/#detection');
+	await detection.click();
+	await expect(page).toHaveURL(/\/docs\/packages\/#detection$/);
+	await expect(page.getByRole('heading', { name: 'Detection', level: 3 })).toBeInViewport();
+
+	// Aliases that shadow system tools are never attributed, so no empty section renders.
+	await page.goto('/commands/cat/');
+	await expect(page.getByRole('region', { name: 'In the Guide' })).toHaveCount(0);
+});
