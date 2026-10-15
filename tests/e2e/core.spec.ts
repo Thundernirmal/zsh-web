@@ -186,7 +186,13 @@ test('command search, filters, expanded state, and history remain URL synchroniz
 	}).toBe(true);
 	await searchbox.fill('upkg');
 	await expect(page).toHaveURL(/q=upkg/);
-	await page.getByRole('button', { name: /^Functions,/ }).click();
+	// Wider screens use the type buttons; phones use the equivalent select.
+	if ((page.viewportSize()?.width ?? 0) >= 640) {
+		await page.getByRole('button', { name: /^Functions,/ }).click();
+	} else {
+		await page.getByRole('combobox', { name: 'Filter commands by type' }).click();
+		await page.getByRole('option', { name: /^Functions \(/ }).click();
+	}
 	await expect(page).toHaveURL(/type=function/);
 	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
 	await expect(page).toHaveURL(/command=function%3Aupkg/);

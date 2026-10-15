@@ -66,30 +66,30 @@ test('mobile search and filter controls are readable and do not scroll horizonta
 		expect(await search.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
 	}
 
+	// Phones pick type and category from two selects sharing one 44px row.
 	await page.goto('/commands/');
-	const filters = page.getByRole('group', { name: 'Filter commands by type' });
-	const dimensions = await filters.evaluate(({ clientWidth, scrollWidth }) => ({ clientWidth, scrollWidth }));
-	expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
-
-	for (const filter of await filters.getByRole('button').all()) {
-		const box = await filter.boundingBox();
-		expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-		const alignment = await filter.evaluate((button) => {
-			const children = Array.from(button.children) as HTMLElement[];
-			const buttonRect = button.getBoundingClientRect();
-			const childRects = children.map((child) => child.getBoundingClientRect());
-			const pairLeft = Math.min(...childRects.map(({ left }) => left));
-			const pairRight = Math.max(...childRects.map(({ right }) => right));
-			return {
-				alignItems: getComputedStyle(button).alignItems,
-				centerDelta: Math.abs((pairLeft + pairRight) / 2 - (buttonRect.left + buttonRect.right) / 2),
-				justifyContent: getComputedStyle(button).justifyContent,
-			};
-		});
-		expect(alignment.alignItems).toBe('center');
-		expect(alignment.justifyContent).toBe('center');
-		expect(alignment.centerDelta).toBeLessThanOrEqual(1);
+	await expect(page.getByRole('group', { name: 'Filter commands by type' })).toBeHidden();
+	const type = page.getByRole('combobox', { name: 'Filter commands by type' });
+	const category = page.getByRole('combobox', { name: 'Filter commands by category' });
+	const [typeBox, categoryBox] = await Promise.all([type.boundingBox(), category.boundingBox()]);
+	for (const box of [typeBox, categoryBox]) expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+	expect(Math.abs((typeBox?.y ?? 0) - (categoryBox?.y ?? 1))).toBeLessThanOrEqual(1);
+	expect((typeBox?.x ?? 0) + (typeBox?.width ?? 0)).toBeLessThanOrEqual(categoryBox?.x ?? 0);
+	for (const trigger of [type, category]) {
+		expect(await trigger.evaluate(({ clientWidth, scrollWidth }) => scrollWidth <= clientWidth)).toBe(true);
 	}
+	// Results start higher than with the former five-button grid.
+	const firstRow = await page.locator('[data-command]').first().boundingBox();
+	expect(firstRow?.y ?? Infinity).toBeLessThan(520);
+
+	await expect.poll(async () => {
+		await type.click();
+		return page.getByRole('option', { name: /^Functions \(/ }).isVisible();
+	}).toBe(true);
+	await page.getByRole('option', { name: /^Functions \(/ }).click();
+	await expect(page).toHaveURL(/type=function/);
+	await expect(type).toContainText('Functions');
+	await expect(page.locator('[data-command]').first()).toContainText('Function');
 });
 
 test('expanded command details use the mobile typography and heading contract', async ({ page }) => {
