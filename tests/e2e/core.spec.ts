@@ -803,3 +803,15 @@ test('tip search matches separate words in any order, like command search', asyn
 	await page.goto(`/tips/?q=${encodeURIComponent('git branch')}`);
 	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
 });
+
+test('showing more tips moves focus to the first newly revealed tip', async ({ page }) => {
+	await page.goto('/tips/');
+	const tips = page.getByRole('listitem');
+	await expect(tips).toHaveCount(24);
+	const showMore = page.getByRole('button', { name: /^Show 24 More Tips$/ });
+	await showMore.focus();
+	await page.keyboard.press('Enter');
+	await expect(tips).toHaveCount(48);
+	await expect(tips.nth(24)).toBeFocused();
+	await expect(tips.nth(24)).toBeInViewport();
+});

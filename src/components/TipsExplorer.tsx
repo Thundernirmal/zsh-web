@@ -45,6 +45,17 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const isInitialMount = useRef(true);
   const searchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  // Index of the first tip revealed by "Show More", focused once it renders so
+  // keyboard and screen-reader users continue from the new content.
+  const revealedIndex = useRef<number | null>(null);
+
+  useEffect(() => {
+    const index = revealedIndex.current;
+    if (index === null) return;
+    revealedIndex.current = null;
+    listRef.current?.querySelectorAll<HTMLElement>('[role="listitem"]')[index]?.focus();
+  }, [visibleCount]);
 
   useSlashFocus(searchRef, {
     onClear: () => setQuery(''),
@@ -227,7 +238,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
         </Empty>
       ) : (
         <>
-          <ItemGroup className="gap-2">
+          <ItemGroup ref={listRef} className="gap-2">
             {visibleTips.map((tip) => {
               const sourceLabel = tipSourceLabel(tip, categoryLabels[tip.category] ?? formatLabel(tip.category));
               return (
@@ -261,7 +272,14 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
           </ItemGroup>
           {visibleTips.length < filteredTips.length && (
             <div className="flex justify-center pt-1">
-              <Button type="button" variant="outline" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  revealedIndex.current = visibleTips.length;
+                  setVisibleCount((count) => count + PAGE_SIZE);
+                }}
+              >
                 Show {Math.min(PAGE_SIZE, filteredTips.length - visibleTips.length)} More Tips
               </Button>
             </div>
