@@ -657,3 +657,38 @@ test('guide headings expose shareable section links', async ({ page }) => {
   await expect(heading).toBeInViewport();
   await expect(page.locator('.markdown-doc :is(h2, h3, h4)')).toHaveCount(await page.locator('.markdown-doc .heading-anchor').count());
 });
+
+test('guide code blocks copy their exact contents and report failures', async ({ page }) => {
+  await page.addInitScript(() => {
+    const writes: string[] = [];
+    Object.defineProperty(window, '__clipboardWrites', { value: writes });
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (text: string) => {
+      if (document.documentElement.dataset.clipboardFails) throw new Error('blocked');
+      writes.push(text);
+    } } });
+  });
+  await page.goto('/docs/finders/');
+  const block = page.locator('.markdown-doc .code-block').first();
+  const button = block.getByRole('button', { name: 'Copy code', exact: true });
+  await expect(button).toBeVisible();
+  const expected = (await block.locator('pre').textContent())?.replace(/\n$/, '');
+  expect(expected).toContain('z projects');
+  await button.click();
+  await expect(block.getByRole('button', { name: 'Copied to clipboard' })).toHaveText('Copied');
+  await expect(block.getByRole('status')).toHaveText('Copied to clipboard');
+  expect(await page.evaluate(() => (window as unknown as { __clipboardWrites: string[] }).__clipboardWrites)).toEqual([expected]);
+
+  // The button must not cover the first line of code.
+  const [buttonBox, codeBox] = await Promise.all([button.boundingBox(), block.locator('pre code').boundingBox()]);
+  expect((codeBox?.x ?? 0) + (codeBox?.width ?? 0)).toBeLessThanOrEqual(buttonBox?.x ?? 0);
+  if (await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {
+    expect(buttonBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(buttonBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
+  await page.evaluate(() => { document.documentElement.dataset.clipboardFails = 'true'; });
+  await block.getByRole('button', { name: /^Cop/ }).click();
+  await expect(block.getByRole('status')).toHaveText('Could not copy; select the code manually.');
+  await expect(block.getByRole('status')).toBeVisible();
+  await expect(block.getByRole('button', { name: 'Copy code', exact: true })).toBeVisible();
+});

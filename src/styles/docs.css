@@ -76,3 +76,12 @@
 [data-legacy-links] { display: contents; }
 [data-legacy-links] > a:not(:target) { display: none; }
 [data-legacy-links] > a:target { display: block; scroll-margin-top: calc(var(--site-header-height, 5rem) + 1rem); }
+
+/* Copy actions are added by code-copy.ts; padding keeps the first line clear of the button. */
+.code-block { position: relative; display: grid; gap: 0.5rem; min-width: 0; }
+.code-block pre { padding-right: 4.75rem; }
+.code-copy { position: absolute; top: 0.5rem; right: 0.5rem; min-width: 44px; min-height: 44px; padding: 0 0.625rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; transition: color 0.15s, border-color 0.15s; }
+.code-copy:hover { color: var(--foreground); border-color: var(--ring); }
+.code-copy:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.code-copy-error { font-size: 0.875rem; line-height: 1.5; color: var(--foreground); }
+@media (min-width: 640px) { .code-copy { min-width: 0; min-height: 2rem; } }
