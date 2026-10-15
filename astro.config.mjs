@@ -4,6 +4,9 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import commands from './src/data/commands.json' with { type: 'json' };
+import { satteri } from '@astrojs/markdown-satteri';
+import { commandLinksPlugin } from './src/lib/command-links-plugin.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,6 +17,8 @@ export default defineConfig({
 		// Plain code markup inherits the site's audited terminal palette and keeps
 		// the long guide substantially smaller than a span-per-token highlighter.
 		syntaxHighlight: false,
+		// Inline code naming a registered command links to its reference page.
+		processor: satteri({ hastPlugins: [commandLinksPlugin({ commands })] }),
 	},
 	prefetch: {
 		prefetchAll: false,

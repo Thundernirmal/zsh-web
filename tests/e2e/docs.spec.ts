@@ -605,3 +605,31 @@ test('partial search initialization keeps the native reload recovery available',
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toBeEnabled();
 });
+
+test('guide prose links command mentions to their static references', async ({ page }) => {
+  await page.goto('/docs/commands/');
+  const article = page.locator('.markdown-doc');
+  const zhelp = article.locator('a[href="/commands/zhelp/"]').first();
+  await expect(zhelp).toHaveText('zhelp');
+  await expect(zhelp.locator('code')).toHaveCount(1);
+  await expect(article.locator('pre a')).toHaveCount(0);
+  await expect(article.locator(':is(h1, h2, h3, h4) a[href^="/commands/"]')).toHaveCount(0);
+  await zhelp.click();
+  await expect(page).toHaveURL(/\/commands\/zhelp\/$/);
+  await expect(page.getByRole('heading', { name: 'zhelp', level: 1 })).toBeVisible();
+
+  // Subcommand mentions reach the action page, and a command links once per section.
+  await page.goto('/docs/credentials/');
+  await expect(page.locator('.markdown-doc a[href="/commands/cgm-check/"]').first()).toHaveText(/^cgm check/);
+  const perSection = await page.locator('.markdown-doc').evaluate((root) => {
+    const counts: number[] = [];
+    let current = new Map<string, number>();
+    for (const element of root.querySelectorAll('h2, a[href^="/commands/"]')) {
+      if (element.tagName === 'H2') { counts.push(...current.values()); current = new Map(); continue; }
+      const href = element.getAttribute('href') ?? '';
+      current.set(href, (current.get(href) ?? 0) + 1);
+    }
+    return Math.max(0, ...counts, ...current.values());
+  });
+  expect(perSection).toBe(1);
+});

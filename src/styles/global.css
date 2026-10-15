@@ -160,6 +160,15 @@
     overflow-wrap: anywhere;
   }
 
+  /* Linked code must read as a link, not as plain inline code. */
+  .markdown-doc a > code {
+    @apply border-primary/45 text-primary transition-colors;
+  }
+
+  .markdown-doc a:hover > code {
+    @apply bg-primary/10 text-foreground;
+  }
+
   .markdown-doc table code {
     white-space: nowrap;
   }
