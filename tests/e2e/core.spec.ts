@@ -693,3 +693,22 @@ test('command pages link to the guide sections that mention them', async ({ page
 	await page.goto('/commands/cat/');
 	await expect(page.getByRole('region', { name: 'In the Guide' })).toHaveCount(0);
 });
+
+test('command pages link their category and related commands', async ({ page }) => {
+	await page.goto('/commands/zhelp/');
+	const related = page.getByRole('region', { name: 'More Meta Commands' });
+	await expect(related.getByRole('listitem')).toHaveCount(8);
+	await expect(related.getByRole('link', { name: /^zhelp\b/ })).toHaveCount(0);
+	await related.getByRole('link', { name: /^tips\b/ }).click();
+	await expect(page).toHaveURL(/\/commands\/tips\/$/);
+
+	await page.goto('/commands/zhelp/');
+	await page.getByRole('region', { name: 'More Meta Commands' }).getByRole('link', { name: 'View all 11 Meta commands' }).click();
+	await expect(page).toHaveURL(/\/commands\/\?cat=meta$/);
+	await expect(page.locator('[data-command]')).toHaveCount(11);
+
+	await page.goto('/commands/upkg/');
+	await page.getByRole('link', { name: 'Browse all Package Updates commands' }).click();
+	await expect(page).toHaveURL(/\/commands\/\?cat=packages$/);
+	await expect(page.locator('[data-command]')).toHaveCount(4);
+});
