@@ -7,8 +7,26 @@ const guide = '# Guide\n\nIntroduction.\n\n## Contents\n\n[Help](#help-1)\n\n' +
 
 test('guide search reads table text naturally while preserving literal shell pipes', () => {
   const entries = guideSearchIndex([{ slug: 'shell-basics', title: 'Shell basics', body: '## Aliases\n\n| Alias | Expansion |\n|---|---|\n| `G` | `\\| grep` |\n\nRead [setup](/docs/installation/).' }]);
-  assert.equal(entries[0].url, '/docs/shell-basics/');
-  assert.equal(entries[0].text, 'Aliases Alias Expansion G | grep Read setup.');
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].url, '/docs/shell-basics/#aliases');
+  assert.equal(entries[0].title, 'Aliases');
+  assert.equal(entries[0].text, 'Alias Expansion G | grep Read setup.');
+});
+
+test('guide search indexes h2/h3 sections with rendered anchors and their topic', () => {
+  const body = 'Intro text.\n\n## Usage\n\nFirst.\n\n### Help\n\nSecond.\n\n#### Deep\n\nThird.\n\n> ### Help\n\n## Usage\n\n### Help\n\nLast.';
+  const entries = guideSearchIndex([{ slug: 'nix', title: 'Nix profiles', body }]);
+  assert.deepEqual(entries.map(({ title, topic, url }) => ({ title, topic, url })), [
+    { title: 'Nix profiles', topic: undefined, url: '/docs/nix/' },
+    { title: 'Usage', topic: 'Nix profiles', url: '/docs/nix/#usage' },
+    { title: 'Help', topic: 'Nix profiles', url: '/docs/nix/#help' },
+    // Deep and nested headings stay in their section but still advance duplicate counters.
+    // The second Usage has only a subsection, so it is omitted; its Help keeps the counters.
+    { title: 'Help', topic: 'Nix profiles', url: '/docs/nix/#help-2' },
+  ]);
+  assert.equal(entries[2].text, 'Second. Deep Third. Help');
+  // A page that opens with a heading has no empty page-level entry.
+  assert.equal(guideSearchIndex([{ slug: 'nix', title: 'Nix', body: '## Only\n\nBody.' }]).length, 1);
 });
 
 test('docs partition every source section once and preserve duplicate heading links', () => {
@@ -34,7 +52,7 @@ test('code fences do not create guide sections and inline pipes remain table cel
 test('search text follows Markdown structure without altering shell code', () => {
   const body = '## Read **this**\n\n1. **Fixed path.** Use __care__ and *attention*.\n\n> [Setup](/setup/)\n\n```text\n**/*.js and **/*(D)\n```\n\n`x_y` and `| grep`.';
   assert.equal(guideSearchIndex([{ title: 'Test', slug: 'test', body }])[0].text,
-    'Read this Fixed path. Use care and attention. Setup **/*.js and **/*(D) x_y and | grep.');
+    'Fixed path. Use care and attention. Setup **/*.js and **/*(D) x_y and | grep.');
 });
 
 test('fence contents, info strings and indentation follow CommonMark', () => {
@@ -70,7 +88,7 @@ test('GFM tables without leading pipes preserve code cells and prose remains lit
   assert.ok(page.body.includes('`\\| alias` | Expansion'));
   assert.ok(page.body.includes('G | `\\| grep`'));
   assert.ok(page.body.includes('| Prose `| literal`'));
-  assert.ok(guideSearchIndex([page])[0].text.includes('G | grep'));
+  assert.ok(guideSearchIndex([page]).some((entry) => entry.text.includes('G | grep')));
 });
 
 test('nested headings participate in global and local duplicate slug counters', () => {

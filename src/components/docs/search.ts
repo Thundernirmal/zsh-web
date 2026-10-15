@@ -1,6 +1,6 @@
 import { preserveRouterState } from './history';
 
-interface Entry { title: string; url: string; text: string; lower: [string, string] }
+interface Entry { title: string; topic?: string; url: string; text: string; lower: [string, string] }
 let catalog: Promise<Entry[]> | undefined;
 let failed = false;
 let loaded = false;
@@ -20,7 +20,7 @@ function load(url: string) {
   const timeout = setTimeout(() => controller.abort(), 10_000);
   const request = fetch(url, { signal: controller.signal }).then(async (response) => {
     if (!response.ok) throw new Error('Search unavailable');
-    const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(entry.title), normalize(entry.text)] as [string, string] }));
+    const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(`${entry.topic ?? ''} ${entry.title}`), normalize(entry.text)] as [string, string] }));
     if (catalog === request) loaded = true;
     return entries;
   }).catch((error: unknown) => { if (catalog === request) failed = true; throw error; }).finally(() => clearTimeout(timeout));
@@ -114,12 +114,13 @@ function initSearch() {
       const terms = query.split(/\s+/);
       const matches = entries.filter((entry) => terms.every((term) => (entry.lower[0].includes(term) || entry.lower[1].includes(term))));
       matches.sort((a, b) => Number(b.lower[0].includes(query)) - Number(a.lower[0].includes(query)));
-      updateStatus(matches.length ? `${matches.length} matching topic${matches.length === 1 ? '' : 's'}` : 'No matches. Try a command name or a different phrase.');
+      updateStatus(matches.length ? `${matches.length} matching section${matches.length === 1 ? '' : 's'}` : 'No matches. Try a command name or a different phrase.');
       for (const entry of matches) {
         const item = template.content.cloneNode(true) as DocumentFragment;
         const link = item.querySelector<HTMLAnchorElement>('a')!;
         link.href = entry.url;
         item.querySelector('strong')!.textContent = entry.title;
+        if (entry.topic) link.prepend(Object.assign(document.createElement('small'), { textContent: entry.topic }));
         const match = terms.map((term) => entry.lower[1].indexOf(term)).find((index) => index >= 0) ?? 0;
         const offset = Math.max(0, match - 55);
         const start = offset ? entry.text.lastIndexOf(' ', offset) + 1 : 0;

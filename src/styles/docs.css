@@ -37,6 +37,7 @@
 .docs-search ul { display: grid; gap: 0.5rem; }
 .docs-search-result { display: grid; gap: 0.375rem; padding: 0.875rem; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); text-decoration: none; }
 .docs-search-result:hover, .docs-search-result:focus-visible { border-color: var(--ring); }
+.docs-search-result small { font-size: 0.75rem; color: var(--muted-foreground); }
 .docs-search-result strong { font-size: 0.875rem; color: var(--primary); }
 .docs-search-result span { font-size: 0.875rem; line-height: 1.6; color: var(--muted-foreground); overflow-wrap: anywhere; }
 .docs-search [role='alert'] { color: var(--destructive); font-size: 0.875rem; }

@@ -155,7 +155,7 @@ test('cached result counts do not repeatedly mutate the search live region', asy
   await expect(results.first()).toBeVisible();
   const count = await results.count();
   expect(count).toBeGreaterThan(0);
-  await expect(status).toHaveText(`${count} matching topic${count === 1 ? '' : 's'}`);
+  await expect(status).toHaveText(`${count} matching section${count === 1 ? '' : 's'}`);
   await status.evaluate((element) => {
     let mutations = 0;
     new MutationObserver((records) => { element.dataset.mutations = String(mutations += records.length); }).observe(element, { childList: true, characterData: true, subtree: true });
@@ -691,4 +691,20 @@ test('guide code blocks copy their exact contents and report failures', async ({
   await expect(block.getByRole('status')).toHaveText('Could not copy; select the code manually.');
   await expect(block.getByRole('status')).toBeVisible();
   await expect(block.getByRole('button', { name: 'Copy code', exact: true })).toBeVisible();
+});
+
+test('guide search results open the matching section, labelled with its topic', async ({ page }) => {
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('fakeroot');
+  const result = page.getByRole('list', { name: 'Guide search results', exact: true }).getByRole('link').first();
+  await expect(result.locator('small')).toHaveText('Installation and requirements');
+  const href = await result.getAttribute('href');
+  expect(href).toMatch(/^\/docs\/installation\/#[a-z0-9-]+$/);
+  const section = await result.locator('strong').innerText();
+  await expect(page.getByRole('status').first()).toHaveText(/^\d+ matching sections?$/);
+  await result.click();
+  await expect(page).toHaveURL(new RegExp(`${href!.replace(/[/#]/g, '\\$&')}$`));
+  await expect(page.getByRole('heading', { name: section, exact: true })).toBeInViewport();
 });
