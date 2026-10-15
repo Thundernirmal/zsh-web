@@ -117,29 +117,60 @@ test('desktop j/k and arrow keys move through command accordions and tip cards',
 		return focusedIndex(triggers);
 	}).toBe(0);
 
-	// Tips: arrows walk the tip rows (roving tabindex), j/k included.
+	// Tips: j/k enter the rows (roving tabindex); arrows walk them once a row has focus.
 	await page.goto('/tips/');
 	const tips = page.locator('[role="listitem"][tabindex]');
 	await expect.poll(async () => {
-		await page.keyboard.press('ArrowDown');
-		return focusedIndex(tips);
-	}).toBe(0);
-	await expect.poll(async () => {
 		await page.keyboard.press('j');
 		return focusedIndex(tips);
-	}).toBe(1);
-	await expect.poll(async () => {
-		await page.keyboard.press('k');
-		return focusedIndex(tips);
 	}).toBe(0);
+	await page.keyboard.press('ArrowDown');
+	await expect.poll(() => focusedIndex(tips)).toBe(1);
+	await page.keyboard.press('ArrowUp');
+	await expect.poll(() => focusedIndex(tips)).toBe(0);
 
-	// ArrowUp from outside the list wraps to the last row.
+	// k from outside the list wraps to the last row.
 	await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 	const tipCount = await tips.count();
-	await expect.poll(async () => {
-		await page.keyboard.press('ArrowUp');
-		return focusedIndex(tips);
-	}).toBe(tipCount - 1);
+	await page.keyboard.press('k');
+	await expect.poll(() => focusedIndex(tips)).toBe(tipCount - 1);
+});
+
+test('arrow keys scroll the page unless a list row has focus', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	const triggers = page.locator('[data-command] button[data-slot="accordion-trigger"]');
+	const focusedIndex = () => triggers.evaluateAll((elements) => elements.indexOf(document.activeElement as HTMLElement));
+
+	for (const route of ['/commands/', '/tips/']) {
+		await page.goto(route);
+		await expect.poll(async () => {
+			await page.keyboard.press('j');
+			return page.evaluate(() => document.activeElement?.closest('[data-command], [role="listitem"]') !== null);
+		}).toBe(true);
+		await page.evaluate(() => {
+			(document.activeElement as HTMLElement | null)?.blur();
+			window.scrollTo(0, 0);
+		});
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+		await expect.poll(() => page.evaluate(() => window.scrollY), `${route} should scroll`).toBeGreaterThan(0);
+		expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+	}
+
+	// Inside expanded details, arrows scroll and j moves to the next row, not the first.
+	await page.goto(`/commands/?command=${encodeURIComponent('function:upkg')}`);
+	const upkg = page.locator('[data-command="upkg"]');
+	const copyExample = upkg.getByRole('button', { name: /^Copy example/ }).first();
+	await expect(copyExample).toBeVisible();
+	const upkgIndex = await triggers.evaluateAll((elements) =>
+		elements.findIndex((element) => element.closest('[data-command]')?.getAttribute('data-command') === 'upkg'));
+	await copyExample.focus();
+	const before = await page.evaluate(() => window.scrollY);
+	await page.keyboard.press('ArrowDown');
+	await expect(copyExample).toBeFocused();
+	await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+	await page.keyboard.press('j');
+	await expect.poll(focusedIndex).toBe(upkgIndex + 1);
 });
 
 test('desktop command and tip explorers support keyboard and extended-result workflows', async ({ page }) => {
