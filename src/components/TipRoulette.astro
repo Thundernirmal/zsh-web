@@ -62,13 +62,14 @@ const rouletteCategories = categoryOrder;
 </div>
 
 <script>
-	import { formatLabel } from '@/lib/shell-docs';
+	import { formatLabel, tipSourceLabel } from '@/lib/shell-docs';
 
 	interface ShellTip {
 		text: string;
 		category: string;
 		source?: string;
 		availability?: string;
+		commandName?: string;
 	}
 
 	let tipsPromise: Promise<ShellTip[]> | undefined;
@@ -122,7 +123,8 @@ const rouletteCategories = categoryOrder;
 			const token = categoryTokens[tip.category] ?? tip.category;
 			category.style.setProperty('--roulette-category', `var(--category-${token})`);
 			category.dataset.category = tip.category;
-			categoryLabel.textContent = categoryLabels[tip.category] ?? formatLabel(tip.category);
+			const label = categoryLabels[tip.category] ?? formatLabel(tip.category);
+			categoryLabel.textContent = label;
 			const selectedIcon = categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === tip.category)
 				?? categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === 'fallback');
 			categoryIcons.forEach((icon) => icon.classList.toggle('hidden', icon !== selectedIcon));
@@ -130,8 +132,9 @@ const rouletteCategories = categoryOrder;
 			if (placeholderHint) placeholderHint.hidden = true;
 			categoryWrapper.hidden = false;
 
-			source.textContent = tip.source ? formatLabel(tip.source) : '';
-			sourceWrapper.hidden = !tip.source;
+			const sourceLabel = tipSourceLabel(tip, label);
+			source.textContent = sourceLabel ?? '';
+			sourceWrapper.hidden = !sourceLabel;
 			availability.textContent = tip.availability ?? '';
 			availability.hidden = !tip.availability;
 

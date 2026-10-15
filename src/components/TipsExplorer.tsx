@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSlashFocus } from '@/hooks/useSlashFocus';
-import { commandHref, formatLabel, type ShellTip } from '@/lib/shell-docs';
+import { commandHref, formatLabel, tipSourceLabel, type ShellTip } from '@/lib/shell-docs';
 
 const PAGE_SIZE = 24;
 
@@ -227,7 +227,9 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
       ) : (
         <>
           <ItemGroup className="gap-2">
-            {visibleTips.map((tip) => (
+            {visibleTips.map((tip) => {
+              const sourceLabel = tipSourceLabel(tip, categoryLabels[tip.category] ?? formatLabel(tip.category));
+              return (
               <Item
                 key={`${tip.category}:${tip.text}`}
                 role="listitem"
@@ -250,10 +252,11 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
                 </ItemContent>
                 <ItemActions className="basis-full flex-wrap justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
                   <CategoryBadge category={tip.category} />
-                  {tip.source && <Badge variant="metadata">{formatLabel(tip.source)}</Badge>}
+                  {sourceLabel && <Badge variant="metadata">{sourceLabel}</Badge>}
                 </ItemActions>
               </Item>
-            ))}
+              );
+            })}
           </ItemGroup>
           {visibleTips.length < filteredTips.length && (
             <div className="flex justify-center pt-1">

@@ -780,3 +780,19 @@ test('empty command searches suggest a typo-corrected query', async ({ page }) =
 	await expect(page.getByText(/Did you mean/)).toHaveCount(0);
 	await expect(page.getByRole('button', { name: 'Clear Search' })).toBeVisible();
 });
+
+test('tip source badges never repeat the category or the linked command', async ({ page }) => {
+	await page.goto('/tips/?q=croot');
+	const croot = page.getByRole('listitem').filter({ hasText: 'Run croot to jump' });
+	await expect(croot.locator('[data-category="git"]')).toHaveText('Git');
+	await expect(croot.locator('[data-slot="badge"]')).toHaveCount(1);
+
+	await page.goto(`/tips/?q=${encodeURIComponent('npkg search ripgrep')}`);
+	const npkg = page.getByRole('listitem').filter({ hasText: 'to search nixpkgs' });
+	await expect(npkg.getByRole('link', { name: 'npkg' })).toBeVisible();
+	await expect(npkg.locator('[data-slot="badge"]', { hasText: /^Npkg$/ })).toHaveCount(0);
+
+	// Informative sources remain.
+	await page.goto(`/tips/?q=${encodeURIComponent('detailed listing')}`);
+	await expect(page.getByRole('listitem').first().locator('[data-slot="badge"]', { hasText: /^Core$/ })).toBeVisible();
+});
