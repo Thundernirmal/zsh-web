@@ -736,3 +736,13 @@ test('featured examples go beyond the bare command name', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Syntax', exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Copy example: zdoctor' })).toBeVisible();
 });
+
+test('registry flag notes render as an options list', async ({ page }) => {
+	await page.goto('/commands/upkg/');
+	const options = page.locator('[data-command-options]');
+	await expect(options.locator('dt')).toHaveText(['--only <list>', '--skip <list>', '--sudo', '--dry-run']);
+	await expect(options.locator('dd').first()).toHaveText('Comma-separated manager IDs to include');
+	await expect(page.getByRole('heading', { name: 'Options', exact: true })).toBeVisible();
+	await expect(page.getByText(/^Flag:/)).toHaveCount(0);
+	await expect(page.getByText('upgrades never inject sudo automatically')).toBeVisible();
+});

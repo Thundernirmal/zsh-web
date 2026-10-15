@@ -199,6 +199,52 @@ function ExampleList({
   );
 }
 
+// Registry notes such as "Flag: --only <list>   Comma-separated IDs" describe
+// options; they read better as a term/description list than as prose.
+function splitOptionNotes(notes: string[]) {
+  const options: Array<{ flag: string; description: string }> = [];
+  const remaining: string[] = [];
+  for (const note of notes) {
+    const match = note.match(/^Flag:\s+(\S.*?)(?:\s{2,}(\S.*))?$/);
+    if (match) options.push({ flag: match[1].trim(), description: match[2]?.trim() ?? '' });
+    else remaining.push(note);
+  }
+  return { options, remaining };
+}
+
+function OptionsList({
+  id,
+  options,
+  query,
+}: {
+  id: string;
+  options: Array<{ flag: string; description: string }>;
+  query: string;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-options`}>
+      <h3 id={`${id}-options`} className="detail-section-heading" data-detail-section-heading>
+        Options
+      </h3>
+      <dl className="grid min-w-0 gap-x-4 gap-y-2 md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]" data-command-options>
+        {options.map((option) => (
+          <Fragment key={option.flag}>
+            <dt className="min-w-0 pt-2 first:pt-0 md:pt-0">
+              <pre className="detail-code font-semibold" data-detail-code>
+                <SyntaxCode code={option.flag} query={query} />
+              </pre>
+            </dt>
+            <dd className="detail-body min-w-0 text-muted-foreground" data-detail-body>
+              {highlightText(option.description, query)}
+            </dd>
+          </Fragment>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 function NotesList({ id, notes, query }: { id: string; notes: string[]; query: string }) {
   if (notes.length === 0) return null;
   return (
@@ -224,8 +270,9 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
             const { features, unmatchedExamples } = buildFeatureDetails(command);
             const hasFeatures = features.length > 0;
             const displayExamples = unmatchedExamples;
-            const notes = command.notes ?? [];
-            const hasReferenceDetails = hasFeatures || displayExamples.length > 0 || notes.length > 0;
+            const { options, remaining: notes } = splitOptionNotes(command.notes ?? []);
+            const hasReferenceDetails =
+              hasFeatures || displayExamples.length > 0 || notes.length > 0 || options.length > 0;
             // Function syntax is a placeholder template, not a runnable command:
             // the prominent copy action must hand over a concrete example
             // instead, and only fall back to an explicitly labeled template copy.
@@ -363,6 +410,8 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
 
                   {hasReferenceDetails && (
                     <div className="grid min-w-0 gap-5">
+                      <OptionsList id={detailId} options={options} query={query} />
+                      {options.length > 0 && (hasFeatures || displayExamples.length > 0 || notes.length > 0) && <Separator />}
                       {hasFeatures && (
                         <FeatureTable
                           id={detailId}
