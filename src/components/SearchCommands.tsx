@@ -429,9 +429,10 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                   <a
                     className="command-reference-link"
                     href={commandHref(command)}
-                    aria-label={`Read ${command.name} reference`}
-                    title={`Read ${command.name} reference`}
-                  />
+                    aria-label={`${command.name} details`}
+                  >
+                    Details
+                  </a>
                 </div>
                 {/* Detail bodies mount on expand: keeps the static HTML and DOM
                     budget flat regardless of catalogue size. */}

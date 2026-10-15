@@ -12,7 +12,7 @@ test('Nix picker syntax remains a subcommand with its matching example', async (
   await expect(row).toHaveCount(1);
   await expect(row.locator('dt, th').filter({ visible: true })).toHaveText('find [--] [query ...]');
   await expect(row.getByText('npkg find nvim', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Read npkg reference', exact: true }).click();
+  await page.getByRole('link', { name: 'npkg details', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'npkg', level: 1 })).toBeVisible();
   await expect(page.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true }).getByText('npkg find nvim', { exact: true })).toBeVisible();
 });
@@ -388,7 +388,7 @@ test('full command reference works with JavaScript disabled', async ({ browser }
 	const context = await browser.newContext({ javaScriptEnabled: false });
 	const page = await context.newPage();
 	await page.goto('/commands/');
-	await page.getByRole('link', { name: 'Read upkg reference', exact: true }).click();
+	await page.getByRole('link', { name: 'upkg details', exact: true }).click();
 	await expect(page).toHaveURL(/\/commands\/upkg\/$/);
 	await expect(page.getByRole('heading', { level: 1, name: 'upkg' })).toBeVisible();
 	await expect(page.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
@@ -614,11 +614,11 @@ test('collapsed command rows keep static reference links inline', async ({ page 
 	const trigger = command.locator('[data-slot="accordion-trigger"]');
 	const commandName = trigger.locator('span[translate="no"]').first();
 	const chevron = trigger.locator('[data-slot="accordion-trigger-icon"]:visible');
-	const reference = command.getByRole('link', { name: 'Read upkg reference', exact: true });
+	const reference = command.getByRole('link', { name: 'upkg details', exact: true });
 	await expect(reference).toHaveAttribute('href', '/commands/upkg/');
-	await expect(reference).toHaveAttribute('title', 'Read upkg reference');
 	await expect(reference).toHaveCSS('border-top-style', 'solid');
-	expect(await reference.evaluate((element) => getComputedStyle(element, '::before').content)).toContain('Reference ↗');
+	await expect(reference).toHaveText('Details');
+	await expect(reference).not.toHaveAttribute('target', /.+/);
 	const layout = await Promise.all([command.boundingBox(), trigger.boundingBox(), commandName.boundingBox(), chevron.boundingBox(), reference.boundingBox()]);
 	const [commandBox, triggerBox, commandNameBox, chevronBox, referenceBox] = layout;
 	expect(commandBox).not.toBeNull();
@@ -642,7 +642,7 @@ test('collapsed command rows keep static reference links inline', async ({ page 
 
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.reload();
-	expect(await reference.evaluate((element) => getComputedStyle(element, '::before').content)).toContain('Docs ↗');
+	await expect(reference).toHaveText('Details');
 	const mobileLayout = await Promise.all([command.boundingBox(), trigger.boundingBox(), commandName.boundingBox(), chevron.boundingBox(), reference.boundingBox()]);
 	const [mobileCommandBox, mobileTriggerBox, mobileCommandNameBox, mobileChevronBox, mobileReferenceBox] = mobileLayout;
 	expect(mobileCommandBox?.height ?? Infinity).toBeLessThanOrEqual(140);
