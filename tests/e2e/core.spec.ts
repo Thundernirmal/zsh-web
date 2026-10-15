@@ -762,3 +762,21 @@ test('syntax tokens wrap whole instead of breaking after their hyphens', async (
 	expect(await flag.evaluate((element) => element.getClientRects().length)).toBe(1);
 	expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+test('empty command searches suggest a typo-corrected query', async ({ page }) => {
+	await page.goto('/commands/?q=upgarde%20packges');
+	await expect(page.getByRole('heading', { name: 'No Commands Found' })).toBeVisible();
+	const suggestion = page.getByRole('button', { name: '“upgrade packages”' });
+	await expect(suggestion).toBeVisible();
+	await suggestion.click();
+	await expect(page.getByRole('searchbox')).toHaveValue('upgrade packages');
+	await expect(page.getByRole('searchbox')).toBeFocused();
+	await expect(page).toHaveURL(/q=upgrade\+packages|q=upgrade%20packages/);
+	await expect(page.locator('[data-command="upkg"]')).toBeVisible();
+
+	// Unrelated input gets no suggestion, only the clear action.
+	await page.goto('/commands/?q=zxqvw');
+	await expect(page.getByRole('heading', { name: 'No Commands Found' })).toBeVisible();
+	await expect(page.getByText(/Did you mean/)).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Clear Search' })).toBeVisible();
+});

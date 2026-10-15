@@ -197,3 +197,56 @@ export { splitExample };
 export function matchesQuery(text: string, query: string): boolean {
   return query.trim().toLowerCase().split(/\s+/).every((token) => text.includes(token));
 }
+
+// Bounded optimal-string-alignment distance (an adjacent swap is one edit);
+// returns limit + 1 once the bound is exceeded.
+function editDistance(a: string, b: string, limit: number): number {
+  let before: number[] = [];
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    let rowMinimum = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      current[j] = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) current[j] = Math.min(current[j], before[j - 2] + 1);
+      rowMinimum = Math.min(rowMinimum, current[j]);
+    }
+    if (rowMinimum > limit) return limit + 1;
+    before = previous;
+    previous = current;
+  }
+  return previous[b.length];
+}
+
+/**
+ * Suggest a corrected query when a search finds nothing: each word that
+ * appears nowhere in `texts` is replaced by the closest corpus word (one edit
+ * for 4–7 letters, two from 8). Returns the suggestion only if it matches.
+ */
+export function suggestQuery(query: string, texts: string[]): string | undefined {
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return undefined;
+  const vocabulary = [...new Set(texts.flatMap((text) => text.match(/[a-z0-9]+(?:[-.][a-z0-9]+)*/g) ?? []))]
+    .filter((word) => word.length >= 3)
+    .sort();
+  let changed = false;
+  const corrected = tokens.map((token) => {
+    if (texts.some((text) => text.includes(token))) return token;
+    const limit = token.length >= 8 ? 2 : token.length >= 4 ? 1 : 0;
+    let best: string | undefined;
+    let bestDistance = limit + 1;
+    for (const word of vocabulary) {
+      if (Math.abs(word.length - token.length) > limit) continue;
+      const distance = editDistance(token, word, limit);
+      if (distance < bestDistance) {
+        best = word;
+        bestDistance = distance;
+      }
+    }
+    if (!best) return token;
+    changed = true;
+    return best;
+  });
+  const suggestion = corrected.join(' ');
+  return changed && texts.some((text) => matchesQuery(text, suggestion)) ? suggestion : undefined;
+}

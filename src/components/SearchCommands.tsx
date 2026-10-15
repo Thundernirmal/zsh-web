@@ -39,6 +39,7 @@ import {
   matchingDetailSections,
   matchesQuery,
   searchableText,
+  suggestQuery,
   typeVariant,
 } from '@/lib/command-search';
 import { commandHref, formatLabel, type ShellCommand } from '@/lib/shell-docs';
@@ -170,6 +171,16 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
       return matchesQuery(text, normalizedQuery);
     }).sort((a, b) => Number(b.name.toLowerCase() === normalizedQuery) - Number(a.name.toLowerCase() === normalizedQuery));
   }, [category, commands, corpus, filter, normalizedQuery]);
+
+  // Only computed for an empty result: offer a typo-corrected query that
+  // matches under the current type and category filters.
+  const suggestion = useMemo(() => {
+    if (filteredCommands.length > 0 || normalizedQuery.length === 0) return undefined;
+    const texts = commands
+      .filter((command) => (filter === 'all' || command.type === filter) && (category === 'all' || command.category === category))
+      .map((command) => corpus.get(commandId(command)) ?? '');
+    return suggestQuery(normalizedQuery, texts);
+  }, [category, commands, corpus, filter, filteredCommands.length, normalizedQuery]);
 
   const counts = useMemo(() => {
     const acc = { all: 0, alias: 0, global_alias: 0, function: 0, action: 0 } as Record<Filter, number> & {
@@ -429,6 +440,23 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
+            {suggestion && (
+              <p className="text-sm text-muted-foreground">
+                Did you mean{' '}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto min-h-11 p-0 text-sm sm:min-h-0"
+                  onClick={() => {
+                    setQuery(suggestion);
+                    searchRef.current?.focus();
+                  }}
+                >
+                  “{suggestion}”
+                </Button>
+                ?
+              </p>
+            )}
             <Button type="button" variant="outline" onClick={clearSearch}>
               <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
               Clear Search
