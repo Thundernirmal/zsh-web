@@ -229,9 +229,11 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
             // Function syntax is a placeholder template, not a runnable command:
             // the prominent copy action must hand over a concrete example
             // instead, and only fall back to an explicitly labeled template copy.
-            const firstRunnableExample = command.examples?.length
-              ? splitExample(command.examples[0]).command
-              : undefined;
+            const runnableExamples = (command.examples ?? []).map((example) => splitExample(example).command);
+            const firstRunnableExample = runnableExamples[0];
+            // The highlighted example should teach something beyond the name
+            // itself; bare invocations stay in the full example list.
+            const featuredExample = runnableExamples.find((example) => example.trim() !== command.name);
             const syntaxDetails: Array<{
               label: string;
               value: string;
@@ -272,9 +274,9 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
    ? 'Some subcommands change stored data or packages. Check the selected operation before running.'
    : command.mutation === 'session' ? 'Changes the current shell session or working directory.' : undefined;
  return <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
-      {firstRunnableExample && <section className="grid min-w-0 gap-2" aria-label="Runnable example">
+      {featuredExample && <section className="grid min-w-0 gap-2" aria-label="Runnable example">
         <h3 className="detail-section-heading" data-detail-section-heading>Try an example</h3>
-        <Example example={firstRunnableExample} query={query} />
+        <Example example={featuredExample} query={query} />
       </section>}
                   <div className="grid gap-2.5">
                     {syntaxDetails.map((detail, index) => (

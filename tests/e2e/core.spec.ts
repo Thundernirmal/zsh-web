@@ -723,3 +723,16 @@ test('command pages link their category and related commands', async ({ page }) 
 	await expect(page).toHaveURL(/\/commands\/\?cat=packages$/);
 	await expect(page.locator('[data-command]')).toHaveCount(4);
 });
+
+test('featured examples go beyond the bare command name', async ({ page }) => {
+	await page.goto('/commands/upkg/');
+	const featured = page.getByRole('region', { name: 'Runnable example' });
+	await expect(featured.locator('pre')).toHaveText('upkg search ripgrep');
+	await expect(featured.getByRole('button', { name: 'Copy example' })).toBeVisible();
+
+	// A command whose only example is its name skips the redundant block but keeps a copyable syntax.
+	await page.goto('/commands/zdoctor/');
+	await expect(page.getByRole('region', { name: 'Runnable example' })).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'Syntax', exact: true })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Copy example: zdoctor' })).toBeVisible();
+});
