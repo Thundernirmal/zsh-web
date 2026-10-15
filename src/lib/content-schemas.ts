@@ -32,6 +32,8 @@ export const shellTipSchema = z
 		text: z.string().min(1),
 		commandId: z.string().regex(/^command-[a-z0-9_-]+$/).optional(),
 		commandName: z.string().min(1).optional(),
+		example: z.string().min(1).optional(),
+		exampleCopyable: z.literal(true).optional(),
 		category: z.enum(categoryOrder),
 		source: z.string().min(1).optional(),
 		availability: z.string().min(1).optional(),

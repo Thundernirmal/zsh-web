@@ -108,3 +108,15 @@ export function validateCommandSemantics(commands, fzfMinimum) {
     }
   }
 }
+
+// The runnable part of a "Run …"/"Use …" tip: the words after the verb up to
+// the first connective or semicolon, which must begin with the tip's command.
+// Copy is offered only for concrete invocations: no <placeholder>/[optional]
+// syntax, and not global aliases that only work after another command.
+export function tipExample(text, command) {
+  if (!command) return undefined;
+  const segment = text.match(/^(?:Run|Use)\s+(.+?)(?:\s+(?:to|for|before|after|with|when|while|in|if|until|instead|or|and|then)\b|;|$)/)?.[1]?.trim();
+  if (!segment || (segment !== command.name && !segment.startsWith(`${command.name} `))) return undefined;
+  const copyable = command.type !== 'global_alias' && !/[<[]/.test(segment);
+  return { example: segment, ...(copyable ? { exampleCopyable: true } : {}) };
+}

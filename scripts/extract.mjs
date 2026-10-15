@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { describeCommandCondition, parseShellWords, validateCommandSemantics } from './extract-semantics.mjs';
+import { describeCommandCondition, parseShellWords, tipExample, validateCommandSemantics } from './extract-semantics.mjs';
 import { generateGuideDocs, guideSearchIndex } from './docs-guide.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
 import { generatedDocsFiles } from './generated-docs.mjs';
@@ -983,7 +983,11 @@ function main() {
       seenTipIds.add(id);
       const name = tip.text.match(/^(?:Run|Use)\s+(\S+)/)?.[1];
       const command = contentCommands.find((item) => item.name === name);
-      return { id, ...tip, ...(command ? { commandId: command.id, commandName: command.name } : {}) };
+      return {
+        id,
+        ...tip,
+        ...(command ? { commandId: command.id, commandName: command.name, ...tipExample(tip.text, command) } : {}),
+      };
     });
 
   const git = (...args) => execFileSync('git', ['-C', ZSH_DIR, ...args], { encoding: 'utf8' }).trim();
@@ -994,7 +998,7 @@ function main() {
     repository: 'https://github.com/Thundernirmal/zsh',
     commit: git('rev-parse', 'HEAD'),
     sourceDate: git('show', '-s', '--format=%cI', 'HEAD'),
-    schemaVersion: 8,
+    schemaVersion: 9,
     fzfMinimum: FZF_MIN_VERSION,
   };
   const guide = rewriteGuideLinks(readSource(GUIDE_SOURCE), manifest.repository, manifest.commit);
