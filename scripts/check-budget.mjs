@@ -12,7 +12,9 @@ const BUDGETS = {
   'tips/index.html': { rawBytes: 140_000, gzipBytes: 16_500, elements: 500 },
   'index.html': { rawBytes: 62_000, gzipBytes: 10_500, elements: 350 },
   'get-started/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
-  'docs/index.html': { rawBytes: 35_000, gzipBytes: 8_000, elements: 320 },
+  // The overview reached its element ceiling once primary navigation gained Docs;
+  // keep room for site-wide chrome (one element per route at a time).
+  'docs/index.html': { rawBytes: 35_000, gzipBytes: 8_000, elements: 335 },
   'docs/maintenance/index.html': { rawBytes: 38_000, gzipBytes: 9_800, elements: 500 },
   'troubleshooting/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
   '404.html': { rawBytes: 30_000, gzipBytes: 6_800, elements: 150 },
