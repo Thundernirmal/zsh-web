@@ -38,3 +38,28 @@ test('tip examples stop before trailing prose connectives', () => {
   assert.deepEqual(tipExample('Run zdoctor in an interactive shell for a full report', { name: 'zdoctor', type: 'function' }),
     { example: 'zdoctor', exampleCopyable: true });
 });
+
+test('tip examples are copyable only when they are complete invocations', () => {
+  const ff = { name: 'ff', type: 'function', command: 'ff [options] <pattern> [path]' };
+  for (const text of ['Use ff or ft stderr to diagnose', 'Use ff --no-ignore to broaden a search']) {
+    assert.equal(tipExample(text, ff).exampleCopyable, undefined, text);
+  }
+  assert.equal(tipExample('Run ff main.ts to find it', ff).exampleCopyable, true);
+  const ft = { name: 'ft', type: 'function', command: 'ft [options] <pattern> [path]' };
+  assert.equal(tipExample('Use ft --fixed-strings to search literal text', ft).exampleCopyable, undefined);
+  const extract = { name: 'extract', type: 'function', command: 'extract [--keep] [--destination <dir>] <archive>' };
+  assert.equal(tipExample('Use extract --destination DIR link.gz to retain a target', extract).exampleCopyable, undefined);
+  assert.equal(tipExample('Run extract --destination out link.gz to retain a target', extract).exampleCopyable, true);
+  assert.equal(tipExample('Run extract --keep file.gz to preserve the input', extract).exampleCopyable, true);
+  const cgm = { name: 'cgm', type: 'function', command: 'cgm <command> [credential ...]', features: ['set <name>          Store one credential', 'list                List saved names'] };
+  assert.equal(tipExample('Run cgm set OPENAI_KEY to store a credential', cgm).exampleCopyable, true);
+  assert.equal(tipExample('Run cgm set to store a credential', cgm).exampleCopyable, undefined);
+  assert.equal(tipExample('Run cgm list to show saved names', cgm).exampleCopyable, true);
+  const npkg = { name: 'npkg', type: 'function', command: 'npkg <command> [args]', features: ['find [--] [query ...] Fuzzy-pick attributes'] };
+  assert.equal(tipExample('Use npkg find -- --help to search for the literal --help query', npkg).exampleCopyable, true);
+  const fkill = { name: 'fkill', type: 'function', command: 'fkill [--all] [signal]' };
+  assert.equal(tipExample('Run fkill TERM to stop selected processes', fkill).exampleCopyable, true);
+  const ztheme = { name: 'ztheme', type: 'function', command: 'ztheme <list|current|show|use|reset|export> [theme]' };
+  assert.equal(tipExample('Run ztheme current to inspect', ztheme).exampleCopyable, true);
+  assert.equal(tipExample('Run ztheme to inspect', ztheme).exampleCopyable, undefined);
+});

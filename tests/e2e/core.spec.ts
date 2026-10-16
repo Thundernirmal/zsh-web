@@ -839,6 +839,14 @@ test('tips show runnable commands as code and copy only concrete invocations', a
 	const bigfiles = page.getByRole('listitem').filter({ hasText: 'rank files recursively' });
 	await expect(bigfiles.locator('code')).toHaveText('bigfiles [path] [count]');
 	await expect(bigfiles.getByRole('button', { name: /^Copy/ })).toHaveCount(0);
+
+	// Incomplete invocations (missing a required pattern, or a capitalised placeholder) are not copyable.
+	for (const [query, example] of [['broaden a search', 'ff --no-ignore'], ['retain a compressed link target', 'extract --destination DIR link.gz']]) {
+		await page.goto(`/tips/?q=${encodeURIComponent(query)}`);
+		const tip = page.getByRole('listitem').filter({ hasText: query });
+		await expect(tip.locator('code')).toHaveText(example);
+		await expect(tip.getByRole('button', { name: /^Copy/ })).toHaveCount(0);
+	}
 });
 
 test('tip copy buttons are omitted without JavaScript', async ({ browser, baseURL }) => {

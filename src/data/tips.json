@@ -680,8 +680,7 @@
     "availability": "Always available",
     "commandId": "command-extract",
     "commandName": "extract",
-    "example": "extract --destination DIR link.gz",
-    "exampleCopyable": true
+    "example": "extract --destination DIR link.gz"
   },
   {
     "id": "tip-26969a72",
@@ -691,8 +690,7 @@
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "commandId": "command-ff",
     "commandName": "ff",
-    "example": "ff --no-ignore",
-    "exampleCopyable": true
+    "example": "ff --no-ignore"
   },
   {
     "id": "tip-efe8f93f",
@@ -702,8 +700,7 @@
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "commandId": "command-ff",
     "commandName": "ff",
-    "example": "ff",
-    "exampleCopyable": true
+    "example": "ff"
   },
   {
     "id": "tip-4ab6efb8",
@@ -713,8 +710,7 @@
     "availability": "Available when ripgrep or grep is installed",
     "commandId": "command-ft",
     "commandName": "ft",
-    "example": "ft --fixed-strings",
-    "exampleCopyable": true
+    "example": "ft --fixed-strings"
   },
   {
     "id": "tip-6335df34",
