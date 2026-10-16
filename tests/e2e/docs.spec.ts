@@ -784,3 +784,47 @@ test('guide copy buttons stay clear of long code lines at every scroll position'
     }
   }
 });
+
+for (const arrival of ['typed', 'URL']) {
+  test(`same-page section results keep search and history in sync when the query was ${arrival}`, async ({ page }) => {
+    await page.goto(arrival === 'URL' ? '/docs/finders/?q=zoxide' : '/docs/finders/');
+    await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+    const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+    const results = page.getByRole('list', { name: 'Guide search results', exact: true });
+    if (arrival === 'typed') {
+      await input.fill('zoxide');
+      await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('zoxide');
+    }
+    const sameTopic = results.locator('a[href="/docs/finders/#zoxide"]');
+    await expect(sameTopic).toBeVisible();
+    // Keyboard activation follows the same path as a click.
+    await sameTopic.focus();
+    await page.keyboard.press('Enter');
+
+    const expectSection = async () => {
+      await expect(page).toHaveURL(/\/docs\/finders\/#zoxide$/);
+      await expect(input).toHaveValue('');
+      await expect(results).toBeHidden();
+      await expect(page.getByRole('heading', { name: 'Zoxide', exact: true, level: 3 })).toBeInViewport();
+    };
+    const expectSearch = async () => {
+      await expect(page).toHaveURL(/\/docs\/finders\/\?q=zoxide$/);
+      await expect(input).toHaveValue('zoxide');
+      await expect(sameTopic).toBeVisible();
+    };
+    await expectSection();
+    const sectionId = await page.evaluate(() => history.state?.docsQueryId);
+    expect(sectionId).toEqual(expect.any(String));
+    await page.goBack();
+    await expectSearch();
+    const searchId = await page.evaluate(() => history.state?.docsQueryId);
+    expect(searchId).not.toBe(sectionId);
+    await page.goForward();
+    await expectSection();
+    await page.reload();
+    await expectSection();
+    await page.goBack();
+    await expectSearch();
+    expect(await page.evaluate(() => history.state?.docsQueryId)).toBe(searchId);
+  });
+}

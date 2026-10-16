@@ -1,3 +1,4 @@
+import { navigate } from 'astro:transitions/client';
 import { preserveRouterState } from './history';
 
 interface Entry { title: string; topic?: string; url: string; text: string; lower: [string, string] }
@@ -168,6 +169,27 @@ function initSearch() {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     event.preventDefault();
     (event.key === 'ArrowDown' ? links[index + 1] ?? links[index] : links[index - 1] ?? input).focus();
+  }, { signal: listeners.signal });
+  // Astro decides between an in-place hash jump and a page swap by comparing
+  // with its last navigated URL, which never sees the query written by
+  // replaceState. Route same-page results here so the origin entry always
+  // keeps its query and the section entry always starts with a clear search.
+  results.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const target = new URL(link.href);
+    if (target.pathname !== location.pathname) return;
+    event.preventDefault();
+    syncUrl(true);
+    // Collapse the results before navigating so an in-place jump scrolls to
+    // the section in its final layout. search() only updates the panel; the
+    // origin entry's URL and stored query are left intact for Back.
+    input.value = '';
+    void search();
+    void navigate(target.href).then(() => {
+      // A page swap already initialized a fresh, empty search for the new entry.
+      if (root.isConnected) remember();
+    });
   }, { signal: listeners.signal });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') reset();
