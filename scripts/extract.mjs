@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { describeCommandCondition, parseShellWords, tipExample, validateCommandSemantics } from './extract-semantics.mjs';
+import { describeCommandCondition, inferFunctionDependencies, parseShellWords, tipExample, validateCommandSemantics } from './extract-semantics.mjs';
 import { generateGuideDocs, guideSearchIndex } from './docs-guide.mjs';
 import { registryMetadata } from './registry-metadata.mjs';
 import { generatedDocsFiles } from './generated-docs.mjs';
@@ -452,77 +452,6 @@ function inferTipCategory(text) {
   }
 
   return 'utility';
-}
-
-function inferFunctionDependencies(body) {
-  const requires = [];
-  const optional = [];
-  const requiredRegexes = [
-    /if\s+!\s+command -v ([A-Za-z0-9._+-]+)\b/g,
-    /command -v ([A-Za-z0-9._+-]+)[^\n]*\|\|[^\n]*(?:required|return 1)/g,
-  ];
-  const optionalRegex = /(?:if|elif)\s+command -v ([A-Za-z0-9._+-]+)\b/g;
-  const ignored = new Set(['command', 'git', 'curl', 'ss', 'find', 'grep', 'diff']);
-  const lines = body.split('\n');
-  const caseStack = [];
-  const caseRanges = [];
-  let offset = 0;
-
-  for (const line of lines) {
-    if (/^\s*case\b.*\bin\b/.test(line)) {
-      caseStack.push(offset);
-    } else if (/^\s*esac\b/.test(line)) {
-      const start = caseStack.pop();
-      if (start !== undefined) {
-        caseRanges.push({ start, end: offset + line.length });
-      }
-    }
-    offset += line.length + 1;
-  }
-
-  while (caseStack.length > 0) {
-    const start = caseStack.pop();
-    caseRanges.push({ start, end: body.length });
-  }
-
-  const isInsideCaseStatement = (index) =>
-    caseRanges.some((range) => index >= range.start && index <= range.end);
-
-  for (const regex of requiredRegexes) {
-    let match = regex.exec(body);
-
-    while (match) {
-      const dependency = match[1];
-
-      if (!ignored.has(dependency)) {
-        if (isInsideCaseStatement(match.index)) {
-          optional.push(dependency);
-        } else {
-          requires.push(dependency);
-        }
-      }
-      match = regex.exec(body);
-    }
-  }
-
-  let match = optionalRegex.exec(body);
-
-  while (match) {
-    const dependency = match[1];
-    if (!ignored.has(dependency) && !requires.includes(dependency)) {
-      optional.push(dependency);
-    }
-    match = optionalRegex.exec(body);
-  }
-
-  if (/\b_zsh_require_fzf\b/.test(body) && !requires.includes('fzf')) {
-    requires.push('fzf');
-  }
-
-  return {
-    requires: uniqueList(requires),
-    optional: uniqueList(optional),
-  };
 }
 
 function extractFunctionDefinitions(content) {

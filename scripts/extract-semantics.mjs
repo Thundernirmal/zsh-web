@@ -167,3 +167,102 @@ export function tipExample(text, command) {
   const copyable = command.type !== 'global_alias' && !/[<[]/.test(segment) && isCompleteInvocation(segment, command);
   return { example: segment, ...(copyable ? { exampleCopyable: true } : {}) };
 }
+
+// The statements a guard runs when it holds, up to its elif/else/fi.
+function guardBranch(body, guardIndex) {
+  const thenMatch = /\bthen\b/.exec(body.slice(guardIndex));
+  if (!thenMatch) return [];
+  const statements = body.slice(guardIndex + thenMatch.index + thenMatch[0].length)
+    .split(/[\n;]/)
+    .map((statement) => statement.trim())
+    .filter(Boolean);
+  const branch = [];
+  let depth = 0;
+
+  for (const statement of statements) {
+    if (/^if\b/.test(statement)) depth += 1;
+    else if (depth === 0 && /^(?:elif|else|fi)\b/.test(statement)) break;
+    else if (/^fi\b/.test(statement)) depth -= 1;
+    branch.push(statement);
+  }
+
+  return branch;
+}
+
+// A missing command is required only when its guard stops the function;
+// guards that report and continue (zdoctor probes) are optional checks.
+export function inferFunctionDependencies(body) {
+  const requires = [];
+  const optional = [];
+  const ignored = new Set(['command', 'git', 'curl', 'ss', 'find', 'grep', 'diff']);
+  const lines = body.split('\n');
+  const caseStack = [];
+  const caseRanges = [];
+  let offset = 0;
+
+  for (const line of lines) {
+    if (/^\s*case\b.*\bin\b/.test(line)) {
+      caseStack.push(offset);
+    } else if (/^\s*esac\b/.test(line)) {
+      const start = caseStack.pop();
+      if (start !== undefined) {
+        caseRanges.push({ start, end: offset + line.length });
+      }
+    }
+    offset += line.length + 1;
+  }
+
+  while (caseStack.length > 0) {
+    const start = caseStack.pop();
+    caseRanges.push({ start, end: body.length });
+  }
+
+  const isInsideCaseStatement = (index) =>
+    caseRanges.some((range) => index >= range.start && index <= range.end);
+  const exits = (index) => guardBranch(body, index).some((statement) => /^(?:return|exit)\b/.test(statement));
+  const requiredGuards = [
+    { regex: /if\s+!\s+command -v ([A-Za-z0-9._+-]+)\b/g, stops: exits },
+    { regex: /command -v ([A-Za-z0-9._+-]+)[^\n]*\|\|[^\n]*(?:required|return 1)/g, stops: () => true },
+  ];
+
+  for (const { regex, stops } of requiredGuards) {
+    for (const match of body.matchAll(regex)) {
+      const dependency = match[1];
+      if (ignored.has(dependency)) continue;
+      if (isInsideCaseStatement(match.index) || !stops(match.index)) {
+        optional.push(dependency);
+      } else {
+        requires.push(dependency);
+      }
+    }
+  }
+
+  for (const match of body.matchAll(/(?:if|elif)\s+command -v ([A-Za-z0-9._+-]+)\b/g)) {
+    const dependency = match[1];
+    if (!ignored.has(dependency) && !requires.includes(dependency)) {
+      optional.push(dependency);
+    }
+  }
+
+  // `for tool in 7z 7zz 7za; do command -v $tool && break` picks the first available alternative.
+  for (const match of body.matchAll(/\bfor\s+([A-Za-z_]\w*)\s+in\s+([^;\n]+)/g)) {
+    const loopEnd = body.indexOf('done', match.index);
+    const loop = body.slice(match.index, loopEnd === -1 ? body.length : loopEnd);
+    if (!new RegExp(`command -v \\$${match[1]}\\b[^\\n]*&&\\s*break`).test(loop)) continue;
+    for (const word of match[2].trim().split(/\s+/)) {
+      const dependency = word.replace(/^(['"])(.*)\1$/, '$2');
+      if (/^[A-Za-z0-9._+-]+$/.test(dependency) && !ignored.has(dependency)) {
+        optional.push(dependency);
+      }
+    }
+  }
+
+  if (/\b_zsh_require_fzf\b/.test(body) && !requires.includes('fzf')) {
+    requires.push('fzf');
+  }
+
+  return {
+    requires: [...new Set(requires)],
+    optional: [...new Set(optional)].filter((dependency) => !requires.includes(dependency)),
+  };
+}
