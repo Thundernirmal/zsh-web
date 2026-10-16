@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { describeCommandCondition, parseShellWords, tipExample, validateCommandSemantics } from './extract-semantics.mjs';
+import { describeCommandCondition, inferFunctionDependencies, parseShellWords, tipExample, validateCommandSemantics } from './extract-semantics.mjs';
 
 test('capability requirements preserve all/any semantics without shell expressions', () => {
   assert.equal(describeCommandCondition('if (( $+commands[pacman] && $+commands[checkupdates] && $+commands[fakeroot] )); then'), 'Available when pacman, checkupdates, and fakeroot are installed');
@@ -62,4 +62,28 @@ test('tip examples are copyable only when they are complete invocations', () => 
   const ztheme = { name: 'ztheme', type: 'function', command: 'ztheme <list|current|show|use|reset|export> [theme]' };
   assert.equal(tipExample('Run ztheme current to inspect', ztheme).exampleCopyable, true);
   assert.equal(tipExample('Run ztheme to inspect', ztheme).exampleCopyable, undefined);
+});
+
+test('dependency guards are required only when a missing command stops the function', () => {
+  const stops = inferFunctionDependencies('if ! command -v jq >/dev/null 2>&1; then\n  print -u2 "jq is required"\n  return 1\nfi');
+  assert.deepEqual(stops, { requires: ['jq'], optional: [] });
+
+  const probes = inferFunctionDependencies([
+    'if (( check_secrets )); then',
+    '  if ! command -v secret-tool >/dev/null 2>&1; then',
+    "    _zdoctor_report fail 'secret-tool is not installed'",
+    '  elif ! command -v gdbus >/dev/null 2>&1; then',
+    "    _zdoctor_report warn 'gdbus is missing'",
+    '  fi',
+    'fi',
+    'return 0',
+  ].join('\n'));
+  assert.deepEqual(probes, { requires: [], optional: ['secret-tool', 'gdbus'] });
+});
+
+test('first-available loops list every alternative as optional', () => {
+  const body = "for sevenzip in 7z 7zz 7za ''; do\n  [[ -z $sevenzip ]] && break\n  command -v $sevenzip >/dev/null 2>&1 && break\ndone";
+  assert.deepEqual(inferFunctionDependencies(body), { requires: [], optional: ['7z', '7zz', '7za'] });
+  const inventory = 'for tool in lsd bat; do\n  if command -v $tool >/dev/null 2>&1; then report ok; fi\ndone';
+  assert.deepEqual(inferFunctionDependencies(inventory), { requires: [], optional: [] });
 });

@@ -30,7 +30,7 @@ test('budget gate rejects a missing mapped topic even when dist omits its direct
     const result = spawnSync(process.execPath, [script, dist], { encoding: 'utf8' });
     assert.equal(result.status, 1);
     assert.match(result.stderr, /docs\/themes\/index.html: missing from dist/);
-    fs.writeFileSync(path.join(dist, 'tips.json'), 'x'.repeat(21_001));
+    fs.writeFileSync(path.join(dist, 'tips.json'), 'x'.repeat(23_001));
     fs.unlinkSync(path.join(dist, '404.html'));
     const guarded = spawnSync(process.execPath, [script, dist], { encoding: 'utf8' });
     assert.equal(guarded.status, 1);

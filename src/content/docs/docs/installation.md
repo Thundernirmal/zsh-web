@@ -90,7 +90,7 @@ If the distribution package is older than 0.68.0, upgrade through a current pack
 | `gdbus` | Explicit `cgm check` backend health probe | Health check explains the missing GLib tool; storage and loading still work |
 | `nix` | Defines `npkg` and the `upkg` Nix backend | Nix commands are absent |
 | `nix-collect-garbage` | `upkg clean --only nix` | Nix cleanup reports a failure |
-| `unzip`, `unrar`, `7z`, and related tools | Format-specific extraction | `extract` reports the missing tool when used |
+| `unzip`, `unrar`, `7z`/`7zz`/`7za`, `unxz`, `unzstd`, and related tools | Format-specific extraction | `extract` reports the missing tool when used |
 
 `checkupdates` requires `fakeroot`; on Arch, install both with `sudo pacman -S pacman-contrib fakeroot`. The dependency checker reports missing `fakeroot` when Pacman and checkupdates are present. A failed fresh query remains a failure rather than silently switching to cached data.
 

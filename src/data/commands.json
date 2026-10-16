@@ -247,10 +247,15 @@
     "optional": [
       "unzip",
       "unrar",
-      "7z",
       "bunzip2",
       "gunzip",
-      "uncompress"
+      "unxz",
+      "unlzma",
+      "unzstd",
+      "uncompress",
+      "7z",
+      "7zz",
+      "7za"
     ],
     "canonical": "extract",
     "mutation": "write"
@@ -674,7 +679,7 @@
       "help                 Show this help text"
     ],
     "notes": [
-      "Bare install names are expanded to nixpkgs#<name>",
+      "Bare install names become nixpkgs#<name>; any option passes all add arguments to nix unchanged",
       "npkg find searches a cached list of nixpkgs attribute names",
       "npkg refresh and outdated need jq",
       "Interactive add/find/remove needs jq and fzf 0.68.0+",
@@ -852,6 +857,7 @@
       "plan and upgrade --dry-run inventory updates without installing packages",
       "queries and previews may contact the network and write caches",
       "clean mutates manager state; clean --dry-run previews without removing packages or caches",
+      "summaries show elapsed time per manager and in total, including prompt waits",
       "upgrades never inject sudo automatically",
       "paru upgrades require explicit --sudo opt-in but still run unprefixed",
       "brew upgrades run unprefixed and stay in Homebrew user space",
@@ -942,10 +948,11 @@
       "zdoctor"
     ],
     "optional": [
+      "secret-tool",
+      "gdbus",
       "fzf",
       "fd",
       "zoxide",
-      "secret-tool",
       "nix"
     ],
     "terminalAdaptive": true,

@@ -711,6 +711,18 @@ test('command pages link to the guide sections that mention them', async ({ page
 	await expect(page.getByRole('region', { name: 'In the Guide' })).toHaveCount(0);
 });
 
+test('dependency badges name executables exactly as typed', async ({ page }) => {
+	await page.goto('/commands/zdoctor/');
+	const main = page.locator('main');
+	for (const executable of ['secret-tool', 'gdbus', 'fzf']) {
+		const name = main.locator('[translate="no"]', { hasText: new RegExp(`^${executable}$`) });
+		await expect(name).toHaveCount(1);
+		await expect(name.locator('..')).toHaveText(`Uses ${executable} if available`);
+	}
+	await expect(main).not.toContainText('Secret Tool');
+	await expect(main).not.toContainText(/\bRequires\b/);
+});
+
 test('command pages link their category and related commands', async ({ page }) => {
 	await page.goto('/commands/zhelp/');
 	const related = page.getByRole('region', { name: 'More Meta Commands' });
