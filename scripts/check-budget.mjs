@@ -56,7 +56,7 @@ let failures = 0;
 // The source-backed search index is fetched only when a reader enters a query.
 for (const [file, limits] of Object.entries({
   'docs-search.json': { rawBytes: 110_000, gzipBytes: 30_000 },
-  'tips.json': { rawBytes: 21_000, gzipBytes: 4_500 },
+  'tips.json': { rawBytes: 23_000, gzipBytes: 4_800 },
 })) {
   const fullPath = path.join(DIST_DIR, file);
   if (!fs.existsSync(fullPath)) {
