@@ -828,3 +828,34 @@ for (const arrival of ['typed', 'URL']) {
     expect(await page.evaluate(() => history.state?.docsQueryId)).toBe(searchId);
   });
 }
+
+test('search status stays visible until the controller is ready or has failed', async ({ page }) => {
+  const status = page.locator('[data-search-status]');
+  const height = () => status.evaluate((element) => element.getBoundingClientRect().height);
+
+  // Delayed controller: the loading message remains readable until ready.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/_astro/docs*.js', async (route) => { await held; await route.continue(); });
+  // Module scripts hold back DOMContentLoaded and load, so only wait for the response.
+  await page.goto('/docs/finders/', { waitUntil: 'commit' });
+  await expect(status).toHaveText('Guide search is loading. Browse the topics below.');
+  await expect(page.locator('[data-docs-search]')).not.toHaveAttribute('data-ready', 'true');
+  expect(await height()).toBeGreaterThan(1);
+  release();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await expect(status).toHaveText('Search across the whole guide.');
+  expect(await height()).toBeLessThanOrEqual(1);
+  await page.unroute('**/_astro/docs*.js');
+
+  // Failed controller: the initialization failure is shown, not collapsed.
+  await page.clock.install();
+  await page.route('**/_astro/docs*.js', (route) => route.abort());
+  await page.goto('/docs/?fail=1');
+  await expect(status).toBeVisible();
+  expect(await height()).toBeGreaterThan(1);
+  await page.clock.fastForward(10_001);
+  await expect(status).toHaveText('Couldn’t initialize guide search. Reload or browse the topics.');
+  await expect(status).toBeVisible();
+  expect(await height()).toBeGreaterThan(1);
+});
