@@ -42,6 +42,8 @@ Run `npm run verify` for static checks and `npm run test:e2e` for UI changes.
 
 Regenerate with `npm run sync` from a clean, committed source checkout. Review generated commands, tips, topic Markdown, heading mappings, search index, and source metadata together; never hand-edit generated files or only advance the source SHA. The pinned revision must be available remotely before CI fetches it. A documentation-only shell commit still changes the snapshot revision.
 
+Agents run snapshot updates through the `shell-sync` skill (`.claude/skills/shell-sync/SKILL.md`, linked for Codex at `.agents/skills/shell-sync`). It covers sync, review, all checks, manual UI review, and small local commits, and it pushes or opens a PR only after the user confirms.
+
 Old `/docs/#heading` links use the current guide's generated mappings, not a history of renamed anchors. Heading renames or duplicate-heading reordering require explicit compatibility handling if old public links must remain usable. Sync does not validate every link: inspect cross-topic anchors, repository file links, and image targets when changing guide structure or formatting.
 
 Docs use `Layout.astro`, `PageHeader.astro`, the shared theme tokens, and existing Markdown styles. Keep navigation and search keyboard-accessible. The search index loads only for a nonempty query and is cached between topic pages; preserve this behavior and its separate payload budget. Avoid adding a framework or eager search payload without a stated performance rationale and appropriate browser coverage.
