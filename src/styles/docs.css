@@ -93,9 +93,4 @@
 .docs-topic-sections { display: grid; gap: 0.125rem; margin: 0.125rem 0 0.375rem 1.25rem; padding-left: 0.625rem; border-left: 1px solid var(--border); }
 .docs-topic-nav .docs-topic-sections a { display: block; min-height: 0; padding: 0.3125rem 0.5rem; border: 0; font-size: 0.8125rem; line-height: 1.25rem; }
 .docs-topic-nav .docs-topic-sections .docs-outline-nested { padding-left: 1.25rem; }
-/* Once search is ready, the idle status ("Search across the whole guide.")
-   stays available to screen readers but takes no space until there is a
-   query, error or reload. Loading and initialization messages stay visible. */
-[data-docs-search][data-ready='true'] .docs-search-feedback:has(> [data-search-clear][hidden]):has(> [data-search-reload][hidden]) { min-height: 0; }
-[data-docs-search][data-ready='true'] .docs-search-feedback:has(> [data-search-clear][hidden]):has(> [data-search-reload][hidden]) > p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 1023px) { .docs-reading { gap: 1.25rem; } }

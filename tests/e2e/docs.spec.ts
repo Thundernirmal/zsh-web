@@ -749,16 +749,21 @@ test('guide search highlights matches and supports keyboard result navigation', 
   await expect(links.first().locator('small')).toHaveText('Fixture');
 });
 
-test('idle guide search status takes no space until there is a query', async ({ page }) => {
-  await page.goto('/docs/finders/');
+test('search readiness does not shift guide content', async ({ page }) => {
+  // A late layout change above the article moves fragment targets after the
+  // browser or router has scrolled to them, and jolts readers mid-scroll.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/_astro/docs*.js', async (route) => { await held; await route.continue(); });
+  await page.goto('/docs/finders/', { waitUntil: 'commit' });
+  const article = page.locator('.markdown-doc');
+  await expect(article).toBeVisible();
+  const top = () => article.evaluate((element) => element.getBoundingClientRect().top + scrollY);
+  const before = await top();
+  release();
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
-  const status = page.locator('[data-search-status]');
-  await expect(status).toHaveText('Search across the whole guide.');
-  // Still announced to assistive technology, but visually collapsed.
-  expect(await status.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
-  await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('zoxide');
-  await expect(status).toHaveText(/matching section/);
-  expect(await status.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(1);
+  await expect(page.locator('[data-search-status]')).toHaveText('Search across the whole guide.');
+  expect(Math.abs((await top()) - before)).toBeLessThanOrEqual(0.5);
 });
 
 test('guide copy buttons stay clear of long code lines at every scroll position', async ({ page }) => {
@@ -847,10 +852,13 @@ test('search status stays visible until the controller is ready or has failed', 
   await expect(status).toHaveText('Guide search is loading. Browse the topics below.');
   await expect(page.locator('[data-docs-search]')).not.toHaveAttribute('data-ready', 'true');
   expect(await height()).toBeGreaterThan(1);
+  const loadingHeight = await height();
   release();
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  // The idle message replaces the loading message in the same row.
   await expect(status).toHaveText('Search across the whole guide.');
-  expect(await height()).toBeLessThanOrEqual(1);
+  await expect(status).toBeVisible();
+  expect(await height()).toBe(loadingHeight);
   await page.unroute('**/_astro/docs*.js');
 
   // Failed controller: the initialization failure is shown, not collapsed.
