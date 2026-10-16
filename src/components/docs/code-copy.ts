@@ -1,13 +1,20 @@
 // Guide code blocks gain a copy action only once JavaScript runs, so static
-// HTML, DOM budgets and no-JavaScript readers are unaffected.
+// HTML, DOM budgets and no-JavaScript readers are unaffected. The button sits
+// in a toolbar above the code, outside the horizontally scrolling <pre>, so
+// it can never cover a line at any scroll position.
 const label = 'Copy code';
 const enhance = () => {
   for (const pre of document.querySelectorAll<HTMLPreElement>('.markdown-doc pre:not([data-copy-ready])')) {
     pre.dataset.copyReady = '';
     const wrapper = document.createElement('div');
+    const bar = document.createElement('div');
+    const language = document.createElement('span');
     const button = document.createElement('button');
     const status = document.createElement('span');
     wrapper.className = 'code-block';
+    bar.className = 'code-block-bar';
+    language.textContent = pre.querySelector('code')?.className.match(/language-(\S+)/)?.[1] ?? 'Code';
+    bar.append(language, button);
     button.type = 'button';
     button.className = 'code-copy';
     status.setAttribute('role', 'status');
@@ -35,7 +42,7 @@ const enhance = () => {
       }
     });
     pre.replaceWith(wrapper);
-    wrapper.append(pre, button, status);
+    wrapper.append(bar, pre, status);
   }
 };
 document.addEventListener('astro:page-load', enhance);

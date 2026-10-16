@@ -681,9 +681,10 @@ test('guide code blocks copy their exact contents and report failures', async ({
   await expect(block.getByRole('status')).toHaveText('Copied to clipboard');
   expect(await page.evaluate(() => (window as unknown as { __clipboardWrites: string[] }).__clipboardWrites)).toEqual([expected]);
 
-  // The button must not cover the first line of code.
-  const [buttonBox, codeBox] = await Promise.all([button.boundingBox(), block.locator('pre code').boundingBox()]);
-  expect((codeBox?.x ?? 0) + (codeBox?.width ?? 0)).toBeLessThanOrEqual(buttonBox?.x ?? 0);
+  // The button lives in a toolbar above the code, never over it.
+  await expect(block.locator('.code-block-bar')).toContainText('zsh');
+  const [buttonBox, preBox] = await Promise.all([button.boundingBox(), block.locator('pre').boundingBox()]);
+  expect((buttonBox?.y ?? 0) + (buttonBox?.height ?? 0)).toBeLessThanOrEqual((preBox?.y ?? 0) + 0.5);
   if (await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {
     expect(buttonBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     expect(buttonBox?.width ?? 0).toBeGreaterThanOrEqual(44);
@@ -753,4 +754,33 @@ test('idle guide search status takes no space until there is a query', async ({ 
   await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('zoxide');
   await expect(status).toHaveText(/matching section/);
   expect(await status.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(1);
+});
+
+test('guide copy buttons stay clear of long code lines at every scroll position', async ({ page }) => {
+  const long = 'upkg search ripgrep --only=apt,dnf,pacman,brew,flatpak,nix,npm --skip=paru --dry-run';
+  await page.route('**/docs/finders/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/<article[^>]*>/, `$&<pre data-long-fixture><code class="language-zsh">${long}\n${long} --sudo\nshort</code></pre>`);
+    await route.fulfill({ response, body });
+  });
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/docs/finders/');
+    const pre = page.locator('pre[data-long-fixture]');
+    const button = page.locator('.code-block', { has: pre }).getByRole('button', { name: 'Copy code', exact: true });
+    await expect(button).toBeVisible();
+    expect(await pre.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    for (const position of ['start', 'middle', 'end']) {
+      await pre.evaluate((element, where) => {
+        const max = element.scrollWidth - element.clientWidth;
+        element.scrollLeft = where === 'start' ? 0 : where === 'middle' ? max / 2 : max;
+      }, position);
+      const overlap = await pre.evaluate((element) => {
+        const code = element.getBoundingClientRect();
+        const control = element.closest('.code-block')!.querySelector('button')!.getBoundingClientRect();
+        return control.bottom > code.top + 0.5 && control.top < code.bottom;
+      });
+      expect(overlap, `${width}px at ${position}`).toBe(false);
+    }
+  }
 });

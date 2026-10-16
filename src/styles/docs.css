@@ -79,14 +79,15 @@
 [data-legacy-links] > a:not(:target) { display: none; }
 [data-legacy-links] > a:target { display: block; scroll-margin-top: calc(var(--site-header-height, 5rem) + 1rem); }
 
-/* Copy actions are added by code-copy.ts; padding keeps the first line clear of the button. */
-.code-block { position: relative; display: grid; gap: 0.5rem; min-width: 0; }
-.code-block pre { padding-right: 4.75rem; }
-.code-copy { position: absolute; top: 0.5rem; right: 0.5rem; min-width: 44px; min-height: 44px; padding: 0 0.625rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; transition: color 0.15s, border-color 0.15s; }
-.code-copy:hover { color: var(--foreground); border-color: var(--ring); }
-.code-copy:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.code-copy-error { font-size: 0.875rem; line-height: 1.5; color: var(--foreground); }
-@media (min-width: 640px) { .code-copy { min-width: 0; min-height: 2rem; } }
+/* Copy actions are added by code-copy.ts in a toolbar above the scrolling <pre>. */
+.code-block { display: grid; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--terminal-background); }
+.code-block-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 44px; padding-left: 0.75rem; border-bottom: 1px solid var(--border); background: var(--terminal-toolbar); color: var(--muted-foreground); font-family: var(--font-mono); font-size: 0.75rem; }
+.code-block pre { border: 0; border-radius: 0; }
+.code-copy { min-width: 44px; min-height: 44px; padding: 0 0.75rem; border-left: 1px solid var(--border); color: var(--muted-foreground); font-family: var(--font-body); font-size: 0.75rem; font-weight: 500; transition: color 0.15s, background-color 0.15s; }
+.code-copy:hover { color: var(--foreground); background: var(--muted); }
+.code-copy:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.code-copy-error { padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); font-size: 0.875rem; line-height: 1.5; color: var(--foreground); }
+@media (min-width: 640px) { .code-block-bar { min-height: 2.25rem; } .code-copy { min-height: 2.25rem; } }
 
 /* Desktop lists the current page's sections under its active topic. */
 .docs-topic-sections { display: grid; gap: 0.125rem; margin: 0.125rem 0 0.375rem 1.25rem; padding-left: 0.625rem; border-left: 1px solid var(--border); }
