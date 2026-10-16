@@ -43,7 +43,7 @@ export function commandLinksPlugin({ commands }) {
         const href = resolveCommandLink(ctx.textContent(node), targets);
         if (!href || ctx.data.commandLinks.has(href)) return;
         ctx.data.commandLinks.add(href);
-        ctx.wrapNode(node, { type: 'element', tagName: 'a', properties: { href }, children: [] });
+        ctx.wrapNode(node, { type: 'element', tagName: 'a', properties: { href, translate: 'no' }, children: [] });
       },
     },
   };

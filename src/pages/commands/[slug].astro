@@ -29,7 +29,7 @@ const related = sameCategory.slice(0, RELATED_LIMIT);
 ---
 <Layout title={command.name} description={command.description}>
   <a class="footer-link w-fit" href="/commands/">← All commands</a>
-  <PageHeader title={command.name}><p>{command.description}</p></PageHeader>
+  <PageHeader title={command.name} translate="no"><p>{command.description}</p></PageHeader>
   {command.category && (
     <a
       href={categoryHref}

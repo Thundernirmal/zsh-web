@@ -900,3 +900,22 @@ test('option matches are reported as Options and index what is displayed', async
 	await page.goto(`/commands/?q=${encodeURIComponent('--only <list>')}`);
 	await expect(page.locator('[data-command="upkg"]')).toBeVisible();
 });
+
+test('command identifiers are protected from machine translation', async ({ page }) => {
+	const unprotected = (selector: string) => page.locator(selector).evaluateAll((elements) =>
+		elements.filter((element) => !element.closest('[translate="no"]')).map((element) => element.textContent));
+
+	await page.goto('/tips/');
+	await expect(page.getByRole('listitem').first()).toBeVisible();
+	expect(await unprotected('[role="listitem"] a[href^="/commands/"]')).toEqual([]);
+
+	await page.goto('/docs/commands/');
+	expect(await page.locator('.markdown-doc a[href^="/commands/"]').count()).toBeGreaterThan(0);
+	expect(await unprotected('.markdown-doc a[href^="/commands/"]')).toEqual([]);
+
+	await page.goto('/commands/upkg/');
+	await expect(page.getByRole('heading', { name: 'upkg', level: 1 })).toHaveAttribute('translate', 'no');
+	const aliases = page.getByText(/^check, list$/);
+	await expect(aliases.first()).toBeAttached();
+	expect(await aliases.evaluateAll((elements) => elements.every((element) => element.closest('[translate="no"]')))).toBe(true);
+});

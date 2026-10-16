@@ -55,7 +55,7 @@ function TipText({ tip, query }: { tip: ShellTip; query: string }) {
       <>
         {highlightText(tip.text.slice(0, exampleStart), query)}
         <code translate="no">
-          <a className="text-link" href={href}>{tip.commandName}</a>
+          <a className="text-link" href={href} translate="no">{tip.commandName}</a>
           {highlightText(tip.example.slice(tip.commandName.length), query)}
         </code>
         {highlightText(tip.text.slice(exampleStart + tip.example.length), query)}
@@ -67,7 +67,7 @@ function TipText({ tip, query }: { tip: ShellTip; query: string }) {
     return (
       <>
         {highlightText(tip.text.slice(0, nameStart), query)}
-        <a className="text-link" href={href}>{tip.commandName}</a>
+        <a className="text-link" href={href} translate="no">{tip.commandName}</a>
         {highlightText(tip.text.slice(nameStart + tip.commandName.length), query)}
       </>
     );

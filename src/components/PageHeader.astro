@@ -4,9 +4,11 @@ interface Props {
   accent?: string;
   hero?: boolean;
   id?: string;
+  /** Set for identifiers (e.g. command names) that machine translation must not alter. */
+  translate?: 'no';
 }
 
-const { title, accent, hero = false, id } = Astro.props;
+const { title, accent, hero = false, id, translate } = Astro.props;
 const accentIndex = accent ? title.indexOf(accent) : -1;
 const titleBeforeAccent = accentIndex >= 0 ? title.slice(0, accentIndex) : "";
 const titleAfterAccent = accentIndex >= 0 ? title.slice(accentIndex + (accent?.length ?? 0)) : "";
@@ -14,6 +16,7 @@ const titleAfterAccent = accentIndex >= 0 ? title.slice(accentIndex + (accent?.l
 
 <header id={id} class="grid max-w-3xl gap-2.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
   <h1
+    translate={translate}
     class:list={[
       "text-balance tracking-tight text-foreground",
       hero

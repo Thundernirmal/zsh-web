@@ -91,7 +91,7 @@ function FeatureTable({
             <dd className="grid min-w-0 gap-2.5">
               <p className="detail-body" data-detail-body>
                 {highlightText(feature.description, query)}
-                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: {feature.aliases.join(', ')}</span> : null}
+                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: <span translate="no">{feature.aliases.join(', ')}</span></span> : null}
               </p>
               {feature.examples.length > 0 && (
                 <div className="grid min-w-0 gap-1.5">
@@ -139,7 +139,7 @@ function FeatureTable({
                 </TableHead>
                 <TableCell className="align-top whitespace-normal text-pretty leading-6">
                   {highlightText(feature.description, query)}
-                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: {feature.aliases.join(', ')}</span> : null}
+                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: <span translate="no">{feature.aliases.join(', ')}</span></span> : null}
                 </TableCell>
                 {hasFeatureExamples && (
                   <TableCell className="align-top whitespace-normal">
