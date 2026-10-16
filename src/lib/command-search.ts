@@ -146,6 +146,24 @@ function meaningfulExamples(command: ShellCommand): string[] {
   return [...unmatchedExamples, ...features.flatMap((feature) => feature.examples)];
 }
 
+// Registry notes such as "Flag: --only <list>   Comma-separated IDs" describe
+// options; they are displayed, indexed and reported as Options, not Notes.
+export function splitOptionNotes(notes: string[]) {
+  const options: Array<{ flag: string; description: string }> = [];
+  const remaining: string[] = [];
+  for (const note of notes) {
+    const match = note.match(/^Flag:\s+(\S.*?)(?:\s{2,}(\S.*))?$/);
+    if (match) options.push({ flag: match[1].trim(), description: match[2]?.trim() ?? '' });
+    else remaining.push(note);
+  }
+  return { options, remaining };
+}
+
+// Options as displayed: the flag followed by its description.
+function optionTexts(command: ShellCommand) {
+  return splitOptionNotes(command.notes ?? []).options.map(({ flag, description }) => `${flag} ${description}`.trim());
+}
+
 export function searchableText(command: ShellCommand): string {
   return [
     command.name,
@@ -159,7 +177,8 @@ export function searchableText(command: ShellCommand): string {
     command.dependencies,
     ...meaningfulExamples(command),
     ...searchableFeatures(command),
-    ...(command.notes ?? []),
+    ...optionTexts(command),
+    ...splitOptionNotes(command.notes ?? []).remaining,
     ...(command.requires ?? []),
     ...(command.optional ?? []),
   ]
@@ -185,7 +204,8 @@ export function matchingDetailSections(command: ShellCommand, query: string): st
     ['Integrations', command.optional ?? []],
     ['Examples', meaningfulExamples(command)],
     ['Features', searchableFeatures(command)],
-    ['Notes', command.notes ?? []],
+    ['Options', optionTexts(command)],
+    ['Notes', splitOptionNotes(command.notes ?? []).remaining],
   ];
   return fields
     .filter(([, values]) => values.some((value) => value?.toLowerCase().includes(normalized)))

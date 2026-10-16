@@ -888,3 +888,15 @@ test('homepage terminal keeps example comments beside their command', async ({ p
 		expect(Math.abs(lines.commentTop - lines.commandTop)).toBeLessThanOrEqual(2);
 	}
 });
+
+test('option matches are reported as Options and index what is displayed', async ({ page }) => {
+	await page.goto(`/commands/?q=${encodeURIComponent('Comma-separated manager IDs')}`);
+	const upkg = page.locator('[data-command="upkg"]');
+	await expect(upkg.getByText('Match: Options', { exact: true })).toBeVisible();
+	await expect(upkg.getByText(/Match: .*Notes/)).toHaveCount(0);
+	// The registry's "Flag:" prefix is not displayed, so it is not searchable either.
+	await page.goto(`/commands/?q=${encodeURIComponent('Flag: --only')}`);
+	await expect(page.getByRole('heading', { name: 'No Commands Found' })).toBeVisible();
+	await page.goto(`/commands/?q=${encodeURIComponent('--only <list>')}`);
+	await expect(page.locator('[data-command="upkg"]')).toBeVisible();
+});

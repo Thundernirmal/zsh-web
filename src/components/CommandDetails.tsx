@@ -4,7 +4,7 @@ import { highlightText } from '@/components/HighlightText';
 import { SyntaxCode } from '@/components/SyntaxCode';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { buildFeatureDetails, commandId, splitExample, type FeatureDetail } from '@/lib/command-search';
+import { buildFeatureDetails, commandId, splitExample, splitOptionNotes, type FeatureDetail } from '@/lib/command-search';
 import { commandHref, formatLabel, type ShellCommand } from '@/lib/shell-docs';
 import source from '@/data/source.json';
 import {
@@ -197,19 +197,6 @@ function ExampleList({
       </ul>
     </section>
   );
-}
-
-// Registry notes such as "Flag: --only <list>   Comma-separated IDs" describe
-// options; they read better as a term/description list than as prose.
-function splitOptionNotes(notes: string[]) {
-  const options: Array<{ flag: string; description: string }> = [];
-  const remaining: string[] = [];
-  for (const note of notes) {
-    const match = note.match(/^Flag:\s+(\S.*?)(?:\s{2,}(\S.*))?$/);
-    if (match) options.push({ flag: match[1].trim(), description: match[2]?.trim() ?? '' });
-    else remaining.push(note);
-  }
-  return { options, remaining };
 }
 
 function OptionsList({
