@@ -42,7 +42,7 @@ test('mobile constrained loading, search and expanded DOM stay within budgets', 
   });
   const start = Date.now();
   await page.goto('/commands/', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('link', { name: 'Read upkg reference', exact: true })).toBeAttached();
+  await expect(page.getByRole('link', { name: 'upkg details', exact: true })).toBeAttached();
   const usefulContentMs = Date.now() - start;
   expect(usefulContentMs).toBeLessThan(10_000);
   const search = page.getByRole('searchbox');

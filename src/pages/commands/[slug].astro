@@ -4,20 +4,82 @@ import Layout from '@/layouts/Layout.astro';
 import PageHeader from '@/components/PageHeader.astro';
 import CommandDetails from '@/components/CommandDetails';
 import { CategoryBadge } from '@/components/CategoryBadge';
+import { guideMentions } from '@/lib/guide-mentions';
+import { categoryLabels } from '@/lib/categories';
+import { commandHref, formatLabel } from '@/lib/shell-docs';
 
 export async function getStaticPaths() {
-  return (await getCollection('commands')).map(({ data }) => ({
-    params: { slug: data.id.replace(/^command-/, '') },
-    props: { command: data },
+  const commands = (await getCollection('commands')).map(({ data }) => data);
+  return commands.map((command) => ({
+    params: { slug: command.id.replace(/^command-/, '') },
+    props: { command, commands },
   }));
 }
-const { command } = Astro.props;
+const { command, commands } = Astro.props;
+const mentions = (await guideMentions(commands)).get(commandHref(command)) ?? [];
+const RELATED_LIMIT = 8;
+const categoryLabel = command.category ? (categoryLabels[command.category] ?? formatLabel(command.category)) : undefined;
+const categoryHref = command.category ? `/commands/?cat=${encodeURIComponent(command.category)}` : undefined;
+const sameCategory = command.category
+  ? commands
+      .filter((candidate) => candidate.category === command.category && candidate.id !== command.id)
+      .sort((a, b) => a.name.localeCompare(b.name))
+  : [];
+const related = sameCategory.slice(0, RELATED_LIMIT);
 ---
 <Layout title={command.name} description={command.description}>
   <a class="footer-link w-fit" href="/commands/">← All commands</a>
-  <PageHeader title={command.name}><p>{command.description}</p></PageHeader>
-  {command.category && <div><CategoryBadge category={command.category} /></div>}
+  <PageHeader title={command.name} translate="no"><p>{command.description}</p></PageHeader>
+  {command.category && (
+    <a
+      href={categoryHref}
+      class="w-fit rounded-4xl outline-none transition-opacity hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50"
+      aria-label={`Browse all ${categoryLabel} commands`}
+    >
+      <CategoryBadge category={command.category} />
+    </a>
+  )}
   <h2 class="sr-only">Usage reference</h2>
   <CommandDetails client:visible command={command} />
   <noscript><p>All reference text is available here. Select text manually to copy it.</p></noscript>
+  {mentions.length > 0 && (
+    <section class="grid gap-3 border-t pt-6" aria-labelledby="guide-mentions">
+      <h2 id="guide-mentions" class="detail-section-heading text-lg">In the Guide</h2>
+      <ul class="grid gap-3 text-sm leading-6" data-guide-mentions>
+        {mentions.map((mention) => (
+          <li class="grid gap-1">
+            <a class="text-link w-fit font-semibold" href={mention.href}>{mention.topic}</a>
+            {mention.sections.length > 0 && (
+              <ul class="flex flex-wrap gap-x-4 border-l pl-3" aria-label={`${mention.topic} sections`}>
+                {mention.sections.map((section) => (
+                  <li><a class="footer-link" href={section.href}>{section.title}</a></li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+  {related.length > 0 && (
+    <section class="grid gap-3 border-t pt-6" aria-labelledby="related-commands">
+      <h2 id="related-commands" class="detail-section-heading text-lg">More {categoryLabel} Commands</h2>
+      <ul class="grid gap-2 sm:grid-cols-2" data-related-commands>
+        {related.map((item) => (
+          <li class="min-w-0">
+            <a
+              href={commandHref(item)}
+              class="grid min-h-11 gap-0.5 rounded-lg border bg-card px-3 py-2 text-sm leading-5 transition-colors outline-none hover:border-ring focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <span class="font-mono font-semibold text-foreground" translate="no">{item.name}</span>
+              {item.description && <span class="text-pretty text-muted-foreground">{item.description}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {sameCategory.length > related.length && (
+        <a class="text-link w-fit text-sm" href={categoryHref}>View all {sameCategory.length + 1} {categoryLabel} commands</a>
+      )}
+    </section>
+  )}
 </Layout>

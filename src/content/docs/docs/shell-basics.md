@@ -1,5 +1,5 @@
 ---
-title: "Shell basics"
+title: "Shell Basics"
 description: "History, completion, aliases, and everyday shortcuts."
 ---
 

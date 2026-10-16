@@ -1,13 +1,11 @@
 ---
-import { ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { BookOpenIcon, ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === '/';
 const links = [
-	{ href: '/', label: 'Home', active: isHome, mobileOnly: true },
+	{ href: '/docs/', label: 'Docs', active: currentPath.startsWith('/docs'), icon: BookOpenIcon },
 	{ href: '/commands', label: 'Commands', active: currentPath.startsWith('/commands'), icon: SquareTerminalIcon },
 	{ href: '/tips', label: 'Tips', active: currentPath.startsWith('/tips'), icon: LightbulbIcon },
 ];
@@ -49,19 +47,25 @@ const links = [
 			<span>Nirmal's Shell</span>
 		</a>
 
-		<div class="grid w-full min-w-0 grid-cols-3 items-center gap-1 rounded-lg border bg-card/60 p-1 shadow-sm sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
-			{links.map(({ href, label, active, mobileOnly, icon: Icon }) => (
+		<div class="grid w-full min-w-0 grid-cols-[2.75rem_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-lg border bg-card/60 p-1 shadow-sm sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+			{/* The brand link is hidden on phones, so an icon-sized Home link keeps room for three labelled sections. */}
+			<a
+				href="/"
+				aria-current={isHome ? 'page' : undefined}
+				aria-label="Home"
+				class="site-nav-link px-0 sm:hidden"
+				data-astro-prefetch="hover"
+			>
+				<TerminalIcon className="size-4 text-primary" aria-hidden="true" />
+			</a>
+			{links.map(({ href, label, active, icon: Icon }) => (
 				<a
 					href={href}
 					aria-current={active ? 'page' : undefined}
-					class:list={[
-						buttonVariants({ variant: active ? 'secondary' : 'ghost', size: 'sm' }),
-						'min-h-11 w-full min-w-0 px-2 text-sm sm:min-h-7 sm:w-auto sm:px-2.5 sm:text-[0.8rem]',
-						mobileOnly && 'sm:hidden',
-					]}
+					class="site-nav-link"
 					data-astro-prefetch="hover"
 				>
-					{Icon && <Icon data-icon="inline-start" className="hidden sm:block" aria-hidden="true" />}
+					<Icon data-icon="inline-start" className="hidden sm:block" aria-hidden="true" />
 					{label}
 				</a>
 			))}
@@ -70,7 +74,7 @@ const links = [
 				href="https://github.com/Thundernirmal/zsh"
 				target="_blank"
 				rel="noopener noreferrer"
-				class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:inline-flex')}
+				class="site-nav-link hidden sm:inline-flex"
 			>
 				<ExternalLinkIcon data-icon="inline-start" aria-hidden="true" />
 				GitHub <span class="sr-only">(opens in a new tab)</span>

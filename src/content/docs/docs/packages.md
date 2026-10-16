@@ -1,5 +1,5 @@
 ---
-title: "Package workflows"
+title: "Package Workflows"
 description: "Check, search, upgrade, and clean with upkg."
 ---
 

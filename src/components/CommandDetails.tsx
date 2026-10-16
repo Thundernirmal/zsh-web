@@ -4,7 +4,7 @@ import { highlightText } from '@/components/HighlightText';
 import { SyntaxCode } from '@/components/SyntaxCode';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { buildFeatureDetails, commandId, splitExample, type FeatureDetail } from '@/lib/command-search';
+import { buildFeatureDetails, commandId, splitExample, splitOptionNotes, type FeatureDetail } from '@/lib/command-search';
 import { commandHref, formatLabel, type ShellCommand } from '@/lib/shell-docs';
 import source from '@/data/source.json';
 import {
@@ -91,7 +91,7 @@ function FeatureTable({
             <dd className="grid min-w-0 gap-2.5">
               <p className="detail-body" data-detail-body>
                 {highlightText(feature.description, query)}
-                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: {feature.aliases.join(', ')}</span> : null}
+                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: <span translate="no">{feature.aliases.join(', ')}</span></span> : null}
               </p>
               {feature.examples.length > 0 && (
                 <div className="grid min-w-0 gap-1.5">
@@ -139,7 +139,7 @@ function FeatureTable({
                 </TableHead>
                 <TableCell className="align-top whitespace-normal text-pretty leading-6">
                   {highlightText(feature.description, query)}
-                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: {feature.aliases.join(', ')}</span> : null}
+                    {feature.aliases?.length ? <span className="block text-sm text-muted-foreground">Also known as: <span translate="no">{feature.aliases.join(', ')}</span></span> : null}
                 </TableCell>
                 {hasFeatureExamples && (
                   <TableCell className="align-top whitespace-normal">
@@ -199,6 +199,39 @@ function ExampleList({
   );
 }
 
+function OptionsList({
+  id,
+  options,
+  query,
+}: {
+  id: string;
+  options: Array<{ flag: string; description: string }>;
+  query: string;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <section className="grid min-w-0 gap-2.5" aria-labelledby={`${id}-options`}>
+      <h3 id={`${id}-options`} className="detail-section-heading" data-detail-section-heading>
+        Options
+      </h3>
+      <dl className="grid min-w-0 gap-x-4 gap-y-2 md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]" data-command-options>
+        {options.map((option) => (
+          <Fragment key={option.flag}>
+            <dt className="min-w-0 pt-2 first:pt-0 md:pt-0">
+              <pre className="detail-code font-semibold" data-detail-code>
+                <SyntaxCode code={option.flag} query={query} />
+              </pre>
+            </dt>
+            <dd className="detail-body min-w-0 text-muted-foreground" data-detail-body>
+              {highlightText(option.description, query)}
+            </dd>
+          </Fragment>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 function NotesList({ id, notes, query }: { id: string; notes: string[]; query: string }) {
   if (notes.length === 0) return null;
   return (
@@ -224,14 +257,17 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
             const { features, unmatchedExamples } = buildFeatureDetails(command);
             const hasFeatures = features.length > 0;
             const displayExamples = unmatchedExamples;
-            const notes = command.notes ?? [];
-            const hasReferenceDetails = hasFeatures || displayExamples.length > 0 || notes.length > 0;
+            const { options, remaining: notes } = splitOptionNotes(command.notes ?? []);
+            const hasReferenceDetails =
+              hasFeatures || displayExamples.length > 0 || notes.length > 0 || options.length > 0;
             // Function syntax is a placeholder template, not a runnable command:
             // the prominent copy action must hand over a concrete example
             // instead, and only fall back to an explicitly labeled template copy.
-            const firstRunnableExample = command.examples?.length
-              ? splitExample(command.examples[0]).command
-              : undefined;
+            const runnableExamples = (command.examples ?? []).map((example) => splitExample(example).command);
+            const firstRunnableExample = runnableExamples[0];
+            // The highlighted example should teach something beyond the name
+            // itself; bare invocations stay in the full example list.
+            const featuredExample = runnableExamples.find((example) => example.trim() !== command.name);
             const syntaxDetails: Array<{
               label: string;
               value: string;
@@ -272,9 +308,9 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
    ? 'Some subcommands change stored data or packages. Check the selected operation before running.'
    : command.mutation === 'session' ? 'Changes the current shell session or working directory.' : undefined;
  return <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
-      {firstRunnableExample && <section className="grid min-w-0 gap-2" aria-label="Runnable example">
+      {featuredExample && <section className="grid min-w-0 gap-2" aria-label="Runnable example">
         <h3 className="detail-section-heading" data-detail-section-heading>Try an example</h3>
-        <Example example={firstRunnableExample} query={query} />
+        <Example example={featuredExample} query={query} />
       </section>}
                   <div className="grid gap-2.5">
                     {syntaxDetails.map((detail, index) => (
@@ -361,6 +397,8 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
 
                   {hasReferenceDetails && (
                     <div className="grid min-w-0 gap-5">
+                      <OptionsList id={detailId} options={options} query={query} />
+                      {options.length > 0 && (hasFeatures || displayExamples.length > 0 || notes.length > 0) && <Separator />}
                       {hasFeatures && (
                         <FeatureTable
                           id={detailId}

@@ -22,12 +22,33 @@ function searchText(node) {
   return node.children ? node.children.map(searchText).filter(Boolean).join(' ') : inlineText(node);
 }
 
+// One entry per h2/h3 section so results land on the matching passage. Every
+// heading advances a page-local slugger in document order, matching the IDs
+// the site renders; deeper and nested headings stay within their section.
+// Sections with no text of their own (only subsections) are omitted.
 export function guideSearchIndex(pages) {
-  return pages.map((page) => ({
-    title: page.title,
-    url: guideUrl(page.slug),
-    text: searchText(parseMarkdown(page.body)).replace(/\s+/g, ' ').trim(),
-  }));
+  return pages.flatMap((page) => {
+    const url = guideUrl(page.slug);
+    const slugger = new GithubSlugger();
+    const entries = [{ title: page.title, url, parts: [] }];
+    const slugNested = (node) => {
+      if (node.type === 'heading') slugger.slug(inlineText(node));
+      for (const child of node.children ?? []) slugNested(child);
+    };
+    for (const node of parseMarkdown(page.body).children) {
+      if (node.type === 'heading' && node.depth <= 3) {
+        // Titles are matched separately, so the excerpt text starts after the heading.
+        const title = inlineText(node);
+        entries.push({ title, topic: page.title, url: `${url}#${slugger.slug(title)}`, parts: [] });
+        continue;
+      }
+      slugNested(node);
+      entries.at(-1).parts.push(searchText(node));
+    }
+    return entries
+      .map(({ parts, ...entry }) => ({ ...entry, text: parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() }))
+      .filter((entry) => entry.text);
+  });
 }
 
 export function generateGuideDocs(guide) {

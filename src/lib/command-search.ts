@@ -146,6 +146,24 @@ function meaningfulExamples(command: ShellCommand): string[] {
   return [...unmatchedExamples, ...features.flatMap((feature) => feature.examples)];
 }
 
+// Registry notes such as "Flag: --only <list>   Comma-separated IDs" describe
+// options; they are displayed, indexed and reported as Options, not Notes.
+export function splitOptionNotes(notes: string[]) {
+  const options: Array<{ flag: string; description: string }> = [];
+  const remaining: string[] = [];
+  for (const note of notes) {
+    const match = note.match(/^Flag:\s+(\S.*?)(?:\s{2,}(\S.*))?$/);
+    if (match) options.push({ flag: match[1].trim(), description: match[2]?.trim() ?? '' });
+    else remaining.push(note);
+  }
+  return { options, remaining };
+}
+
+// Options as displayed: the flag followed by its description.
+function optionTexts(command: ShellCommand) {
+  return splitOptionNotes(command.notes ?? []).options.map(({ flag, description }) => `${flag} ${description}`.trim());
+}
+
 export function searchableText(command: ShellCommand): string {
   return [
     command.name,
@@ -159,7 +177,8 @@ export function searchableText(command: ShellCommand): string {
     command.dependencies,
     ...meaningfulExamples(command),
     ...searchableFeatures(command),
-    ...(command.notes ?? []),
+    ...optionTexts(command),
+    ...splitOptionNotes(command.notes ?? []).remaining,
     ...(command.requires ?? []),
     ...(command.optional ?? []),
   ]
@@ -185,7 +204,8 @@ export function matchingDetailSections(command: ShellCommand, query: string): st
     ['Integrations', command.optional ?? []],
     ['Examples', meaningfulExamples(command)],
     ['Features', searchableFeatures(command)],
-    ['Notes', command.notes ?? []],
+    ['Options', optionTexts(command)],
+    ['Notes', splitOptionNotes(command.notes ?? []).remaining],
   ];
   return fields
     .filter(([, values]) => values.some((value) => value?.toLowerCase().includes(normalized)))
@@ -196,4 +216,57 @@ export { splitExample };
 
 export function matchesQuery(text: string, query: string): boolean {
   return query.trim().toLowerCase().split(/\s+/).every((token) => text.includes(token));
+}
+
+// Bounded optimal-string-alignment distance (an adjacent swap is one edit);
+// returns limit + 1 once the bound is exceeded.
+function editDistance(a: string, b: string, limit: number): number {
+  let before: number[] = [];
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    let rowMinimum = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      current[j] = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) current[j] = Math.min(current[j], before[j - 2] + 1);
+      rowMinimum = Math.min(rowMinimum, current[j]);
+    }
+    if (rowMinimum > limit) return limit + 1;
+    before = previous;
+    previous = current;
+  }
+  return previous[b.length];
+}
+
+/**
+ * Suggest a corrected query when a search finds nothing: each word that
+ * appears nowhere in `texts` is replaced by the closest corpus word (one edit
+ * for 4–7 letters, two from 8). Returns the suggestion only if it matches.
+ */
+export function suggestQuery(query: string, texts: string[]): string | undefined {
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return undefined;
+  const vocabulary = [...new Set(texts.flatMap((text) => text.match(/[a-z0-9]+(?:[-.][a-z0-9]+)*/g) ?? []))]
+    .filter((word) => word.length >= 3)
+    .sort();
+  let changed = false;
+  const corrected = tokens.map((token) => {
+    if (texts.some((text) => text.includes(token))) return token;
+    const limit = token.length >= 8 ? 2 : token.length >= 4 ? 1 : 0;
+    let best: string | undefined;
+    let bestDistance = limit + 1;
+    for (const word of vocabulary) {
+      if (Math.abs(word.length - token.length) > limit) continue;
+      const distance = editDistance(token, word, limit);
+      if (distance < bestDistance) {
+        best = word;
+        bestDistance = distance;
+      }
+    }
+    if (!best) return token;
+    changed = true;
+    return best;
+  });
+  const suggestion = corrected.join(' ');
+  return changed && texts.some((text) => matchesQuery(text, suggestion)) ? suggestion : undefined;
 }

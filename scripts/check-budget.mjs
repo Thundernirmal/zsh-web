@@ -12,7 +12,9 @@ const BUDGETS = {
   'tips/index.html': { rawBytes: 140_000, gzipBytes: 16_500, elements: 500 },
   'index.html': { rawBytes: 62_000, gzipBytes: 10_500, elements: 350 },
   'get-started/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
-  'docs/index.html': { rawBytes: 35_000, gzipBytes: 8_000, elements: 320 },
+  // The overview reached its element ceiling once primary navigation gained Docs;
+  // keep room for site-wide chrome (one element per route at a time).
+  'docs/index.html': { rawBytes: 35_000, gzipBytes: 8_000, elements: 335 },
   'docs/maintenance/index.html': { rawBytes: 38_000, gzipBytes: 9_800, elements: 500 },
   'troubleshooting/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
   '404.html': { rawBytes: 30_000, gzipBytes: 6_800, elements: 150 },
@@ -27,10 +29,11 @@ const ASSET_BUDGETS = {
   'commands/index.html': { jsGzip: 162_000, cssGzip: 23_000, fontBytes: 220_000 },
   'tips/index.html': { jsGzip: 148_000, cssGzip: 23_000, fontBytes: 220_000 },
 };
-// Docs include shared router navigation, independent entry snapshots and
-// request-race recovery. Reserve compression headroom across Node versions;
+// Docs include shared router navigation, independent entry snapshots,
+// request-race recovery, code-block copy, and search-result highlighting with
+// keyboard navigation. Reserve compression headroom across Node versions;
 // the on-demand index remains separately budgeted below.
-const docsAssets = { jsGzip: 9_500, cssGzip: 23_000, fontBytes: 220_000 };
+const docsAssets = { jsGzip: 10_000, cssGzip: 23_000, fontBytes: 220_000 };
 const docsBudget = { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
 for (const topic of guidePages) {
   const file = `${guideUrl(topic.slug).slice(1)}index.html`;

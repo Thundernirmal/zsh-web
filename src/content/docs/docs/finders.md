@@ -1,5 +1,5 @@
 ---
-title: "Navigation and finders"
+title: "Navigation and Finders"
 description: "Move between directories and make the most of fzf."
 ---
 

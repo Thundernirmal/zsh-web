@@ -4,6 +4,7 @@ import { useEffect, type RefObject } from 'react';
 // navigation by rendering an explicit tabindex attribute (roving focus).
 const NAVIGATION_SELECTOR =
 	'[data-command] button[data-slot="accordion-trigger"], [role="listitem"][tabindex]';
+const ROW_SELECTOR = '[data-command], [role="listitem"][tabindex]';
 
 interface UseSlashFocusOptions {
   onClear?: () => void;
@@ -24,8 +25,13 @@ export function useSlashFocus(
       );
       if (triggers.length === 0) return;
 
+      // Locate focus by its row so a control inside expanded details moves to
+      // the neighbouring row instead of restarting from the top of the list.
       const active = document.activeElement;
-      const currentIndex = triggers.findIndex((t) => t === active || t.contains(active));
+      const activeRow = active?.closest(ROW_SELECTOR);
+      const currentIndex = activeRow
+        ? triggers.findIndex((t) => t === activeRow || t.closest(ROW_SELECTOR) === activeRow)
+        : -1;
       const nextIndex =
         direction === 1
           ? currentIndex < triggers.length - 1
@@ -92,13 +98,17 @@ export function useSlashFocus(
         return;
       }
 
-      // j / k / arrow navigation between list/accordion items when not editing
-      if (!isEditable && !event.metaKey && !event.ctrlKey && !event.altKey) {
-        if (event.key === 'j' || event.key === 'ArrowDown') {
-          moveListFocus(event, 1);
-        } else if (event.key === 'k' || event.key === 'ArrowUp') {
-          moveListFocus(event, -1);
-        }
+      // j / k enter or walk the list from anywhere outside a text field. Arrow
+      // keys only walk it once a row trigger has focus, so they keep scrolling
+      // the page everywhere else (including inside expanded details).
+      if (isEditable || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+      const onRowTrigger = target instanceof HTMLElement && target.matches(NAVIGATION_SELECTOR);
+      if (event.key === 'j' || (event.key === 'ArrowDown' && onRowTrigger)) {
+        moveListFocus(event, 1);
+      } else if (event.key === 'k' || (event.key === 'ArrowUp' && onRowTrigger)) {
+        moveListFocus(event, -1);
       }
     };
     window.addEventListener('keydown', handler);

@@ -1,6 +1,7 @@
+import { navigate } from 'astro:transitions/client';
 import { preserveRouterState } from './history';
 
-interface Entry { title: string; url: string; text: string; lower: [string, string] }
+interface Entry { title: string; topic?: string; url: string; text: string; lower: [string, string] }
 let catalog: Promise<Entry[]> | undefined;
 let failed = false;
 let loaded = false;
@@ -10,6 +11,24 @@ const navigationType = (performance.getEntriesByType('navigation')[0] as Perform
 let restoreEntry = navigationType === 'reload' || navigationType === 'back_forward';
 const normalize = (text: string) => text.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
 const resetCatalog = () => { catalog = undefined; failed = false; loaded = false; };
+// Wrap matched terms in <mark>. normalize() maps characters one-to-one, so
+// match offsets in the normalized text apply to the displayed text.
+const highlight = (target: Element, text: string, terms: string[]) => {
+  const lower = normalize(text);
+  let index = 0;
+  for (;;) {
+    let start = -1;
+    let length = 0;
+    for (const term of terms) {
+      const at = lower.indexOf(term, index);
+      if (at >= 0 && (start < 0 || at < start)) { start = at; length = term.length; }
+    }
+    if (start < 0) break;
+    target.append(text.slice(index, start), Object.assign(document.createElement('mark'), { textContent: text.slice(start, start + length) }));
+    index = start + length;
+  }
+  target.append(text.slice(index));
+};
 document.addEventListener('astro:before-preparation', (event) => {
   restoreEntry = event.navigationType === 'traverse';
   if (!loaded) resetCatalog();
@@ -20,7 +39,7 @@ function load(url: string) {
   const timeout = setTimeout(() => controller.abort(), 10_000);
   const request = fetch(url, { signal: controller.signal }).then(async (response) => {
     if (!response.ok) throw new Error('Search unavailable');
-    const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(entry.title), normalize(entry.text)] as [string, string] }));
+    const entries = (await response.json() as Entry[]).map((entry) => ({ ...entry, lower: [normalize(`${entry.topic ?? ''} ${entry.title}`), normalize(entry.text)] as [string, string] }));
     if (catalog === request) loaded = true;
     return entries;
   }).catch((error: unknown) => { if (catalog === request) failed = true; throw error; }).finally(() => clearTimeout(timeout));
@@ -114,12 +133,17 @@ function initSearch() {
       const terms = query.split(/\s+/);
       const matches = entries.filter((entry) => terms.every((term) => (entry.lower[0].includes(term) || entry.lower[1].includes(term))));
       matches.sort((a, b) => Number(b.lower[0].includes(query)) - Number(a.lower[0].includes(query)));
-      updateStatus(matches.length ? `${matches.length} matching topic${matches.length === 1 ? '' : 's'}` : 'No matches. Try a command name or a different phrase.');
+      updateStatus(matches.length ? `${matches.length} matching section${matches.length === 1 ? '' : 's'}` : 'No matches. Try a command name or a different phrase.');
       for (const entry of matches) {
         const item = template.content.cloneNode(true) as DocumentFragment;
         const link = item.querySelector<HTMLAnchorElement>('a')!;
         link.href = entry.url;
-        item.querySelector('strong')!.textContent = entry.title;
+        highlight(item.querySelector('strong')!, entry.title, terms);
+        if (entry.topic) {
+          const topic = document.createElement('small');
+          highlight(topic, entry.topic, terms);
+          link.prepend(topic);
+        }
         const match = terms.map((term) => entry.lower[1].indexOf(term)).find((index) => index >= 0) ?? 0;
         const offset = Math.max(0, match - 55);
         const start = offset ? entry.text.lastIndexOf(' ', offset) + 1 : 0;
@@ -127,7 +151,7 @@ function initSearch() {
         const boundary = entry.text.indexOf(' ', limit);
         const end = boundary < 0 ? entry.text.length : boundary;
         const excerpt = entry.text.slice(start, end);
-        item.querySelector('span')!.textContent = `${start ? '…' : ''}${excerpt}${end < entry.text.length ? '…' : ''}`;
+        highlight(item.querySelector('span')!, `${start ? '…' : ''}${excerpt}${end < entry.text.length ? '…' : ''}`, terms);
         results.append(item);
       }
       panel.hidden = !matches.length;
@@ -141,9 +165,40 @@ function initSearch() {
   const reset = () => { input.value = ''; remember(); void search(); syncUrl(true); input.focus(); };
   clear.addEventListener('click', reset);
   retry.addEventListener('click', () => { resetCatalog(); input.focus(); void search(); });
+  // Arrow keys walk the results; ArrowUp from the first result or Escape returns to the field.
+  results.addEventListener('keydown', (event) => {
+    const links = [...results.querySelectorAll('a')];
+    const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+    if (event.key === 'Escape') input.focus();
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    (event.key === 'ArrowDown' ? links[index + 1] ?? links[index] : links[index - 1] ?? input).focus();
+  }, { signal: listeners.signal });
+  // Astro decides between an in-place hash jump and a page swap by comparing
+  // with its last navigated URL, which never sees the query written by
+  // replaceState. Route same-page results here so the origin entry always
+  // keeps its query and the section entry always starts with a clear search.
+  results.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const target = new URL(link.href);
+    if (target.pathname !== location.pathname) return;
+    event.preventDefault();
+    syncUrl(true);
+    // Collapse the results before navigating so an in-place jump scrolls to
+    // the section in its final layout. search() only updates the panel; the
+    // origin entry's URL and stored query are left intact for Back.
+    input.value = '';
+    void search();
+    void navigate(target.href).then(() => {
+      // A page swap already initialized a fresh, empty search for the new entry.
+      if (root.isConnected) remember();
+    });
+  }, { signal: listeners.signal });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') reset();
     if (event.key === 'Enter') syncUrl(true);
+    if (event.key === 'ArrowDown' && !panel.hidden) { event.preventDefault(); results.querySelector('a')?.focus(); }
   });
   input.value = new URL(location.href).searchParams.get('q') ?? '';
   if (restoreEntry) {

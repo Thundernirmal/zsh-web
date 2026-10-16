@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from 'lucide-react';
+import { ListFilterIcon, RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from 'lucide-react';
 
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
 import CommandDetails from '@/components/CommandDetails';
@@ -39,6 +39,7 @@ import {
   matchingDetailSections,
   matchesQuery,
   searchableText,
+  suggestQuery,
   typeVariant,
 } from '@/lib/command-search';
 import { commandHref, formatLabel, type ShellCommand } from '@/lib/shell-docs';
@@ -171,6 +172,16 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     }).sort((a, b) => Number(b.name.toLowerCase() === normalizedQuery) - Number(a.name.toLowerCase() === normalizedQuery));
   }, [category, commands, corpus, filter, normalizedQuery]);
 
+  // Only computed for an empty result: offer a typo-corrected query that
+  // matches under the current type and category filters.
+  const suggestion = useMemo(() => {
+    if (filteredCommands.length > 0 || normalizedQuery.length === 0) return undefined;
+    const texts = commands
+      .filter((command) => (filter === 'all' || command.type === filter) && (category === 'all' || command.category === category))
+      .map((command) => corpus.get(commandId(command)) ?? '');
+    return suggestQuery(normalizedQuery, texts);
+  }, [category, commands, corpus, filter, filteredCommands.length, normalizedQuery]);
+
   const counts = useMemo(() => {
     const acc = { all: 0, alias: 0, global_alias: 0, function: 0, action: 0 } as Record<Filter, number> & {
       all: number;
@@ -220,6 +231,13 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
     { key: 'action', label: 'Actions', count: counts.action },
   ];
 
+  // Phones choose the type from a select beside the category select, keeping
+  // both filters on one row instead of a two-column grid of five buttons.
+  const typeSelectItems = filters.map((item) => ({
+    value: item.key,
+    label: `${item.key === 'all' ? 'All Types' : item.label} (${item.count})`,
+  }));
+
   const clearSearch = () => {
     setQuery('');
     setFilter('all');
@@ -267,7 +285,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
           {filteredCommands.length} result{filteredCommands.length === 1 ? '' : 's'}
         </span>
 
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2.5">
           <ToggleGroup
             value={[filter]}
             onValueChange={(values) => {
@@ -278,7 +296,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             size="sm"
             spacing={2}
             aria-label="Filter commands by type"
-            className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-fit sm:gap-1"
+            className="hidden sm:flex sm:w-fit sm:gap-1"
           >
             {filters.map((item) => (
               <ToggleGroupItem
@@ -286,7 +304,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                 value={item.key}
                 disabled={item.count === 0 && filter !== item.key}
                 aria-label={`${item.label}, ${item.count} ${item.count === 1 ? 'result' : 'results'}`}
-                className="h-11 w-full items-center justify-center gap-1.5 px-3 sm:h-7 sm:w-auto sm:px-2.5"
+                className="h-7 w-auto items-center justify-center gap-1.5 px-2.5"
                 data-command-filter={item.key}
               >
                 <span data-filter-label>{item.label}</span>
@@ -295,7 +313,37 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             ))}
           </ToggleGroup>
 
-          <div className="w-full sm:w-60">
+          <div className="min-w-0 sm:hidden">
+            <Select
+              name="command-type"
+              value={filter}
+              onValueChange={(value) => {
+                if (value) setFilter(value as Filter);
+              }}
+              items={typeSelectItems}
+            >
+              <SelectTrigger className="w-full data-[size=default]:h-11 text-xs" aria-label="Filter commands by type">
+                <ListFilterIcon className="text-muted-foreground size-3.5" aria-hidden="true" />
+                <SelectValue>{(value: Filter) => (value === 'all' ? 'All Types' : filters.find((item) => item.key === value)?.label)}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectGroup>
+                  <SelectLabel>Command Types</SelectLabel>
+                  {typeSelectItems.map((item) => (
+                    <SelectItem
+                      key={item.value}
+                      value={item.value}
+                      disabled={counts[item.value] === 0 && filter !== item.value}
+                    >
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="min-w-0 sm:w-60">
             <Select
               name="command-category"
               value={category}
@@ -310,7 +358,13 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                 aria-label="Filter commands by category"
               >
                 <CategoryIcon category={category} className="text-muted-foreground size-3.5" />
-                <SelectValue />
+                <SelectValue>
+                  {(value: string) => {
+                    const label = value === 'all' ? 'All Categories' : (categoryLabels[value] ?? formatLabel(value));
+                    // Phones show the label alone so the half-width trigger never clips; counts stay in the options.
+                    return <><span className="truncate sm:hidden">{label}</span><span className="hidden sm:inline">{label} ({categoryCounts[value] ?? 0})</span></>;
+                  }}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent align="end">
                 <SelectGroup>
@@ -363,7 +417,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
               variant="ghost"
               size="xs"
               onClick={clearSearch}
-              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+              className="h-11 px-3 text-xs text-muted-foreground hover:text-foreground sm:h-6 sm:px-2"
             >
               Reset all
             </Button>
@@ -386,6 +440,23 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
+            {suggestion && (
+              <p className="text-sm text-muted-foreground">
+                Did you mean{' '}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto min-h-11 p-0 text-sm sm:min-h-0"
+                  onClick={() => {
+                    setQuery(suggestion);
+                    searchRef.current?.focus();
+                  }}
+                >
+                  “{suggestion}”
+                </Button>
+                ?
+              </p>
+            )}
             <Button type="button" variant="outline" onClick={clearSearch}>
               <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
               Clear Search
@@ -429,9 +500,10 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
                   <a
                     className="command-reference-link"
                     href={commandHref(command)}
-                    aria-label={`Read ${command.name} reference`}
-                    title={`Read ${command.name} reference`}
-                  />
+                    aria-label={`${command.name} details`}
+                  >
+                    Details
+                  </a>
                 </div>
                 {/* Detail bodies mount on expand: keeps the static HTML and DOM
                     budget flat regardless of catalogue size. */}

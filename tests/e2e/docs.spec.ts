@@ -20,8 +20,11 @@ test('guide sidebar keeps every keyboard-focused topic visible in a short viewpo
   await page.setViewportSize({ width: 1440, height: 500 });
   await page.goto('/docs/maintenance/');
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
-  const links = page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link');
-  await expect(links).toHaveCount(guideTopics.length + 1);
+  const navigation = page.getByRole('navigation', { name: 'Guide navigation', exact: true });
+  await expect(navigation.locator('[data-topic-link]')).toHaveCount(guideTopics.length + 1);
+  // The active topic's sections are listed in place, so Tab visits them in DOM order too.
+  await expect(navigation.getByRole('list', { name: 'On This Page', exact: true })).toBeVisible();
+  const links = navigation.getByRole('link');
   for (const fontSize of ['100%', '200%']) {
     await page.locator('html').evaluate((element, value) => { element.style.fontSize = value; }, fontSize);
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -94,9 +97,9 @@ test('guide navigation has its final responsive state with JavaScript disabled',
         await summary.press('Enter');
       }
       await expect(navigation).toBeVisible();
-      await expect(navigation.getByRole('link')).toHaveCount(guideTopics.length + 1);
-      await navigation.getByRole('link', { name: /Nix profiles and pickers/ }).click();
-      await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+      await expect(navigation.locator('[data-topic-link]')).toHaveCount(guideTopics.length + 1);
+      await navigation.getByRole('link', { name: /Nix Profiles and Pickers/ }).click();
+      await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
     } finally { await context.close(); }
   }
 });
@@ -155,7 +158,7 @@ test('cached result counts do not repeatedly mutate the search live region', asy
   await expect(results.first()).toBeVisible();
   const count = await results.count();
   expect(count).toBeGreaterThan(0);
-  await expect(status).toHaveText(`${count} matching topic${count === 1 ? '' : 's'}`);
+  await expect(status).toHaveText(`${count} matching section${count === 1 ? '' : 's'}`);
   await status.evaluate((element) => {
     let mutations = 0;
     new MutationObserver((records) => { element.dataset.mutations = String(mutations += records.length); }).observe(element, { childList: true, characterData: true, subtree: true });
@@ -238,7 +241,7 @@ test('failed search stays failed while typing until Retry or topic navigation', 
   await expect(retry).toBeVisible();
   await page.route('**/docs-search.json?*', (route) => { attempts += 1; return route.fulfill({ json: [{ title: 'Recovered index', url: '/docs/nix/', text: 'fakeroot' }] }); });
   await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await expect(input).toBeEnabled();
   await input.fill('fakeroot');
   await expect(page.getByRole('link', { name: /^Recovered index/ })).toBeVisible();
@@ -261,15 +264,15 @@ for (const arrival of ['deep link', 'native fragment']) {
       return box.top >= Math.max(0, header.bottom) && box.top < innerHeight;
     })).toBe(true);
     await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-    await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
     await page.goBack();
     await expect(page).toHaveURL(/\/docs\/\?keep=1#explore-the-guide$/);
-    await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
     await expect(page.locator('#explore-the-guide')).toBeAttached();
     await page.goForward();
-    await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
     await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
   });
 }
 
@@ -362,7 +365,7 @@ test('a late rejected index request cannot disable search on the next topic', as
   await input.fill('old query');
   await expect.poll(() => Boolean(abortOld)).toBe(true);
   await page.getByRole('navigation', { name: 'Guide pagination' }).getByRole('link').last().click();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await expect(input).toBeEnabled();
   await abortOld!();
   await input.fill('fresh query');
@@ -447,7 +450,7 @@ test('a changed index version refreshes the cache after topic navigation', async
   });
   await page.goto('/docs/?q=oldterm');
   await page.getByRole('link', { name: /^Original index/ }).click();
-  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
   await page.getByRole('searchbox', { name: 'Search docs', exact: true }).fill('newterm');
   await expect(page.getByRole('link', { name: /^Updated index/ })).toBeVisible();
   expect(requests).toHaveLength(2);
@@ -492,7 +495,7 @@ test('ordinary native fragments retain complete router state, query and scroll t
   expect(new URL(page.url()).searchParams.get('q')).toBe('nix profiles');
   release();
   await back;
-  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
   await expect(input).toHaveValue('nix profiles');
   await expect.poll(() => page.evaluate(() => history.state?.index)).toBe(state.index);
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(400);
@@ -604,4 +607,268 @@ test('partial search initialization keeps the native reload recovery available',
   await reload.click();
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   await expect(page.getByRole('searchbox', { name: 'Search docs', exact: true })).toBeEnabled();
+});
+
+test('guide prose links command mentions to their static references', async ({ page }) => {
+  await page.goto('/docs/commands/');
+  const article = page.locator('.markdown-doc');
+  const zhelp = article.locator('a[href="/commands/zhelp/"]').first();
+  await expect(zhelp).toHaveText('zhelp');
+  await expect(zhelp.locator('code')).toHaveCount(1);
+  await expect(article.locator('pre a')).toHaveCount(0);
+  await expect(article.locator(':is(h1, h2, h3, h4) a[href^="/commands/"]')).toHaveCount(0);
+  await zhelp.click();
+  await expect(page).toHaveURL(/\/commands\/zhelp\/$/);
+  await expect(page.getByRole('heading', { name: 'zhelp', level: 1 })).toBeVisible();
+
+  // Subcommand mentions reach the action page, and a command links once per section.
+  await page.goto('/docs/credentials/');
+  await expect(page.locator('.markdown-doc a[href="/commands/cgm-check/"]').first()).toHaveText(/^cgm check/);
+  const perSection = await page.locator('.markdown-doc').evaluate((root) => {
+    const counts: number[] = [];
+    let current = new Map<string, number>();
+    for (const element of root.querySelectorAll('h2, a[href^="/commands/"]')) {
+      if (element.tagName === 'H2') { counts.push(...current.values()); current = new Map(); continue; }
+      const href = element.getAttribute('href') ?? '';
+      current.set(href, (current.get(href) ?? 0) + 1);
+    }
+    return Math.max(0, ...counts, ...current.values());
+  });
+  expect(perSection).toBe(1);
+});
+
+test('guide headings expose shareable section links', async ({ page }) => {
+  await page.goto('/docs/packages/');
+  const heading = page.getByRole('heading', { name: 'Detection', exact: true, level: 3 });
+  const anchor = page.getByRole('link', { name: 'Link to section: Detection', exact: true });
+  await expect(anchor).toHaveAttribute('href', '#detection');
+  // The self-link sits beside the heading, so its accessible name is untouched.
+  await expect(heading.getByRole('link')).toHaveCount(0);
+  if (await page.evaluate(() => matchMedia('(hover: none)').matches)) {
+    // Touch screens cannot hover, so the mark stays faintly visible.
+    await expect(anchor).toHaveCSS('opacity', '0.6');
+  } else {
+    await expect(anchor).toHaveCSS('opacity', '0');
+    await heading.hover();
+    await expect(anchor).toHaveCSS('opacity', '1');
+    await page.mouse.move(0, 0);
+  }
+  await anchor.focus();
+  await expect(anchor).toHaveCSS('opacity', '1');
+  await anchor.click();
+  await expect(page).toHaveURL(/\/docs\/packages\/#detection$/);
+  await expect(heading).toBeInViewport();
+  await expect(page.locator('.markdown-doc :is(h2, h3, h4)')).toHaveCount(await page.locator('.markdown-doc .heading-anchor').count());
+});
+
+test('guide code blocks copy their exact contents and report failures', async ({ page }) => {
+  await page.addInitScript(() => {
+    const writes: string[] = [];
+    Object.defineProperty(window, '__clipboardWrites', { value: writes });
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (text: string) => {
+      if (document.documentElement.dataset.clipboardFails) throw new Error('blocked');
+      writes.push(text);
+    } } });
+  });
+  await page.goto('/docs/finders/');
+  const block = page.locator('.markdown-doc .code-block').first();
+  const button = block.getByRole('button', { name: 'Copy code', exact: true });
+  await expect(button).toBeVisible();
+  const expected = (await block.locator('pre').textContent())?.replace(/\n$/, '');
+  expect(expected).toContain('z projects');
+  await button.click();
+  await expect(block.getByRole('button', { name: 'Copied to clipboard' })).toHaveText('Copied');
+  await expect(block.getByRole('status')).toHaveText('Copied to clipboard');
+  expect(await page.evaluate(() => (window as unknown as { __clipboardWrites: string[] }).__clipboardWrites)).toEqual([expected]);
+
+  // The button lives in a toolbar above the code, never over it.
+  await expect(block.locator('.code-block-bar')).toContainText('zsh');
+  const [buttonBox, preBox] = await Promise.all([button.boundingBox(), block.locator('pre').boundingBox()]);
+  expect((buttonBox?.y ?? 0) + (buttonBox?.height ?? 0)).toBeLessThanOrEqual((preBox?.y ?? 0) + 0.5);
+  if (await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {
+    expect(buttonBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(buttonBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
+  await page.evaluate(() => { document.documentElement.dataset.clipboardFails = 'true'; });
+  await block.getByRole('button', { name: /^Cop/ }).click();
+  await expect(block.getByRole('status')).toHaveText('Could not copy; select the code manually.');
+  await expect(block.getByRole('status')).toBeVisible();
+  await expect(block.getByRole('button', { name: 'Copy code', exact: true })).toBeVisible();
+});
+
+test('guide search results open the matching section, labelled with its topic', async ({ page }) => {
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('fakeroot');
+  const result = page.getByRole('list', { name: 'Guide search results', exact: true }).getByRole('link').first();
+  await expect(result.locator('small')).toHaveText('Installation and Requirements');
+  const href = await result.getAttribute('href');
+  expect(href).toMatch(/^\/docs\/installation\/#[a-z0-9-]+$/);
+  const section = await result.locator('strong').innerText();
+  await expect(page.getByRole('status').first()).toHaveText(/^\d+ matching sections?$/);
+  await result.click();
+  await expect(page).toHaveURL(new RegExp(`${href!.replace(/[/#]/g, '\\$&')}$`));
+  await expect(page.getByRole('heading', { name: section, exact: true })).toBeInViewport();
+});
+
+test('guide search highlights matches and supports keyboard result navigation', async ({ page }) => {
+  await page.route('**/docs-search.json?*', (route) => route.fulfill({ json: [
+    { title: 'First Workflow', topic: 'Fixture', url: '/docs/nix/', text: 'A “Workflow” example with workflow steps.' },
+    { title: 'Second', topic: 'Fixture', url: '/docs/finders/', text: 'Another workflow.' },
+  ] }));
+  await page.goto('/docs/');
+  const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+  await expect(input).toBeEnabled();
+  await input.fill('workflow');
+  const links = page.getByRole('list', { name: 'Guide search results', exact: true }).getByRole('link');
+  await expect(links).toHaveCount(2);
+  // Matches keep their displayed case and punctuation; text content is unchanged.
+  await expect(links.first().locator('strong mark')).toHaveText('Workflow');
+  await expect(links.first().locator('span mark')).toHaveText(['Workflow', 'workflow']);
+  await expect(links.first().locator('span')).toHaveText('A “Workflow” example with workflow steps.');
+
+  await input.press('ArrowDown');
+  await expect(links.first()).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(links.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(links.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowUp');
+  await expect(input).toBeFocused();
+  await input.press('ArrowDown');
+  await page.keyboard.press('Escape');
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue('workflow');
+
+  // Topic labels highlight matches as well.
+  await input.fill('fixture');
+  await expect(links.first().locator('small mark')).toHaveText('Fixture');
+  await expect(links.first().locator('small')).toHaveText('Fixture');
+});
+
+test('search readiness does not shift guide content', async ({ page }) => {
+  // A late layout change above the article moves fragment targets after the
+  // browser or router has scrolled to them, and jolts readers mid-scroll.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/_astro/docs*.js', async (route) => { await held; await route.continue(); });
+  await page.goto('/docs/finders/', { waitUntil: 'commit' });
+  const article = page.locator('.markdown-doc');
+  await expect(article).toBeVisible();
+  const top = () => article.evaluate((element) => element.getBoundingClientRect().top + scrollY);
+  const before = await top();
+  release();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('[data-search-status]')).toHaveText('Search across the whole guide.');
+  expect(Math.abs((await top()) - before)).toBeLessThanOrEqual(0.5);
+});
+
+test('guide copy buttons stay clear of long code lines at every scroll position', async ({ page }) => {
+  const long = 'upkg search ripgrep --only=apt,dnf,pacman,brew,flatpak,nix,npm --skip=paru --dry-run';
+  await page.route('**/docs/finders/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/<article[^>]*>/, `$&<pre data-long-fixture><code class="language-zsh">${long}\n${long} --sudo\nshort</code></pre>`);
+    await route.fulfill({ response, body });
+  });
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/docs/finders/');
+    const pre = page.locator('pre[data-long-fixture]');
+    const button = page.locator('.code-block', { has: pre }).getByRole('button', { name: 'Copy code', exact: true });
+    await expect(button).toBeVisible();
+    expect(await pre.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    for (const position of ['start', 'middle', 'end']) {
+      await pre.evaluate((element, where) => {
+        const max = element.scrollWidth - element.clientWidth;
+        element.scrollLeft = where === 'start' ? 0 : where === 'middle' ? max / 2 : max;
+      }, position);
+      const overlap = await pre.evaluate((element) => {
+        const code = element.getBoundingClientRect();
+        const control = element.closest('.code-block')!.querySelector('button')!.getBoundingClientRect();
+        return control.bottom > code.top + 0.5 && control.top < code.bottom;
+      });
+      expect(overlap, `${width}px at ${position}`).toBe(false);
+    }
+  }
+});
+
+for (const arrival of ['typed', 'URL']) {
+  test(`same-page section results keep search and history in sync when the query was ${arrival}`, async ({ page }) => {
+    await page.goto(arrival === 'URL' ? '/docs/finders/?q=zoxide' : '/docs/finders/');
+    await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+    const input = page.getByRole('searchbox', { name: 'Search docs', exact: true });
+    const results = page.getByRole('list', { name: 'Guide search results', exact: true });
+    if (arrival === 'typed') {
+      await input.fill('zoxide');
+      await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('zoxide');
+    }
+    const sameTopic = results.locator('a[href="/docs/finders/#zoxide"]');
+    await expect(sameTopic).toBeVisible();
+    // Keyboard activation follows the same path as a click.
+    await sameTopic.focus();
+    await page.keyboard.press('Enter');
+
+    const expectSection = async () => {
+      await expect(page).toHaveURL(/\/docs\/finders\/#zoxide$/);
+      await expect(input).toHaveValue('');
+      await expect(results).toBeHidden();
+      await expect(page.getByRole('heading', { name: 'Zoxide', exact: true, level: 3 })).toBeInViewport();
+    };
+    const expectSearch = async () => {
+      await expect(page).toHaveURL(/\/docs\/finders\/\?q=zoxide$/);
+      await expect(input).toHaveValue('zoxide');
+      await expect(sameTopic).toBeVisible();
+    };
+    await expectSection();
+    const sectionId = await page.evaluate(() => history.state?.docsQueryId);
+    expect(sectionId).toEqual(expect.any(String));
+    await page.goBack();
+    await expectSearch();
+    const searchId = await page.evaluate(() => history.state?.docsQueryId);
+    expect(searchId).not.toBe(sectionId);
+    await page.goForward();
+    await expectSection();
+    await page.reload();
+    await expectSection();
+    await page.goBack();
+    await expectSearch();
+    expect(await page.evaluate(() => history.state?.docsQueryId)).toBe(searchId);
+  });
+}
+
+test('search status stays visible until the controller is ready or has failed', async ({ page }) => {
+  const status = page.locator('[data-search-status]');
+  const height = () => status.evaluate((element) => element.getBoundingClientRect().height);
+
+  // Delayed controller: the loading message remains readable until ready.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/_astro/docs*.js', async (route) => { await held; await route.continue(); });
+  // Module scripts hold back DOMContentLoaded and load, so only wait for the response.
+  await page.goto('/docs/finders/', { waitUntil: 'commit' });
+  await expect(status).toHaveText('Guide search is loading. Browse the topics below.');
+  await expect(page.locator('[data-docs-search]')).not.toHaveAttribute('data-ready', 'true');
+  expect(await height()).toBeGreaterThan(1);
+  const loadingHeight = await height();
+  release();
+  await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
+  // The idle message replaces the loading message in the same row.
+  await expect(status).toHaveText('Search across the whole guide.');
+  await expect(status).toBeVisible();
+  expect(await height()).toBe(loadingHeight);
+  await page.unroute('**/_astro/docs*.js');
+
+  // Failed controller: the initialization failure is shown, not collapsed.
+  await page.clock.install();
+  await page.route('**/_astro/docs*.js', (route) => route.abort());
+  await page.goto('/docs/?fail=1');
+  await expect(status).toBeVisible();
+  expect(await height()).toBeGreaterThan(1);
+  await page.clock.fastForward(10_001);
+  await expect(status).toHaveText('Couldn’t initialize guide search. Reload or browse the topics.');
+  await expect(status).toBeVisible();
+  expect(await height()).toBeGreaterThan(1);
 });

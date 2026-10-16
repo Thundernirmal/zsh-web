@@ -1,5 +1,5 @@
 ---
-title: "Shell guide"
+title: "Shell Guide"
 description: "Setup, everyday workflows, and the details behind your commands."
 ---
 

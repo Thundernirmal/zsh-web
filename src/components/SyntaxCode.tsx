@@ -7,6 +7,11 @@ interface SyntaxCodeProps {
   className?: string;
 }
 
+// Tokens wrap as whole units: an inline-block moves `--only=apt,nix` to the
+// next line instead of breaking after its hyphens. max-w-full still lets a
+// token wider than the column wrap internally. Comments keep word wrapping.
+const atom = 'inline-block max-w-full';
+
 function renderToken(token: string, isFirst: boolean, query: string): ReactNode {
   const content = query ? highlightText(token, query) : token;
 
@@ -21,7 +26,7 @@ function renderToken(token: string, isFirst: boolean, query: string): ReactNode 
   // Flags & Options (-v, --flag, -la)
   if (token.startsWith('-') && token.length > 1) {
     return (
-      <span key={token} className="text-category-git">
+      <span key={token} className={`${atom} text-category-git`}>
         {content}
       </span>
     );
@@ -29,7 +34,7 @@ function renderToken(token: string, isFirst: boolean, query: string): ReactNode 
   // Placeholders / Parameter templates (<pattern>, [path], <list|use>)
   if (/^[<[][^>\]]+[>\]]$/.test(token)) {
     return (
-      <span key={token} className="text-category-utility">
+      <span key={token} className={`${atom} text-category-utility`}>
         {content}
       </span>
     );
@@ -37,7 +42,7 @@ function renderToken(token: string, isFirst: boolean, query: string): ReactNode 
   // Operators (|, &&, ||, >, >>)
   if (/^(\|{1,2}|&&|>+|\|)$/.test(token)) {
     return (
-      <span key={token} className="text-category-pipe font-bold">
+      <span key={token} className={`${atom} text-category-pipe font-bold`}>
         {content}
       </span>
     );
@@ -45,7 +50,7 @@ function renderToken(token: string, isFirst: boolean, query: string): ReactNode 
   // Quoted strings
   if (/^["'].*["']$/.test(token)) {
     return (
-      <span key={token} className="text-category-search">
+      <span key={token} className={`${atom} text-category-search`}>
         {content}
       </span>
     );
@@ -53,13 +58,13 @@ function renderToken(token: string, isFirst: boolean, query: string): ReactNode 
   // Primary command name
   if (isFirst) {
     return (
-      <span key={token} className="text-foreground font-semibold">
+      <span key={token} className={`${atom} text-foreground font-semibold`}>
         {content}
       </span>
     );
   }
 
-  return <span key={token}>{content}</span>;
+  return <span key={token} className={atom}>{content}</span>;
 }
 
 export function SyntaxCode({ code, query = '', className }: SyntaxCodeProps) {

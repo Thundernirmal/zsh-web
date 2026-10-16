@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { RotateCcwIcon, SearchIcon, SearchXIcon } from 'lucide-react';
 
 import { CategoryBadge, CategoryIcon } from '@/components/CategoryBadge';
+import { CopyButton } from '@/components/CopyButton';
 import { highlightText } from '@/components/HighlightText';
 import { Badge } from '@/components/ui/badge';
 import { categoryLabels, categoryOrder, type Category } from '@/lib/categories';
@@ -27,9 +28,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSlashFocus } from '@/hooks/useSlashFocus';
-import { commandHref, formatLabel, type ShellTip } from '@/lib/shell-docs';
+import { matchesQuery } from '@/lib/command-search';
+import { commandHref, formatLabel, tipSourceLabel, type ShellTip } from '@/lib/shell-docs';
 
 const PAGE_SIZE = 24;
+
+// Copying needs JavaScript, so copy buttons render only after hydration: the
+// static HTML stays within its budget and no-JS readers get no dead controls.
+const subscribeNever = () => () => {};
+const useHydrated = () => useSyncExternalStore(subscribeNever, () => true, () => false);
 
 function tipSearchText(tip: ShellTip): string {
   return [tip.text, tip.category, tip.source, tip.availability]
@@ -38,12 +45,57 @@ function tipSearchText(tip: ShellTip): string {
     .toLowerCase();
 }
 
+// A tip's runnable segment renders as inline code with its command linked;
+// older or prose-only tips fall back to linking the leading command name.
+function TipText({ tip, query }: { tip: ShellTip; query: string }) {
+  const href = tip.commandId ? commandHref({ id: tip.commandId }) : undefined;
+  const exampleStart = tip.example ? tip.text.indexOf(tip.example) : -1;
+  if (href && tip.example && tip.commandName && exampleStart >= 0) {
+    return (
+      <>
+        {highlightText(tip.text.slice(0, exampleStart), query)}
+        <code translate="no">
+          <a className="text-link" href={href} translate="no">{tip.commandName}</a>
+          {highlightText(tip.example.slice(tip.commandName.length), query)}
+        </code>
+        {highlightText(tip.text.slice(exampleStart + tip.example.length), query)}
+      </>
+    );
+  }
+  const nameStart = tip.commandName ? tip.text.indexOf(tip.commandName) : -1;
+  if (href && tip.commandName && nameStart >= 0) {
+    return (
+      <>
+        {highlightText(tip.text.slice(0, nameStart), query)}
+        <a className="text-link" href={href} translate="no">{tip.commandName}</a>
+        {highlightText(tip.text.slice(nameStart + tip.commandName.length), query)}
+      </>
+    );
+  }
+  return <>{highlightText(tip.text, query)}</>;
+}
+
 export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const isInitialMount = useRef(true);
   const searchRef = useRef<HTMLInputElement>(null);
+  const hydrated = useHydrated();
+  const listRef = useRef<HTMLDivElement>(null);
+  // Index of the first tip revealed by "Show More", focused once it renders so
+  // keyboard and screen-reader users continue from the new content.
+  const revealedIndex = useRef<number | null>(null);
+
+  useEffect(() => {
+    const index = revealedIndex.current;
+    if (index === null) return;
+    revealedIndex.current = null;
+    const tip = listRef.current?.querySelectorAll<HTMLElement>('[role="listitem"]')[index];
+    tip?.focus({ preventScroll: true });
+    // WebKit does not reliably scroll on programmatic focus; scroll explicitly.
+    tip?.scrollIntoView({ block: 'nearest' });
+  }, [visibleCount]);
 
   useSlashFocus(searchRef, {
     onClear: () => setQuery(''),
@@ -89,7 +141,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
       if (filter !== 'all' && tip.category !== filter) return false;
       if (!nq) return true;
       const text = corpus.get(`${tip.category}:${tip.text}`) ?? '';
-      return text.includes(nq);
+      return matchesQuery(text, nq);
     });
   }, [corpus, filter, normalizedQuery, tips]);
 
@@ -105,7 +157,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
     }
     for (const tip of tips) {
       const text = corpus.get(`${tip.category}:${tip.text}`) ?? '';
-      if (!text.includes(normalizedQuery)) continue;
+      if (!matchesQuery(text, normalizedQuery)) continue;
       acc.all += 1;
       acc[tip.category] = (acc[tip.category] ?? 0) + 1;
     }
@@ -226,8 +278,10 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
         </Empty>
       ) : (
         <>
-          <ItemGroup className="gap-2">
-            {visibleTips.map((tip) => (
+          <ItemGroup ref={listRef} className="gap-2">
+            {visibleTips.map((tip) => {
+              const sourceLabel = tipSourceLabel(tip, categoryLabels[tip.category] ?? formatLabel(tip.category));
+              return (
               <Item
                 key={`${tip.category}:${tip.text}`}
                 role="listitem"
@@ -238,26 +292,33 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               >
                 <ItemContent className="min-w-0 gap-1">
                   <ItemDescription className="line-clamp-none text-pretty">
-                    {tip.commandId && tip.commandName && tip.text.includes(tip.commandName) ? <>
-                      {highlightText(tip.text.slice(0, tip.text.indexOf(tip.commandName)), query)}
-                      <a className="text-link" href={commandHref({ id: tip.commandId })}>{tip.commandName}</a>
-                      {highlightText(tip.text.slice(tip.text.indexOf(tip.commandName) + tip.commandName.length), query)}
-                    </> : highlightText(tip.text, query)}
+                    <TipText tip={tip} query={query} />
                   </ItemDescription>
                   {tip.availability && (
                     <p className="text-sm leading-5 text-muted-foreground">{highlightText(tip.availability, query)}</p>
                   )}
                 </ItemContent>
-                <ItemActions className="basis-full flex-wrap justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
+                <ItemActions className="basis-full flex-wrap items-center justify-start gap-1.5 sm:ml-auto sm:basis-auto sm:justify-end">
+                  {hydrated && tip.example && tip.exampleCopyable && (
+                    <CopyButton text={tip.example} label={`Copy command: ${tip.example}`} className="size-7" />
+                  )}
                   <CategoryBadge category={tip.category} />
-                  {tip.source && <Badge variant="metadata">{formatLabel(tip.source)}</Badge>}
+                  {sourceLabel && <Badge variant="metadata">{sourceLabel}</Badge>}
                 </ItemActions>
               </Item>
-            ))}
+              );
+            })}
           </ItemGroup>
           {visibleTips.length < filteredTips.length && (
             <div className="flex justify-center pt-1">
-              <Button type="button" variant="outline" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  revealedIndex.current = visibleTips.length;
+                  setVisibleCount((count) => count + PAGE_SIZE);
+                }}
+              >
                 Show {Math.min(PAGE_SIZE, filteredTips.length - visibleTips.length)} More Tips
               </Button>
             </div>

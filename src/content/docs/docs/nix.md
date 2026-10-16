@@ -1,5 +1,5 @@
 ---
-title: "Nix profiles and pickers"
+title: "Nix Profiles and Pickers"
 description: "Manage profiles, select packages, and compare outputs."
 ---
 

@@ -12,7 +12,7 @@ test('Nix picker syntax remains a subcommand with its matching example', async (
   await expect(row).toHaveCount(1);
   await expect(row.locator('dt, th').filter({ visible: true })).toHaveText('find [--] [query ...]');
   await expect(row.getByText('npkg find nvim', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Read npkg reference', exact: true }).click();
+  await page.getByRole('link', { name: 'npkg details', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'npkg', level: 1 })).toBeVisible();
   await expect(page.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true }).getByText('npkg find nvim', { exact: true })).toBeVisible();
 });
@@ -32,14 +32,14 @@ test('maintenance instructions have their own accessible guide page', async ({ p
   await expect(pipeAlias.getByRole('cell').nth(1)).toHaveText('| grep');
   await expect(pipeAlias.getByRole('cell').nth(2)).toHaveText('git log G fix');
   await page.goto('/docs/#maintenance-and-verification');
-  await expect(page.getByRole('heading', { name: 'Maintenance and verification', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Maintenance and Verification', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Required checks', level: 3, exact: true })).toBeVisible();
   const table = page.locator('.markdown-doc table').first();
   await expect(table).toHaveAttribute('tabindex', '0');
   await table.focus();
   await expect(table).toBeFocused();
   await page.getByRole('link', { name: '← Back to the shell guide', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
 });
 
 test('custom docs share site chrome and support mobile topic navigation', async ({ page }) => {
@@ -61,16 +61,21 @@ test('custom docs share site chrome and support mobile topic navigation', async 
     await summary.press('Enter');
     await expect(menu).toHaveAttribute('open');
   }
-  await page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link', { name: /Nix profiles and pickers/ }).click();
-  await expect(page.getByRole('heading', { name: 'Nix profiles and pickers', level: 1 })).toBeVisible();
-  await expect(menu.locator('a[aria-current="page"]')).toContainText('Nix profiles and pickers');
+  await page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('link', { name: /Nix Profiles and Pickers/ }).click();
+  await expect(page.getByRole('heading', { name: 'Nix Profiles and Pickers', level: 1 })).toBeVisible();
+  await expect(menu.locator('a[aria-current="page"]')).toContainText('Nix Profiles and Pickers');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await page.goto('/docs/#nix-profile-manager-npkg');
   await expect(page).toHaveURL(/\/docs\/nix\/#nix-profile-manager-npkg$/);
   await expect(page.getByRole('heading', { name: 'Nix profile manager: npkg', level: 2 })).toBeVisible();
-  const outline = page.locator('.docs-outline');
-  await outline.locator('summary').click();
-  await page.getByRole('navigation', { name: 'On this page', exact: true }).getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
+  // Phones open the in-article outline; desktop lists sections under the active topic.
+  const desktop = (page.viewportSize()?.width ?? 0) >= 1024;
+  if (desktop) await expect(page.locator('.docs-outline')).toBeHidden();
+  else await page.locator('.docs-outline summary').click();
+  const sections = desktop
+    ? page.getByRole('navigation', { name: 'Guide navigation', exact: true }).getByRole('list', { name: 'On This Page', exact: true })
+    : page.getByRole('navigation', { name: 'On This Page', exact: true });
+  await sections.getByRole('link', { name: 'Picker cache and dependencies', exact: true }).click();
   await expect(page).toHaveURL(/#picker-cache-and-dependencies$/);
   await expect(page.getByRole('heading', { name: 'Picker cache and dependencies', exact: true })).toBeInViewport();
   await page.locator('[data-site-header]').getByRole('link', { name: 'Commands', exact: true }).click();
@@ -96,7 +101,7 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   await input.fill('fakeroot');
   await expect(page).toHaveURL(/\?q=fakeroot$/);
   const results = page.getByRole('list', { name: 'Guide search results', exact: true });
-  const installation = results.getByRole('link', { name: /^Installation and requirements/ });
+  const installation = results.getByRole('link', { name: /^Installation and Requirements/ });
   await expect(installation).toBeVisible();
   expect(indexRequests).toHaveLength(1);
   await input.press('Escape');
@@ -113,13 +118,13 @@ test('inline docs search loads on demand, clears, and links to topic content', a
   expect(indexRequests).toHaveLength(1);
   await installation.click();
   await expect(page).toHaveURL(/\/docs\/installation\//);
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await page.goBack();
   await expect(input).toHaveValue('fakeroot');
   await expect(installation).toBeVisible();
   expect(indexRequests).toHaveLength(1);
   await page.goForward();
-  await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
   await expect(input).toHaveValue('');
 });
 
@@ -181,7 +186,13 @@ test('command search, filters, expanded state, and history remain URL synchroniz
 	}).toBe(true);
 	await searchbox.fill('upkg');
 	await expect(page).toHaveURL(/q=upkg/);
-	await page.getByRole('button', { name: /^Functions,/ }).click();
+	// Wider screens use the type buttons; phones use the equivalent select.
+	if ((page.viewportSize()?.width ?? 0) >= 640) {
+		await page.getByRole('button', { name: /^Functions,/ }).click();
+	} else {
+		await page.getByRole('combobox', { name: 'Filter commands by type' }).click();
+		await page.getByRole('option', { name: /^Functions \(/ }).click();
+	}
 	await expect(page).toHaveURL(/type=function/);
 	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
 	await expect(page).toHaveURL(/command=function%3Aupkg/);
@@ -215,6 +226,12 @@ test('filter-removal chips are real buttons keyboard users can activate', async 
 	await expect(queryChip).toBeVisible();
 	await expect(typeChip).toBeVisible();
 	await expect(categoryChip).toBeVisible();
+	// Chips and Reset all share one touch-target size on phones.
+	if ((page.viewportSize()?.width ?? 0) < 640) {
+		for (const control of [queryChip, typeChip, categoryChip, page.getByRole('button', { name: 'Reset all', exact: true })]) {
+			expect((await control.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+		}
+	}
 
 	await categoryChip.focus();
 	await page.keyboard.press('Enter');
@@ -388,7 +405,7 @@ test('full command reference works with JavaScript disabled', async ({ browser }
 	const context = await browser.newContext({ javaScriptEnabled: false });
 	const page = await context.newPage();
 	await page.goto('/commands/');
-	await page.getByRole('link', { name: 'Read upkg reference', exact: true }).click();
+	await page.getByRole('link', { name: 'upkg details', exact: true }).click();
 	await expect(page).toHaveURL(/\/commands\/upkg\/$/);
 	await expect(page.getByRole('heading', { level: 1, name: 'upkg' })).toBeVisible();
 	await expect(page.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
@@ -471,12 +488,24 @@ test('setup and troubleshooting are reachable from the homepage', async ({ page 
 	await expect(page.getByRole('heading', { name: 'Secret Service is unavailable' })).toBeVisible();
 });
 
+test('homepage introduction reads as one spaced sentence', async ({ page }) => {
+	await page.goto('/');
+	const intro = page.locator('#home-page-header p');
+	await expect(intro).toHaveText(
+		'A living guide to aliases, functions, tips, and workflows, extracted directly from the Thundernirmal/zsh (opens in a new tab) repository.',
+	);
+	await expect(intro.getByRole('link', { name: 'Thundernirmal/zsh (opens in a new tab)' })).toHaveAttribute(
+		'href',
+		'https://github.com/Thundernirmal/zsh',
+	);
+});
+
 test('the committed shell guide is reachable from the homepage', async ({ page }) => {
 	await page.goto('/');
 	const docsAction = page.locator('main').getByRole('link', { name: 'Read Docs', exact: true });
 	await expect(docsAction).toHaveAttribute('href', '/docs/');
 	await docsAction.click();
-	await expect(page.getByRole('heading', { name: 'Shell guide', level: 1 })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
 	await expect(page.getByText('Documentation snapshot', { exact: true })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'View GUIDE.md source' })).toHaveAttribute(
 		'href',
@@ -486,8 +515,8 @@ test('the committed shell guide is reachable from the homepage', async ({ page }
 		'href',
 		/\/blob\/[0-9a-f]{40}\/README\.md$/,
 	);
-	await page.locator('.docs-card-grid').getByRole('link', { name: /Installation and requirements/ }).click();
-	await expect(page.getByRole('heading', { name: 'Installation and requirements', level: 1 })).toBeVisible();
+	await page.locator('.docs-card-grid').getByRole('link', { name: /Installation and Requirements/ }).click();
+	await expect(page.getByRole('heading', { name: 'Installation and Requirements', level: 1 })).toBeVisible();
 	const firstTable = page.locator('.markdown-doc table').first();
 	await expect(firstTable).toHaveAttribute('tabindex', '0');
 	await firstTable.focus();
@@ -602,11 +631,11 @@ test('collapsed command rows keep static reference links inline', async ({ page 
 	const trigger = command.locator('[data-slot="accordion-trigger"]');
 	const commandName = trigger.locator('span[translate="no"]').first();
 	const chevron = trigger.locator('[data-slot="accordion-trigger-icon"]:visible');
-	const reference = command.getByRole('link', { name: 'Read upkg reference', exact: true });
+	const reference = command.getByRole('link', { name: 'upkg details', exact: true });
 	await expect(reference).toHaveAttribute('href', '/commands/upkg/');
-	await expect(reference).toHaveAttribute('title', 'Read upkg reference');
 	await expect(reference).toHaveCSS('border-top-style', 'solid');
-	expect(await reference.evaluate((element) => getComputedStyle(element, '::before').content)).toContain('Reference ↗');
+	await expect(reference).toHaveText('Details');
+	await expect(reference).not.toHaveAttribute('target', /.+/);
 	const layout = await Promise.all([command.boundingBox(), trigger.boundingBox(), commandName.boundingBox(), chevron.boundingBox(), reference.boundingBox()]);
 	const [commandBox, triggerBox, commandNameBox, chevronBox, referenceBox] = layout;
 	expect(commandBox).not.toBeNull();
@@ -630,7 +659,7 @@ test('collapsed command rows keep static reference links inline', async ({ page 
 
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.reload();
-	expect(await reference.evaluate((element) => getComputedStyle(element, '::before').content)).toContain('Docs ↗');
+	await expect(reference).toHaveText('Details');
 	const mobileLayout = await Promise.all([command.boundingBox(), trigger.boundingBox(), commandName.boundingBox(), chevron.boundingBox(), reference.boundingBox()]);
 	const [mobileCommandBox, mobileTriggerBox, mobileCommandNameBox, mobileChevronBox, mobileReferenceBox] = mobileLayout;
 	expect(mobileCommandBox?.height ?? Infinity).toBeLessThanOrEqual(140);
@@ -665,4 +694,228 @@ test('reference text reflows at 200% sizing and a 320px viewport', async ({ page
 	const widths = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
 	expect(widths.content).toBeLessThanOrEqual(widths.viewport);
 	await expect(page.locator('main').getByRole('link', { name: 'lib/functions-upkg.zsh', exact: true })).toBeVisible();
+});
+
+test('command pages link to the guide sections that mention them', async ({ page }) => {
+	await page.goto('/commands/upkg/');
+	const mentions = page.getByRole('region', { name: 'In the Guide' });
+	await expect(mentions.getByRole('link', { name: 'Package Workflows', exact: true })).toHaveAttribute('href', '/docs/packages/');
+	const detection = mentions.getByRole('list', { name: 'Package Workflows sections' }).getByRole('link', { name: 'Detection', exact: true });
+	await expect(detection).toHaveAttribute('href', '/docs/packages/#detection');
+	await detection.click();
+	await expect(page).toHaveURL(/\/docs\/packages\/#detection$/);
+	await expect(page.getByRole('heading', { name: 'Detection', level: 3 })).toBeInViewport();
+
+	// Aliases that shadow system tools are never attributed, so no empty section renders.
+	await page.goto('/commands/cat/');
+	await expect(page.getByRole('region', { name: 'In the Guide' })).toHaveCount(0);
+});
+
+test('command pages link their category and related commands', async ({ page }) => {
+	await page.goto('/commands/zhelp/');
+	const related = page.getByRole('region', { name: 'More Meta Commands' });
+	await expect(related.getByRole('listitem')).toHaveCount(8);
+	await expect(related.getByRole('link', { name: /^zhelp\b/ })).toHaveCount(0);
+	await related.getByRole('link', { name: /^tips\b/ }).click();
+	await expect(page).toHaveURL(/\/commands\/tips\/$/);
+
+	await page.goto('/commands/zhelp/');
+	await page.getByRole('region', { name: 'More Meta Commands' }).getByRole('link', { name: 'View all 11 Meta commands' }).click();
+	await expect(page).toHaveURL(/\/commands\/\?cat=meta$/);
+	await expect(page.locator('[data-command]')).toHaveCount(11);
+
+	await page.goto('/commands/upkg/');
+	await page.getByRole('link', { name: 'Browse all Package Updates commands' }).click();
+	await expect(page).toHaveURL(/\/commands\/\?cat=packages$/);
+	await expect(page.locator('[data-command]')).toHaveCount(4);
+});
+
+test('featured examples go beyond the bare command name', async ({ page }) => {
+	await page.goto('/commands/upkg/');
+	const featured = page.getByRole('region', { name: 'Runnable example' });
+	await expect(featured.locator('pre')).toHaveText('upkg search ripgrep');
+	await expect(featured.getByRole('button', { name: 'Copy example' })).toBeVisible();
+
+	// A command whose only example is its name skips the redundant block but keeps a copyable syntax.
+	await page.goto('/commands/zdoctor/');
+	await expect(page.getByRole('region', { name: 'Runnable example' })).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'Syntax', exact: true })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Copy example: zdoctor' })).toBeVisible();
+});
+
+test('registry flag notes render as an options list', async ({ page }) => {
+	await page.goto('/commands/upkg/');
+	const options = page.locator('[data-command-options]');
+	await expect(options.locator('dt')).toHaveText(['--only <list>', '--skip <list>', '--sudo', '--dry-run']);
+	await expect(options.locator('dd').first()).toHaveText('Comma-separated manager IDs to include');
+	await expect(page.getByRole('heading', { name: 'Options', exact: true })).toBeVisible();
+	await expect(page.getByText(/^Flag:/)).toHaveCount(0);
+	await expect(page.getByText('upgrades never inject sudo automatically')).toBeVisible();
+});
+
+test('syntax tokens wrap whole instead of breaking after their hyphens', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await page.goto('/commands/upkg/');
+	const flag = page.locator('[data-feature-table] table pre span', { hasText: /^--only=apt,nix$/ });
+	await expect(flag).toBeVisible();
+	// One client rect means the token sits on a single line.
+	expect(await flag.evaluate((element) => element.getClientRects().length)).toBe(1);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('empty command searches suggest a typo-corrected query', async ({ page }) => {
+	await page.goto('/commands/?q=upgarde%20packges');
+	await expect(page.getByRole('heading', { name: 'No Commands Found' })).toBeVisible();
+	const suggestion = page.getByRole('button', { name: '“upgrade packages”' });
+	await expect(suggestion).toBeVisible();
+	await suggestion.click();
+	await expect(page.getByRole('searchbox')).toHaveValue('upgrade packages');
+	await expect(page.getByRole('searchbox')).toBeFocused();
+	await expect(page).toHaveURL(/q=upgrade\+packages|q=upgrade%20packages/);
+	await expect(page.locator('[data-command="upkg"]')).toBeVisible();
+
+	// Unrelated input gets no suggestion, only the clear action.
+	await page.goto('/commands/?q=zxqvw');
+	await expect(page.getByRole('heading', { name: 'No Commands Found' })).toBeVisible();
+	await expect(page.getByText(/Did you mean/)).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Clear Search' })).toBeVisible();
+});
+
+test('tip source badges never repeat the category or the linked command', async ({ page }) => {
+	await page.goto('/tips/?q=croot');
+	const croot = page.getByRole('listitem').filter({ hasText: 'Run croot to jump' });
+	await expect(croot.locator('[data-category="git"]')).toHaveText('Git');
+	await expect(croot.locator('[data-slot="badge"]')).toHaveCount(1);
+
+	await page.goto(`/tips/?q=${encodeURIComponent('npkg search ripgrep')}`);
+	const npkg = page.getByRole('listitem').filter({ hasText: 'to search nixpkgs' });
+	await expect(npkg.getByRole('link', { name: 'npkg' })).toBeVisible();
+	await expect(npkg.locator('[data-slot="badge"]', { hasText: /^Npkg$/ })).toHaveCount(0);
+
+	// Informative sources remain.
+	await page.goto(`/tips/?q=${encodeURIComponent('detailed listing')}`);
+	await expect(page.getByRole('listitem').first().locator('[data-slot="badge"]', { hasText: /^Core$/ })).toBeVisible();
+});
+
+test('tip search matches separate words in any order, like command search', async ({ page }) => {
+	await page.goto(`/tips/?q=${encodeURIComponent('branch git')}`);
+	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
+	await page.goto(`/tips/?q=${encodeURIComponent('git branch')}`);
+	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
+});
+
+test('showing more tips moves focus to the first newly revealed tip', async ({ page }) => {
+	await page.goto('/tips/');
+	const tips = page.getByRole('listitem');
+	await expect(tips).toHaveCount(24);
+	// Poll the island's keyboard shortcut so Show More is hydrated before use.
+	await expect.poll(async () => {
+		await page.keyboard.press('/');
+		return page.getByRole('searchbox').evaluate((element) => element === document.activeElement);
+	}).toBe(true);
+	const showMore = page.getByRole('button', { name: /^Show 24 More Tips$/ });
+	await showMore.focus();
+	await page.keyboard.press('Enter');
+	await expect(tips).toHaveCount(48);
+	await expect(tips.nth(24)).toBeFocused();
+	await expect(tips.nth(24)).toBeInViewport();
+});
+
+test('tips show runnable commands as code and copy only concrete invocations', async ({ page }) => {
+	await page.addInitScript(() => {
+		const writes: string[] = [];
+		Object.defineProperty(window, '__clipboardWrites', { value: writes });
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (text: string) => { writes.push(text); } } });
+	});
+	await page.goto(`/tips/?q=${encodeURIComponent('npkg search ripgrep')}`);
+	const tip = page.getByRole('listitem').filter({ hasText: 'to search nixpkgs' });
+	await expect(tip.locator('code')).toHaveText('npkg search ripgrep');
+	await expect(tip.locator('code').getByRole('link', { name: 'npkg', exact: true })).toHaveAttribute('href', '/commands/npkg/');
+	await tip.getByRole('button', { name: 'Copy command: npkg search ripgrep' }).click();
+	await expect.poll(() => page.evaluate(() => (window as unknown as { __clipboardWrites: string[] }).__clipboardWrites)).toEqual(['npkg search ripgrep']);
+
+	// Placeholder syntax is shown as code but is not offered for copying.
+	await page.goto(`/tips/?q=${encodeURIComponent('rank files recursively')}`);
+	const bigfiles = page.getByRole('listitem').filter({ hasText: 'rank files recursively' });
+	await expect(bigfiles.locator('code')).toHaveText('bigfiles [path] [count]');
+	await expect(bigfiles.getByRole('button', { name: /^Copy/ })).toHaveCount(0);
+
+	// Incomplete invocations (missing a required pattern, or a capitalised placeholder) are not copyable.
+	for (const [query, example] of [['broaden a search', 'ff --no-ignore'], ['retain a compressed link target', 'extract --destination DIR link.gz']]) {
+		await page.goto(`/tips/?q=${encodeURIComponent(query)}`);
+		const tip = page.getByRole('listitem').filter({ hasText: query });
+		await expect(tip.locator('code')).toHaveText(example);
+		await expect(tip.getByRole('button', { name: /^Copy/ })).toHaveCount(0);
+	}
+});
+
+test('tip copy buttons are omitted without JavaScript', async ({ browser, baseURL }) => {
+	const context = await browser.newContext({ javaScriptEnabled: false });
+	try {
+		const page = await context.newPage();
+		await page.goto(new URL('/tips/', baseURL).href);
+		await expect(page.locator('main code').first()).toBeVisible();
+		await expect(page.getByRole('button', { name: /^Copy command/ })).toHaveCount(0);
+	} finally { await context.close(); }
+});
+
+test('footer shows the source date in a readable, machine-tagged form', async ({ page }) => {
+	await page.goto('/');
+	const date = page.locator('footer time');
+	await expect(date).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
+	await expect(date).toHaveText(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+	const iso = await date.getAttribute('datetime');
+	expect(await date.textContent()).toBe(new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)));
+});
+
+test('homepage terminal keeps example comments beside their command', async ({ page }) => {
+	await page.goto('/');
+	const command = page.locator('main figure pre span.align-middle', { hasText: 'upkg search ripgrep' });
+	await expect(command).toBeVisible();
+	const comment = command.locator('span', { hasText: /^\s*# compare package search matches$/ });
+	if ((page.viewportSize()?.width ?? 0) < 640) {
+		// Phones drop the comment instead of wrapping it onto a line of its own.
+		await expect(comment).toBeHidden();
+		expect((await command.innerText()).trim()).toBe('upkg search ripgrep');
+	} else {
+		await expect(comment).toBeVisible();
+		// The comment starts on the command's own line.
+		const lines = await command.evaluate((element) => {
+			const commandTop = element.getClientRects()[0].top;
+			const commentTop = element.querySelector('span')!.getClientRects()[0].top;
+			return { commandTop, commentTop };
+		});
+		expect(Math.abs(lines.commentTop - lines.commandTop)).toBeLessThanOrEqual(2);
+	}
+});
+
+test('option matches are reported as Options and index what is displayed', async ({ page }) => {
+	await page.goto(`/commands/?q=${encodeURIComponent('Comma-separated manager IDs')}`);
+	const upkg = page.locator('[data-command="upkg"]');
+	await expect(upkg.getByText('Match: Options', { exact: true })).toBeVisible();
+	await expect(upkg.getByText(/Match: .*Notes/)).toHaveCount(0);
+	// The registry's "Flag:" prefix is not displayed, so it is not searchable either.
+	await page.goto(`/commands/?q=${encodeURIComponent('Flag: --only')}`);
+	await expect(page.getByRole('heading', { name: 'No Commands Found' })).toBeVisible();
+	await page.goto(`/commands/?q=${encodeURIComponent('--only <list>')}`);
+	await expect(page.locator('[data-command="upkg"]')).toBeVisible();
+});
+
+test('command identifiers are protected from machine translation', async ({ page }) => {
+	const unprotected = (selector: string) => page.locator(selector).evaluateAll((elements) =>
+		elements.filter((element) => !element.closest('[translate="no"]')).map((element) => element.textContent));
+
+	await page.goto('/tips/');
+	await expect(page.getByRole('listitem').first()).toBeVisible();
+	expect(await unprotected('[role="listitem"] a[href^="/commands/"]')).toEqual([]);
+
+	await page.goto('/docs/commands/');
+	expect(await page.locator('.markdown-doc a[href^="/commands/"]').count()).toBeGreaterThan(0);
+	expect(await unprotected('.markdown-doc a[href^="/commands/"]')).toEqual([]);
+
+	await page.goto('/commands/upkg/');
+	await expect(page.getByRole('heading', { name: 'upkg', level: 1 })).toHaveAttribute('translate', 'no');
+	const aliases = page.getByText(/^check, list$/);
+	await expect(aliases.first()).toBeAttached();
+	expect(await aliases.evaluateAll((elements) => elements.every((element) => element.closest('[translate="no"]')))).toBe(true);
 });

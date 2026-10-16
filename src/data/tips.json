@@ -41,7 +41,8 @@
     "source": "core",
     "availability": "Available when GNU find and du are installed",
     "commandId": "command-bigfiles",
-    "commandName": "bigfiles"
+    "commandName": "bigfiles",
+    "example": "bigfiles [path] [count]"
   },
   {
     "id": "tip-df6027a4",
@@ -50,7 +51,9 @@
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool",
     "commandId": "command-cgm",
-    "commandName": "cgm"
+    "commandName": "cgm",
+    "example": "cgm check",
+    "exampleCopyable": true
   },
   {
     "id": "tip-4c06c3ab",
@@ -59,7 +62,9 @@
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool",
     "commandId": "command-cgm",
-    "commandName": "cgm"
+    "commandName": "cgm",
+    "example": "cgm env OPENAI_KEY",
+    "exampleCopyable": true
   },
   {
     "id": "tip-4b7d1093",
@@ -68,7 +73,9 @@
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool",
     "commandId": "command-cgm",
-    "commandName": "cgm"
+    "commandName": "cgm",
+    "example": "cgm list",
+    "exampleCopyable": true
   },
   {
     "id": "tip-72352423",
@@ -77,7 +84,9 @@
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool",
     "commandId": "command-cgm",
-    "commandName": "cgm"
+    "commandName": "cgm",
+    "example": "cgm set OPENAI_KEY",
+    "exampleCopyable": true
   },
   {
     "id": "tip-ef8420e0",
@@ -86,7 +95,9 @@
     "source": "cgm",
     "availability": "Available when cgm is loaded through secret-tool",
     "commandId": "command-cgm",
-    "commandName": "cgm"
+    "commandName": "cgm",
+    "example": "cgm status",
+    "exampleCopyable": true
   },
   {
     "id": "tip-3d712284",
@@ -102,7 +113,9 @@
     "source": "git",
     "availability": "Available when git is installed",
     "commandId": "command-croot",
-    "commandName": "croot"
+    "commandName": "croot",
+    "example": "croot",
+    "exampleCopyable": true
   },
   {
     "id": "tip-9d0196ba",
@@ -118,7 +131,8 @@
     "source": "core",
     "availability": "Available when GNU find and du are installed",
     "commandId": "command-dusage",
-    "commandName": "dusage"
+    "commandName": "dusage",
+    "example": "dusage [path] [count]"
   },
   {
     "id": "tip-917f81b8",
@@ -127,7 +141,9 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-extract",
-    "commandName": "extract"
+    "commandName": "extract",
+    "example": "extract --keep file.gz",
+    "exampleCopyable": true
   },
   {
     "id": "tip-1687a387",
@@ -136,7 +152,9 @@
     "source": "system",
     "availability": "Available on a supported Linux laptop profile interface",
     "commandId": "command-fanprofile",
-    "commandName": "fanprofile"
+    "commandName": "fanprofile",
+    "example": "fanprofile",
+    "exampleCopyable": true
   },
   {
     "id": "tip-7e6d0c2b",
@@ -145,7 +163,9 @@
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell",
     "commandId": "command-fbr",
-    "commandName": "fbr"
+    "commandName": "fbr",
+    "example": "fbr",
+    "exampleCopyable": true
   },
   {
     "id": "tip-d79a08e8",
@@ -154,7 +174,8 @@
     "source": "core",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "commandId": "command-ff",
-    "commandName": "ff"
+    "commandName": "ff",
+    "example": "ff <pattern> [path]"
   },
   {
     "id": "tip-ec88a99e",
@@ -163,7 +184,9 @@
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell",
     "commandId": "command-fkill",
-    "commandName": "fkill"
+    "commandName": "fkill",
+    "example": "fkill --all",
+    "exampleCopyable": true
   },
   {
     "id": "tip-5bd8461a",
@@ -172,7 +195,9 @@
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell",
     "commandId": "command-fkill",
-    "commandName": "fkill"
+    "commandName": "fkill",
+    "example": "fkill TERM",
+    "exampleCopyable": true
   },
   {
     "id": "tip-254e4bca",
@@ -181,7 +206,8 @@
     "source": "core",
     "availability": "Available when ripgrep or grep is installed",
     "commandId": "command-ft",
-    "commandName": "ft"
+    "commandName": "ft",
+    "example": "ft <pattern> [path]"
   },
   {
     "id": "tip-e31adc2b",
@@ -190,7 +216,9 @@
     "source": "git",
     "availability": "Available when git is installed",
     "commandId": "command-gitcount",
-    "commandName": "gitcount"
+    "commandName": "gitcount",
+    "example": "gitcount",
+    "exampleCopyable": true
   },
   {
     "id": "tip-dada1bd8",
@@ -199,7 +227,9 @@
     "source": "git",
     "availability": "Available when git is installed",
     "commandId": "command-glog",
-    "commandName": "glog"
+    "commandName": "glog",
+    "example": "glog",
+    "exampleCopyable": true
   },
   {
     "id": "tip-c86755d9",
@@ -208,7 +238,9 @@
     "source": "git",
     "availability": "Available when git is installed",
     "commandId": "command-gpr",
-    "commandName": "gpr"
+    "commandName": "gpr",
+    "example": "gpr",
+    "exampleCopyable": true
   },
   {
     "id": "tip-27a63973",
@@ -217,7 +249,9 @@
     "source": "git",
     "availability": "Available when git is installed",
     "commandId": "command-gun",
-    "commandName": "gun"
+    "commandName": "gun",
+    "example": "gun",
+    "exampleCopyable": true
   },
   {
     "id": "tip-2ee3ef22",
@@ -226,7 +260,8 @@
     "source": "core",
     "availability": "Available when curl is installed",
     "commandId": "command-headers",
-    "commandName": "headers"
+    "commandName": "headers",
+    "example": "headers <url>"
   },
   {
     "id": "tip-b498d6a4",
@@ -235,7 +270,9 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-ll",
-    "commandName": "ll"
+    "commandName": "ll",
+    "example": "ll",
+    "exampleCopyable": true
   },
   {
     "id": "tip-c0124fb2",
@@ -244,7 +281,9 @@
     "source": "navigation",
     "availability": "Available when the lt alias is available",
     "commandId": "command-lt",
-    "commandName": "lt"
+    "commandName": "lt",
+    "example": "lt",
+    "exampleCopyable": true
   },
   {
     "id": "tip-8d32beca",
@@ -253,7 +292,8 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-mkcd",
-    "commandName": "mkcd"
+    "commandName": "mkcd",
+    "example": "mkcd <dir>"
   },
   {
     "id": "tip-8143418c",
@@ -262,7 +302,9 @@
     "source": "core",
     "availability": "Available when curl is installed",
     "commandId": "command-myip",
-    "commandName": "myip"
+    "commandName": "myip",
+    "example": "myip",
+    "exampleCopyable": true
   },
   {
     "id": "tip-c5aa1f04",
@@ -271,7 +313,9 @@
     "source": "npkg",
     "availability": "Available when nix is installed",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg add bat",
+    "exampleCopyable": true
   },
   {
     "id": "tip-b270e9f8",
@@ -280,7 +324,9 @@
     "source": "npkg",
     "availability": "Available when nix is installed",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg list",
+    "exampleCopyable": true
   },
   {
     "id": "tip-608d534c",
@@ -289,7 +335,9 @@
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg outdated",
+    "exampleCopyable": true
   },
   {
     "id": "tip-9b7840d9",
@@ -298,7 +346,9 @@
     "source": "npkg",
     "availability": "Available when nix and jq are installed",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg outdated",
+    "exampleCopyable": true
   },
   {
     "id": "tip-b5b77e02",
@@ -307,7 +357,9 @@
     "source": "npkg",
     "availability": "Available when nix and jq are installed",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg refresh --help",
+    "exampleCopyable": true
   },
   {
     "id": "tip-10758b13",
@@ -316,7 +368,9 @@
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg remove",
+    "exampleCopyable": true
   },
   {
     "id": "tip-033d7aee",
@@ -325,7 +379,9 @@
     "source": "npkg",
     "availability": "Available when nix is installed",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg search ripgrep",
+    "exampleCopyable": true
   },
   {
     "id": "tip-5d59bf7c",
@@ -334,7 +390,9 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-path",
-    "commandName": "path"
+    "commandName": "path",
+    "example": "path",
+    "exampleCopyable": true
   },
   {
     "id": "tip-4a7b4fee",
@@ -343,7 +401,8 @@
     "source": "core",
     "availability": "Available when bat or cat is installed",
     "commandId": "command-peek",
-    "commandName": "peek"
+    "commandName": "peek",
+    "example": "peek <file>"
   },
   {
     "id": "tip-67773123",
@@ -352,7 +411,9 @@
     "source": "core",
     "availability": "Available when ss is installed",
     "commandId": "command-ports",
-    "commandName": "ports"
+    "commandName": "ports",
+    "example": "ports",
+    "exampleCopyable": true
   },
   {
     "id": "tip-78b2552c",
@@ -361,7 +422,9 @@
     "source": "upkg",
     "availability": "Available when dnf is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg clean --dry-run --only dnf",
+    "exampleCopyable": true
   },
   {
     "id": "tip-1d0d10fa",
@@ -370,7 +433,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg clean --dry-run",
+    "exampleCopyable": true
   },
   {
     "id": "tip-63a15e70",
@@ -379,7 +444,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, or dnf is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg clean --sudo",
+    "exampleCopyable": true
   },
   {
     "id": "tip-1a8b6953",
@@ -388,7 +455,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg managers",
+    "exampleCopyable": true
   },
   {
     "id": "tip-2fa1847f",
@@ -397,7 +466,9 @@
     "source": "upkg",
     "availability": "Available when flatpak is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg outdated --only flatpak",
+    "exampleCopyable": true
   },
   {
     "id": "tip-85829f20",
@@ -406,7 +477,9 @@
     "source": "upkg",
     "availability": "Available when npm is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg outdated --only npm",
+    "exampleCopyable": true
   },
   {
     "id": "tip-dbdab84a",
@@ -415,7 +488,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg plan",
+    "exampleCopyable": true
   },
   {
     "id": "tip-e228355b",
@@ -424,7 +499,9 @@
     "source": "upkg",
     "availability": "Available when dnf is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg search ripgrep --only=dnf",
+    "exampleCopyable": true
   },
   {
     "id": "tip-c51c27c3",
@@ -433,7 +510,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg search ripgrep",
+    "exampleCopyable": true
   },
   {
     "id": "tip-1a56ff27",
@@ -442,7 +521,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg",
+    "exampleCopyable": true
   },
   {
     "id": "tip-8b265b82",
@@ -451,7 +532,9 @@
     "source": "upkg",
     "availability": "Available when apt is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg upgrade --sudo --only=apt",
+    "exampleCopyable": true
   },
   {
     "id": "tip-8995d8fc",
@@ -460,7 +543,9 @@
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, or dnf is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg upgrade --sudo",
+    "exampleCopyable": true
   },
   {
     "id": "tip-59cbace8",
@@ -469,7 +554,9 @@
     "source": "core",
     "availability": "Available when curl is installed",
     "commandId": "command-weather",
-    "commandName": "weather"
+    "commandName": "weather",
+    "example": "weather",
+    "exampleCopyable": true
   },
   {
     "id": "tip-2ecce445",
@@ -478,7 +565,9 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-zdoctor",
-    "commandName": "zdoctor"
+    "commandName": "zdoctor",
+    "example": "zdoctor",
+    "exampleCopyable": true
   },
   {
     "id": "tip-8186d8d0",
@@ -487,7 +576,9 @@
     "source": "help",
     "availability": "Always available",
     "commandId": "command-zhelp",
-    "commandName": "zhelp"
+    "commandName": "zhelp",
+    "example": "zhelp",
+    "exampleCopyable": true
   },
   {
     "id": "tip-e9bb5a14",
@@ -496,7 +587,9 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-ztheme",
-    "commandName": "ztheme"
+    "commandName": "ztheme",
+    "example": "ztheme current",
+    "exampleCopyable": true
   },
   {
     "id": "tip-62c43d49",
@@ -519,7 +612,9 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-item-280c94",
-    "commandName": "-"
+    "commandName": "-",
+    "example": "-",
+    "exampleCopyable": true
   },
   {
     "id": "tip-567991ae",
@@ -584,7 +679,8 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-extract",
-    "commandName": "extract"
+    "commandName": "extract",
+    "example": "extract --destination DIR link.gz"
   },
   {
     "id": "tip-26969a72",
@@ -593,7 +689,8 @@
     "source": "core",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "commandId": "command-ff",
-    "commandName": "ff"
+    "commandName": "ff",
+    "example": "ff --no-ignore"
   },
   {
     "id": "tip-efe8f93f",
@@ -602,7 +699,8 @@
     "source": "core",
     "availability": "Available when fd, fdfind, or GNU find is installed",
     "commandId": "command-ff",
-    "commandName": "ff"
+    "commandName": "ff",
+    "example": "ff"
   },
   {
     "id": "tip-4ab6efb8",
@@ -611,7 +709,8 @@
     "source": "core",
     "availability": "Available when ripgrep or grep is installed",
     "commandId": "command-ft",
-    "commandName": "ft"
+    "commandName": "ft",
+    "example": "ft --fixed-strings"
   },
   {
     "id": "tip-6335df34",
@@ -627,7 +726,8 @@
     "source": "globals",
     "availability": "Available when the G global alias is defined",
     "commandId": "command-ne",
-    "commandName": "NE"
+    "commandName": "NE",
+    "example": "NE"
   },
   {
     "id": "tip-16ba4ce9",
@@ -636,7 +736,9 @@
     "source": "npkg",
     "availability": "Available when nix and jq are installed and fzf is ready",
     "commandId": "command-npkg",
-    "commandName": "npkg"
+    "commandName": "npkg",
+    "example": "npkg find -- --help",
+    "exampleCopyable": true
   },
   {
     "id": "tip-93de5642",
@@ -659,7 +761,9 @@
     "source": "upkg",
     "availability": "Available when dnf is installed",
     "commandId": "command-upkg",
-    "commandName": "upkg"
+    "commandName": "upkg",
+    "example": "upkg --only dnf",
+    "exampleCopyable": true
   },
   {
     "id": "tip-535156b0",
@@ -668,7 +772,8 @@
     "source": "zoxide",
     "availability": "Available when zoxide is installed",
     "commandId": "command-z",
-    "commandName": "z"
+    "commandName": "z",
+    "example": "z <query>"
   },
   {
     "id": "tip-2d67495d",
@@ -677,7 +782,9 @@
     "source": "zoxide",
     "availability": "Available when zoxide is installed and fzf is ready",
     "commandId": "command-zi",
-    "commandName": "zi"
+    "commandName": "zi",
+    "example": "zi",
+    "exampleCopyable": true
   },
   {
     "id": "tip-55d00dd9",
@@ -693,6 +800,8 @@
     "source": "core",
     "availability": "Always available",
     "commandId": "command-ztheme",
-    "commandName": "ztheme"
+    "commandName": "ztheme",
+    "example": "ztheme show custom",
+    "exampleCopyable": true
   }
 ]
