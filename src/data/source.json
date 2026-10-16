@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/Thundernirmal/zsh",
-  "commit": "9334c4090dbc0490b5682ce03cff2c2e29e0ffbd",
-  "sourceDate": "2026-10-07T09:28:58+05:30",
+  "commit": "348906d0fa8e87f6d3198a63a0a832a4deeffbe1",
+  "sourceDate": "2026-10-16T07:50:43+05:30",
   "schemaVersion": 9,
   "fzfMinimum": "0.68.0"
 }

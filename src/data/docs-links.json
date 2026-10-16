@@ -40,6 +40,7 @@
   "search-behavior": "/docs/packages/#search-behavior",
   "cleanup-policy": "/docs/packages/#cleanup-policy",
   "results-and-exit-status": "/docs/packages/#results-and-exit-status",
+  "elapsed-time": "/docs/packages/#elapsed-time",
   "examples": "/docs/packages/#examples",
   "nix-profile-manager-npkg": "/docs/nix/#nix-profile-manager-npkg",
   "commands-2": "/docs/nix/#commands",

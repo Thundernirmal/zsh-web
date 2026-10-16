@@ -51,7 +51,7 @@ Because `AUTO_PUSHD` is active, ordinary `cd` participates in this stack.
 
 | Setting | Value or state |
 |---|---|
-| `HISTFILE` | `~/.zsh_history` |
+| `HISTFILE` | `~/.zsh_history`, or `ZSH_HISTFILE` when set |
 | `HISTSIZE` / `SAVEHIST` | `100000` |
 | `APPEND_HISTORY` | on |
 | `SHARE_HISTORY` | on |
@@ -60,7 +60,13 @@ Because `AUTO_PUSHD` is active, ordinary `cd` participates in this stack.
 | `HIST_IGNORE_SPACE` | on |
 | `HIST_REDUCE_BLANKS` | on |
 
-History is shared across open shells. Commands beginning with a space are omitted, duplicate search results are suppressed, and redundant spaces are reduced before saving.
+The module replaces any `HISTFILE` set earlier, for example by Oh My Zsh. To keep history in another location, export `ZSH_HISTFILE` before sourcing `init.zsh`:
+
+```zsh
+export ZSH_HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+```
+
+Create that file's parent directory first. History is shared across open shells. Commands beginning with a space are omitted, duplicate search results are suppressed, and redundant spaces are reduced before saving.
 
 ## Completion
 

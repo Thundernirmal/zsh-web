@@ -14,6 +14,13 @@
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
+    "id": "tip-5b3f9e88",
+    "text": "Press Ctrl+P in zi to preview a directory; typing keeps zoxide's ranking",
+    "category": "fzf",
+    "source": "zoxide",
+    "availability": "Available when zoxide is installed and fzf is ready"
+  },
+  {
     "id": "tip-ab70dc06",
     "text": "Press Ctrl+R to insert history; Ctrl+P toggles its preview and ? stays searchable",
     "category": "history",
@@ -482,6 +489,17 @@
     "exampleCopyable": true
   },
   {
+    "id": "tip-8ab2c9b7",
+    "text": "Run upkg plan and compare per-manager elapsed times in the summary",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg",
+    "example": "upkg plan",
+    "exampleCopyable": true
+  },
+  {
     "id": "tip-dbdab84a",
     "text": "Run upkg plan to inventory updates; review the native upgrade transaction",
     "category": "packages",
@@ -556,6 +574,17 @@
     "commandId": "command-weather",
     "commandName": "weather",
     "example": "weather",
+    "exampleCopyable": true
+  },
+  {
+    "id": "tip-73a3802c",
+    "text": "Run zdoctor --secrets to include a Secret Service ping in the diagnosis",
+    "category": "security",
+    "source": "cgm",
+    "availability": "Available when cgm is loaded through secret-tool",
+    "commandId": "command-zdoctor",
+    "commandName": "zdoctor",
+    "example": "zdoctor --secrets",
     "exampleCopyable": true
   },
   {
@@ -730,6 +759,13 @@
     "example": "NE"
   },
   {
+    "id": "tip-6ad834bb",
+    "text": "Use nixpkgs#bat with npkg add when also passing a nix option like --priority",
+    "category": "nix",
+    "source": "npkg",
+    "availability": "Available when nix is installed"
+  },
+  {
     "id": "tip-16ba4ce9",
     "text": "Use npkg find -- --help to search for the literal --help query",
     "category": "nix",
@@ -790,6 +826,13 @@
     "id": "tip-55d00dd9",
     "text": "Use ZSH_FZF_LAYOUT=roomy for a larger rounded finder with extra spacing",
     "category": "utility",
+    "source": "core",
+    "availability": "Always available"
+  },
+  {
+    "id": "tip-71bc5876",
+    "text": "Use ZSH_HISTFILE=path before sourcing init.zsh to keep history elsewhere",
+    "category": "history",
     "source": "core",
     "availability": "Always available"
   },

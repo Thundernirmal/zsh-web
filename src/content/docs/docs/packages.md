@@ -82,7 +82,7 @@ upkg search ripgrep --only=nix
 upkg search ripgrep viewer --only=brew,npm
 ```
 
-Results are normalized into one table with manager, package, available version, and a cheap native description when available. Search parsers use stdout records only; native warnings and errors stay on stderr and never become package rows or descriptions. Flatpak empty tab-separated fields keep their position. npm search recognizes publication dates and versions across layouts with omitted descriptions/authors or empty keywords. Arch search disables color, and npm search explicitly selects uncolored parseable output regardless of inherited JSON settings. DNF search keeps the native no-match diagnostic enabled (no `-q`) and runs in the C locale with color disabled, separates diagnostics from package data, validates `name.arch` rows, and accepts the native DNF4 and DNF5 no-match results. A no-match result is summarized once. Search summaries count attempted managers, including failures and cancellations, and retain earlier results when interrupted. Managers not started after cancellation are not counted. Backend failures name the affected managers, and other managers continue.
+Results are normalized into one table with manager, package, available version, and a cheap native description when available. Search parsers use stdout records only; native warnings and errors stay on stderr and never become package rows or descriptions. Flatpak empty tab-separated fields keep their position. npm search recognizes publication dates and versions across layouts with omitted descriptions/authors or empty keywords. Arch search disables color, and npm search explicitly selects uncolored parseable output regardless of inherited JSON settings. DNF search keeps the native no-match diagnostic enabled (no `-q`) and runs in the C locale with color disabled, separates diagnostics from package data, validates `name.arch` rows, and accepts the native DNF4 and DNF5 no-match results. Nix's native no-results error is likewise not repeated, while its other warnings stay on stderr. A no-match result is summarized once. Search summaries count attempted managers, including failures and cancellations, and retain earlier results when interrupted. Managers not started after cancellation are not counted. Backend failures name the affected managers, and other managers continue.
 
 Nix search uses native `--quiet` to suppress evaluation progress while preserving warnings and errors. See the [Nix logging options](https://nix.dev/manual/nix/2.34/command-ref/new-cli/nix3-search.html#logging-related-options). Nix search works directly in a fresh shell when `nix` is installed; running `npkg` first is unnecessary.
 
@@ -121,7 +121,7 @@ Tab completion describes `--dry-run` as an update inventory or cleanup preview, 
 
 Search progress is cleared when each query finishes, before diagnostics, cancellation returns, or the final summary.
 
-Multi-manager runs continue after an ordinary backend failure. Cancellation stops the remaining managers and cleanup phases, preserving status `130` (INT), `143` (TERM), or `129` (HUP):
+Multi-manager runs continue after an ordinary backend failure. Cancellation stops the remaining managers and cleanup phases, preserving status `130` (INT), `143` (TERM), or `129` (HUP). Pressing Ctrl-C while a native upgrade or cleanup command runs still prints the cancelled summary before `upkg` returns `130`:
 
 | State | Meaning |
 |---|---|
@@ -148,6 +148,37 @@ Pacman checks prefer optional `checkupdates` from `pacman-contrib`, refreshing a
 Paru queries and upgrades honor its configured package scope (`Mode`, `AurOnly`, `RepoOnly`, and PKGBUILD repositories) and configured pacman command. The wrapper does not force AUR or repo mode. Development-package commit checks follow Paru’s `Devel` setting; enable it in `paru.conf` when wanted.
 
 The native contracts are documented in the [DNF4 command reference](https://dnf.readthedocs.io/en/latest/command_ref.html), [DNF5 manual](https://dnf5.readthedocs.io/en/latest/dnf5.8.html), [Paru manual](https://github.com/Morganamilo/paru/blob/master/man/paru.8), and [checkupdates manual](https://man.archlinux.org/man/checkupdates.8.en).
+
+### Elapsed time
+
+Every package action ends with elapsed time for each attempted manager and for the whole action. There is no flag to enable or disable it. `upkg help` and `upkg managers` run no package action and print no timing.
+
+```text
+Summary:
+  apt: upgraded | elapsed 1m 42.3s
+  brew: failed - brew upgrade failed | elapsed 4.7s
+  npm: skipped | not run
+Total elapsed (upgrade): 1m 47.2s
+```
+
+| Invocation | Total label |
+|---|---|
+| `upkg`, `outdated`, `check`, `list` | `outdated` |
+| `upkg plan`, `--dry-run`, `upgrade --dry-run` | `plan` |
+| `upkg upgrade`, `up`, `update` | `upgrade` |
+| `upkg clean` | `clean` |
+| `upkg clean --dry-run` | `clean preview` |
+| `upkg search <query>` | `search` |
+
+Plans and cleanup previews time the inventory or preview actually run; they never estimate a future upgrade or cleanup. An upgrade row covers every native step, such as APT refresh plus `full-upgrade`, a cleanup row covers all of that manager's phases, and a search row includes metadata lookups.
+
+A manager's time runs from its dispatch until its backend returns, so it includes its section output, preflight checks, network waits, native confirmation prompts, password entry, and output processing. The total is measured separately from detection through result rendering, just before the summary prints. It is not the sum of the rows, and rounded values may not appear to add up. It excludes argument parsing, the first-use load of the package functions, clock initialization, and the final summary itself, so an external stopwatch reads slightly longer.
+
+Search keeps its result counts and adds an `Elapsed by manager:` list with each manager's state. Filtered managers show `not run` instead of a duration. Failed, blocked, and partial managers keep their details and show the time until they returned. After Ctrl-C, completed and interrupted managers keep their times, managers that never started are omitted, and the total ends in `so far`.
+
+Durations round to tenths: `<0.1s`, `2.4s`, `1m 02.4s`, and `1h 02m 03.4s`; hours do not wrap. Formatting uses a decimal point in every locale. Timing appears on stdout with the summary in plain, rich, ASCII, `NO_COLOR`, and redirected output. On a narrow terminal, a long row continues on an indented line rather than truncating its details or time. The summary is for people; do not parse it as a stable machine-readable format.
+
+Time comes from the Zsh `zsh/datetime` wall clock, loaded on the first package action rather than at startup. When the module cannot load, a caller has disabled its `EPOCHREALTIME` feature, or a caller variable shadows that parameter, package work continues and values show `elapsed unavailable` with one explanatory note. It is not a monotonic clock: if a sample moves backward, completed durations stay valid, later ones and the total become unavailable, and `Timing unavailable: clock moved backward.` is printed. A forward adjustment, or a reversal that happens entirely between two samples, cannot be detected and distorts the value. Suspended time is included to the extent the system clock advances.
 
 ### Examples
 
