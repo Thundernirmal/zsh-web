@@ -5,7 +5,7 @@ import { SyntaxCode } from '@/components/SyntaxCode';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { buildFeatureDetails, commandId, splitExample, splitOptionNotes, type FeatureDetail } from '@/lib/command-search';
-import { commandHref, formatLabel, type ShellCommand } from '@/lib/shell-docs';
+import { commandHref, type ShellCommand } from '@/lib/shell-docs';
 import source from '@/data/source.json';
 import {
   Table,
@@ -384,12 +384,12 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
                       )}
                       {command.requires?.map((requirement) => (
                         <Badge key={`${commandId(command)}:requires:${requirement}`} variant="metadata">
-                          Requires {formatLabel(requirement)}
+                          Requires <span className="font-mono" translate="no">{requirement}</span>
                         </Badge>
                       ))}
                       {command.optional?.map((dependency) => (
                         <Badge key={`${commandId(command)}:optional:${dependency}`} variant="metadata">
-                          Uses {formatLabel(dependency)} if available
+                          Uses <span className="font-mono" translate="no">{dependency}</span> if available
                         </Badge>
                       ))}
                     </div>
