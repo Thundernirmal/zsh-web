@@ -742,6 +742,11 @@ test('guide search highlights matches and supports keyboard result navigation', 
   await page.keyboard.press('Escape');
   await expect(input).toBeFocused();
   await expect(input).toHaveValue('workflow');
+
+  // Topic labels highlight matches as well.
+  await input.fill('fixture');
+  await expect(links.first().locator('small mark')).toHaveText('Fixture');
+  await expect(links.first().locator('small')).toHaveText('Fixture');
 });
 
 test('idle guide search status takes no space until there is a query', async ({ page }) => {

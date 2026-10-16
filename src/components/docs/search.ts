@@ -139,7 +139,11 @@ function initSearch() {
         const link = item.querySelector<HTMLAnchorElement>('a')!;
         link.href = entry.url;
         highlight(item.querySelector('strong')!, entry.title, terms);
-        if (entry.topic) link.prepend(Object.assign(document.createElement('small'), { textContent: entry.topic }));
+        if (entry.topic) {
+          const topic = document.createElement('small');
+          highlight(topic, entry.topic, terms);
+          link.prepend(topic);
+        }
         const match = terms.map((term) => entry.lower[1].indexOf(term)).find((index) => index >= 0) ?? 0;
         const offset = Math.max(0, match - 55);
         const start = offset ? entry.text.lastIndexOf(' ', offset) + 1 : 0;
