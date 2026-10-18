@@ -1,7 +1,6 @@
 ---
 name: shell-sync
 description: Sync the site's reference data to a newer commit of the companion Zsh repository, then prove the result end to end — regenerate with `npm run sync`, review every generated change, run all static and browser checks, manually review the UI at desktop and mobile widths, and fix what the review finds, all as small local commits. Ends by asking the user before anything is pushed or a pull request is opened. Use when asked to sync, update, or bump the shell snapshot, or to document a new Thundernirmal/zsh commit.
-argument-hint: "[shell-ref]"
 ---
 
 # Shell snapshot sync
@@ -19,35 +18,33 @@ Read `AGENTS.md` and `README.md` first: their rules on generated files, one conc
 - **One concern per commit**, each message describing every behavior change in it. Never one large commit.
 - Every finding is either fixed in a commit or reported to the user in step 9. Nothing gets silently dropped.
 
-## 1. Workspace
+## 1. Check the shell source
 
-Work in a fresh worktree based on `origin/main`, never in the main checkout or on another feature branch:
+The source is always `~/.config/zsh` at its current `HEAD` (`$SRC` below). Do not check out, commit, or create worktrees there. If the user wants a different shell commit, ask them to check it out in `~/.config/zsh` first.
 
 ```bash
+SRC=~/.config/zsh
+git -C "$SRC" fetch origin
+git -C "$SRC" status --short --untracked-files=no   # must print nothing
+git -C "$SRC" branch -r --contains HEAD             # must print a remote branch
+git -C "$SRC" rev-parse --short HEAD                # the <short-sha> used below
+```
+
+Stop and ask the user if the source has uncommitted tracked changes (sync refuses them), or if its `HEAD` is not on the remote (CI checks out the pinned SHA and fails if it was never pushed). If `HEAD` equals the `commit` in `src/data/source.json`, there is nothing to sync: say so and stop.
+
+## 2. Branch from remote main
+
+Work in this checkout on a new branch. Do not create a worktree.
+
+```bash
+git status --short          # must print nothing; otherwise stop and ask
 git fetch origin
-git worktree add --no-track -b sync/shell-<short-sha> ../zsh-web-sync-<short-sha> origin/main
-cd ../zsh-web-sync-<short-sha>
-npm ci   # if npm reports EALLOWSCRIPTS: env -u npm_config_allow_scripts -u NPM_CONFIG_ALLOW_SCRIPTS npm ci
+git switch --no-track -c sync/shell-<short-sha> origin/main
+npm ci                      # if npm reports EALLOWSCRIPTS: env -u npm_config_allow_scripts -u NPM_CONFIG_ALLOW_SCRIPTS npm ci
 npx playwright install chromium firefox webkit
 ```
 
-`--no-track` matters: a branch tracking `origin/main` turns a bare `git push` into a push to `main`. Check `node --version` against `.nvmrc`.
-
-## 2. Pick and validate the shell source
-
-The shell source defaults to `~/.config/zsh` at its `HEAD`. With a `[shell-ref]` argument, do not check out anything in the user's live config; use a detached worktree instead and export it for **every** later command (`sync:check` inside `verify` reads it too):
-
-```bash
-git -C ~/.config/zsh fetch origin
-git -C ~/.config/zsh worktree add --detach /tmp/zsh-src-<short-sha> <shell-ref>
-export ZSH_CONFIG_DIR=/tmp/zsh-src-<short-sha>
-```
-
-Below, `$SRC` is whichever directory you chose. Confirm the following, and stop to ask the user if any check fails:
-
-- The source has no uncommitted tracked changes (sync refuses otherwise).
-- The commit is on the remote: `git -C "$SRC" branch -r --contains HEAD` is nonempty. CI checks out the pinned SHA and fails if it was never pushed.
-- It differs from the current pin in `src/data/source.json`. If equal, there is nothing to sync; say so and stop.
+`--no-track` matters: a branch that tracks `origin/main` turns a bare `git push` into a push to `main`. If the branch name already exists, stop and ask; do not delete or reuse it. `npm ci` enforces `package.json#engines`, so a Node version that installs cleanly is supported even when it differs from `.nvmrc`; if the engines check fails, stop and ask instead of changing versions.
 
 ## 3. Understand the upstream change before generating
 
@@ -93,6 +90,15 @@ npm run test:e2e   # rebuild plus the full Playwright matrix
 
 Both must pass at the branch tip. Record exact totals (passed, skipped and why) for the PR body. When a check fails, find the cause; fix it in a commit or report it, without retrying it into passing.
 
+If e2e tests fail, re-run only those tests a few times to tell real failures from flaky ones:
+
+```bash
+npx playwright test <spec> -g "<test title>" --project=<project> --repeat-each 5
+```
+
+- Fails every time: a real failure. Find the cause and fix it in a commit.
+- Fails only sometimes, and the test does not cover anything this sync changed: a flaky test. Do not fix it on this branch, change retries, or build a separate baseline checkout. Report it in step 9 with the test name, browser, and failure rate.
+
 ## 7. Manual UI review
 
 Tests don't catch everything, so look at the site the way a reader would. Serve the production build:
@@ -102,7 +108,7 @@ npm run build
 npm run preview -- --host 127.0.0.1 --port 4321   # run in the background
 ```
 
-Drive it with the Playwright MCP tools (`browser_navigate`, `browser_resize`, `browser_snapshot`, `browser_take_screenshot`, `browser_evaluate`, `browser_press_key`, `browser_console_messages`). Keep screenshots under `.playwright-mcp/`, which is gitignored. For a baseline, compare against the live site, https://zsh.nirmalkatariya.com, which serves `main`.
+Drive it with the Playwright MCP tools (`browser_navigate`, `browser_resize`, `browser_snapshot`, `browser_take_screenshot`, `browser_evaluate`, `browser_press_key`, `browser_console_messages`). Keep screenshots under `.playwright-mcp/`, which is gitignored. If the Playwright MCP tools are unavailable, skip this step and tell the user in step 9 that the manual review did not run. For a baseline, compare against the live site, https://zsh.nirmalkatariya.com, which serves `main`.
 
 **Routes**: `/`, `/get-started/`, `/commands/`, the detail page of every changed command, `/tips/`, `/docs/`, every guide topic page, `/troubleshooting/`, and `/404.html`.
 
@@ -137,14 +143,13 @@ Every visual defect becomes its own `fix(...)` commit with an e2e test that asse
 - `npm test` passes at the branch tip.
 - `git status` is clean, with no stray screenshots, reports, or temp files tracked.
 - `git log --oneline origin/main..HEAD` reads as a series of single concerns. For each commit, `git show --stat <sha>` matches its message, with no unexplained files and no accidental reversion of older work.
-- Remove any temporary shell worktree: `git -C ~/.config/zsh worktree remove /tmp/zsh-src-<short-sha>`.
 
-Draft the PR in the format of earlier sync PRs (for example #21):
+Draft the PR in the format of earlier sync PRs (for example #21), in a file outside the repository such as `/tmp/sync-<short-sha>-pr.md`:
 
 - An opening line linking `Thundernirmal/zsh@<short-sha>` with its date.
 - **User-facing changes**: one bullet per visible change, each tagged with the commit type that ships it, so every bullet maps to commits and back.
 - **Non-visible changes**: budgets (with numbers), extractor and test changes.
-- **Verification**: `npm test` totals with the reason for each skip, plus the manual review: widths, routes, and what was checked.
+- **Verification**: `npm test` totals with the reason for each skip, any flaky tests from step 6, plus the manual review: widths, routes, and what was checked.
 
 ## 9. Ask before publishing
 
@@ -152,16 +157,16 @@ Stop and present to the user:
 
 1. The commit list (`git log --oneline origin/main..HEAD`) with one line on each.
 2. Check results: `verify` and e2e totals, plus a manual-review summary with key screenshots.
-3. Anything needing a decision: budget raises, broken legacy links, shell-side issues you did not fix, and remaining doubts.
+3. Anything needing a decision: budget raises, broken legacy links, flaky tests, shell-side issues you did not fix, and remaining doubts.
 4. The draft PR title and body.
 
-Then ask: **"Everything is green locally. Push `sync/shell-<short-sha>` and open the PR against `main`?"** Use the AskUserQuestion tool where available, otherwise ask in plain text, and end your turn. Do not push in the same turn as the question.
+Then ask: **"Push `sync/shell-<short-sha>` and open the PR against `main`?"** Use the AskUserQuestion tool where available, otherwise ask in plain text, and end your turn. Do not push in the same turn as the question.
 
 Only after an explicit yes:
 
 ```bash
 git push -u origin sync/shell-<short-sha>
-gh pr create --base main --head sync/shell-<short-sha> --title "Sync shell snapshot to <short-sha>" --body-file <draft>
+gh pr create --base main --head sync/shell-<short-sha> --title "Sync shell snapshot to <short-sha>" --body-file /tmp/sync-<short-sha>-pr.md
 ```
 
-If the harness offers a pull-request linking tool, register the PR URL. Report the PR URL. Never merge, force-push, or delete the worktree unless asked. If the user asks for changes instead, make them as new commits, re-run the affected checks, and ask again.
+If the harness offers a pull-request linking tool, register the PR URL. Report the PR URL. Never merge, force-push, or delete the branch unless asked. If the user asks for changes instead, make them as new commits, re-run the affected checks, and ask again.
