@@ -12,7 +12,9 @@ A commit message describes every behavior change the commit makes — reversions
 
 ## Hydration strategy is load-bearing
 
-`SearchCommands` and `TipsExplorer` hydrate with `client:visible` by design (defers JS until the island enters the viewport). Treat any hydration-directive change as a standalone perf decision: own commit, stated rationale, e2e confirmed green — the Playwright specs poll for hydration with `expect.poll` before interacting, so keep that pattern when touching them.
+`SearchCommands` and `TipsExplorer` hydrate with `client:visible` by design (defers JS until the island enters the viewport). Treat any hydration-directive change as a standalone perf decision: own commit, stated rationale, e2e confirmed green — the Playwright specs wait for hydration before interacting, so keep that pattern when touching them. Use `waitForSearchIsland` and, on `?command=` pages, `waitForDeepLinkedCommand` from `tests/e2e/helpers.ts`. Inside `expect.poll`, retry only idempotent actions (Ctrl/Cmd+K, reads); a retried click on a select, copy button or toggle can block on or undo the first attempt, which is how the suite became flaky on slow CI runners.
+
+Engine-independent checks run in fewer projects (see `playwright.config.ts`): axe audits live in `a11y.spec.ts` (both Chromium projects) and built-output contracts in `build-output.spec.ts` (desktop Chromium). Put new tests that inspect only DOM semantics or emitted files there rather than in specs that run in every engine.
 
 ## Budgets and coverage for interactive changes
 
