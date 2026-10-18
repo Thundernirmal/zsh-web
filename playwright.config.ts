@@ -28,7 +28,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `ASTRO_PREVIEW_BACKGROUND=0 astro preview --host 127.0.0.1 --port ${port}`,
+		command: `astro preview --ignore-lock --host 127.0.0.1 --port ${port}`,
 		url: `http://127.0.0.1:${port}`,
 		reuseExistingServer: false,
 		timeout: 30_000,
