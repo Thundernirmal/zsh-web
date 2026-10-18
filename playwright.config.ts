@@ -8,27 +8,32 @@ export default defineConfig({
 	forbidOnly: Boolean(process.env.CI),
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 2 : undefined,
+	// Shared CI runners stall under load; assertions still pass as soon as they hold.
+	expect: { timeout: process.env.CI ? 10_000 : 5_000 },
 	reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'list',
 	use: {
 		baseURL: `http://127.0.0.1:${port}`,
 		trace: 'on-first-retry',
 	},
+	// Behavior specs run in every engine. Accessibility audits run in both
+	// Chromium projects, and build-output contracts once, because neither
+	// depends on the browser engine.
 	projects: [
-        { name: 'desktop-firefox', testMatch: ['**/core.spec.ts', '**/docs.spec.ts'], use: { ...devices['Desktop Firefox'] } },
-        { name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
+		{ name: 'desktop-firefox', testMatch: ['**/core.spec.ts', '**/docs.spec.ts'], use: { ...devices['Desktop Firefox'] } },
+		{ name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
 		{
 			name: 'desktop-chrome',
-			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/docs.spec.ts', '**/performance.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/docs.spec.ts', '**/performance.spec.ts', '**/a11y.spec.ts', '**/build-output.spec.ts'],
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{
 			name: 'mobile-chrome',
-			testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts', '**/a11y.spec.ts'],
 			use: { ...devices['Pixel 7'], viewport: { width: 320, height: 800 } },
 		},
 	],
 	webServer: {
-		command: `ASTRO_PREVIEW_BACKGROUND=0 astro preview --host 127.0.0.1 --port ${port}`,
+		command: `astro preview --ignore-lock --host 127.0.0.1 --port ${port}`,
 		url: `http://127.0.0.1:${port}`,
 		reuseExistingServer: false,
 		timeout: 30_000,

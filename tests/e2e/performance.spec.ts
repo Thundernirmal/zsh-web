@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { waitForSearchIsland } from './helpers';
 
 test('mobile guide navigation stays stable while controllers load slowly', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -46,10 +47,7 @@ test('mobile constrained loading, search and expanded DOM stay within budgets', 
   const usefulContentMs = Date.now() - start;
   expect(usefulContentMs).toBeLessThan(10_000);
   const search = page.getByRole('searchbox');
-  await expect.poll(async () => {
-    await page.keyboard.press('ControlOrMeta+k');
-    return search.evaluate((element) => element === document.activeElement);
-  }, { timeout: 20_000 }).toBe(true);
+  await waitForSearchIsland(page, 20_000);
   const searchStart = Date.now();
   await search.fill('upkg');
   await expect(page.locator('[data-command]')).toHaveCount(2);

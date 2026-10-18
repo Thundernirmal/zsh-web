@@ -1,12 +1,10 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { guideTopics } from '../../src/lib/guide-topics.mjs';
-
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', ...guideTopics.map((topic) => `/docs/${topic.slug}/`), '/troubleshooting/'];
+import { waitForDeepLinkedCommand, waitForSearchIsland } from './helpers';
 
 test('Nix picker syntax remains a subcommand with its matching example', async ({ page }) => {
   await page.goto('/commands/?command=function%3Anpkg');
-  const details = page.locator('[data-command="npkg"] [data-slot="accordion-content"]');
+  const details = (await waitForDeepLinkedCommand(page, 'npkg')).locator('[data-slot="accordion-content"]');
   await expect(details).toBeVisible();
   const row = details.locator('[data-feature-row], tbody tr').filter({ hasText: 'find [--] [query ...]' }).filter({ visible: true });
   await expect(row).toHaveCount(1);
@@ -80,12 +78,8 @@ test('custom docs share site chrome and support mobile topic navigation', async 
   await expect(page.getByRole('heading', { name: 'Picker cache and dependencies', exact: true })).toBeInViewport();
   await page.locator('[data-site-header]').getByRole('link', { name: 'Commands', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Command Reference', level: 1 })).toBeVisible();
-  const commandSearch = page.getByRole('searchbox');
-  await expect.poll(async () => {
-    await page.keyboard.press('ControlOrMeta+k');
-    return commandSearch.evaluate((node) => node === document.activeElement);
-  }).toBe(true);
-  await commandSearch.fill('npkg');
+  await waitForSearchIsland(page);
+  await page.getByRole('searchbox').fill('npkg');
   await expect(page).toHaveURL(/q=npkg/);
 });
 
@@ -154,18 +148,6 @@ test('docs search reports a load failure and retries without losing the query', 
   expect(requests).toBe(2);
 });
 
-for (const route of siteRoutes) {
-	test(`${route} has no serious accessibility violations`, async ({ page }) => {
-		await page.emulateMedia({ reducedMotion: 'reduce' });
-		await page.goto(route);
-		await expect(page.locator('main')).toBeVisible();
-		const results = await new AxeBuilder({ page })
-			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-			.analyze();
-		expect(results.violations.filter(({ impact }) => impact === 'critical' || impact === 'serious')).toEqual([]);
-	});
-}
-
 test('browser chrome receives the site dark theme metadata and canvas color', async ({ page }) => {
 	await page.goto('/');
 	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
@@ -179,12 +161,8 @@ test('browser chrome receives the site dark theme metadata and canvas color', as
 
 test('command search, filters, expanded state, and history remain URL synchronized', async ({ page }) => {
 	await page.goto('/commands/');
-	const searchbox = page.getByRole('searchbox');
-	await expect.poll(async () => {
-		await page.keyboard.press('ControlOrMeta+k');
-		return searchbox.evaluate((element) => element === document.activeElement);
-	}).toBe(true);
-	await searchbox.fill('upkg');
+	await waitForSearchIsland(page);
+	await page.getByRole('searchbox').fill('upkg');
 	await expect(page).toHaveURL(/q=upkg/);
 	// Wider screens use the type buttons; phones use the equivalent select.
 	if ((page.viewportSize()?.width ?? 0) >= 640) {
@@ -204,17 +182,15 @@ test('function syntax copy hands over a runnable example, not the template', asy
 	test.skip(browserName !== 'chromium', 'System clipboard permissions are Chromium-only; mocked failure/retry and share coverage runs on all engines.');
 	await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.goto('/commands/?command=function%3Aupkg');
-	const command = page.locator('[data-command="upkg"]');
-	await expect(command.locator('[data-slot="accordion-content"]')).toBeVisible();
+	const command = await waitForDeepLinkedCommand(page, 'upkg');
 	await expect(command.getByRole('heading', { name: 'Syntax', exact: true })).toBeVisible();
 	await expect(command.getByText('upkg [command] [args] [flags]')).toBeVisible();
 
 	const syntaxCopy = command.getByRole('button', { name: 'Copy example: upkg' });
 	await expect(syntaxCopy).toBeVisible();
-	await expect.poll(async () => {
-		await syntaxCopy.click();
-		return page.evaluate(() => navigator.clipboard.readText());
-	}).toBe('upkg');
+	// Click once; a copied button is renamed for 1.6s, so a retried click would stall.
+	await syntaxCopy.click();
+	await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('upkg');
 });
 
 test('filter-removal chips are real buttons keyboard users can activate', async ({ page }) => {
@@ -319,13 +295,6 @@ test('client-side route transitions complete without console errors', async ({ p
 	});
 	page.on('pageerror', (error) => errors.push(error.message));
 
-	const waitForSearchHydration = async () => {
-		await expect.poll(async () => {
-			await page.keyboard.press('ControlOrMeta+k');
-			return page.getByRole('searchbox').evaluate((element) => element === document.activeElement);
-		}).toBe(true);
-	};
-
 	await page.goto('/');
 	await page.evaluate(() => document.fonts.ready);
 	await page.getByRole('link', { name: 'Commands', exact: true }).click();
@@ -333,13 +302,13 @@ test('client-side route transitions complete without console errors', async ({ p
 	await expect(page.getByRole('heading', { name: 'Command Reference' })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	// Complete client:visible hydration before leaving the React island.
-	await waitForSearchHydration();
+	await waitForSearchIsland(page);
 	await page.getByRole('link', { name: 'Tips', exact: true }).click();
 	await expect(page).toHaveURL(/\/tips\/?$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: 'Shell Tips', level: 1 })).toBeVisible();
 	await expect(page.locator('html')).not.toHaveAttribute('data-astro-transition', /.+/);
 	// Complete client:visible hydration before leaving the React island.
-	await waitForSearchHydration();
+	await waitForSearchIsland(page);
 	await page.locator('header a[href="/"]:visible').first().click();
 	await expect(page).toHaveURL(/\/$/, { timeout: navigationTimeout });
 	await expect(page.getByRole('heading', { name: "Nirmal's Shell", level: 1 })).toBeVisible();
@@ -429,11 +398,9 @@ test('command sharing copies its permanent static reference URL', async ({ page 
 		} } });
 	});
 	await page.goto('/commands/?command=function%3Aupkg');
-	const copy = page.getByRole('button', { name: 'Copy link to upkg', exact: true });
-	await expect.poll(async () => {
-		await copy.click();
-		return page.locator('html').getAttribute('data-copied-text');
-	}).toBe('https://zsh.nirmalkatariya.com/commands/upkg/');
+	const command = await waitForDeepLinkedCommand(page, 'upkg');
+	await command.getByRole('button', { name: 'Copy link to upkg', exact: true }).click();
+	await expect(page.locator('html')).toHaveAttribute('data-copied-text', 'https://zsh.nirmalkatariya.com/commands/upkg/');
 });
 
 test('copy rejection is visible, retry succeeds, and text stays selectable', async ({ page }) => {
@@ -445,21 +412,14 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 		} } });
 	});
 	await page.goto('/commands/?command=function%3Aupkg');
-	const command = page.locator('[data-command="upkg"]');
-	// The deep link finishes restoring focus and scroll in an animation frame.
-	// Wait for that visible state before focusing the clipboard control.
-	await expect.poll(() => command.locator('[data-slot="accordion-trigger"]').evaluate((element) => element === document.activeElement)).toBe(true);
-	const searchbox = page.getByRole('searchbox');
-	await expect.poll(async () => {
-		await page.keyboard.press('ControlOrMeta+k');
-		return searchbox.evaluate((element) => element === document.activeElement);
-	}).toBe(true);
+	const command = await waitForDeepLinkedCommand(page, 'upkg');
 	const copy = command.getByRole('button', { name: 'Copy example: upkg', exact: true });
 	await copy.focus();
 	await copy.press('Enter');
 	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '1');
 	await expect(command.getByRole('status').filter({ hasText: 'Could not copy; select the text manually.' })).toBeVisible();
-	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+	// The page-wide audit lives in a11y.spec.ts; check the failure state in place.
+	expect((await new AxeBuilder({ page }).include('[data-command="upkg"]').analyze()).violations).toEqual([]);
 	await expect(command.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
 	await copy.press('Enter');
 	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '2');
@@ -679,13 +639,6 @@ test('collapsed command rows keep static reference links inline', async ({ page 
 	)).toBeLessThanOrEqual(2);
 });
 
-test('filtered and expanded reference states have no accessibility violations', async ({ page }) => {
-	await page.goto('/commands/?q=upkg&type=function&cat=packages&command=function%3Aupkg');
-	await expect(page.locator('[data-command="upkg"] [data-slot="accordion-content"]')).toBeVisible();
-	const results = await new AxeBuilder({ page }).analyze();
-	expect(results.violations).toEqual([]);
-});
-
 test('reference text reflows at 200% sizing and a 320px viewport', async ({ page }) => {
 	await page.setViewportSize({ width: 320, height: 800 });
 	await page.goto('/commands/upkg/');
@@ -820,11 +773,7 @@ test('showing more tips moves focus to the first newly revealed tip', async ({ p
 	await page.goto('/tips/');
 	const tips = page.getByRole('listitem');
 	await expect(tips).toHaveCount(24);
-	// Poll the island's keyboard shortcut so Show More is hydrated before use.
-	await expect.poll(async () => {
-		await page.keyboard.press('/');
-		return page.getByRole('searchbox').evaluate((element) => element === document.activeElement);
-	}).toBe(true);
+	await waitForSearchIsland(page);
 	const showMore = page.getByRole('button', { name: /^Show 24 More Tips$/ });
 	await showMore.focus();
 	await page.keyboard.press('Enter');
