@@ -8,6 +8,8 @@ export default defineConfig({
 	forbidOnly: Boolean(process.env.CI),
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 2 : undefined,
+	// Shared CI runners stall under load; assertions still pass as soon as they hold.
+	expect: { timeout: process.env.CI ? 10_000 : 5_000 },
 	reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'list',
 	use: {
 		baseURL: `http://127.0.0.1:${port}`,
