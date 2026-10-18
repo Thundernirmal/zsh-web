@@ -10,10 +10,11 @@ const desktopViewports = [
 ];
 
 test('site routes fit and center the content shell at desktop viewports', async ({ page }) => {
-	for (const viewport of desktopViewports) {
-		await page.setViewportSize(viewport);
-		for (const route of siteRoutes) {
-			await page.goto(route);
+	// Load each route once and resize through the viewports; layout is CSS-driven.
+	for (const route of siteRoutes) {
+		await page.goto(route);
+		for (const viewport of desktopViewports) {
+			await page.setViewportSize(viewport);
 			const dimensions = await page.evaluate(() => {
 				const main = document.querySelector<HTMLElement>('main.content-shell');
 				const rect = main?.getBoundingClientRect();

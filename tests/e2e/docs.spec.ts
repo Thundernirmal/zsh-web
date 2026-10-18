@@ -68,18 +68,19 @@ test('guide search restores URL queries on reload and clears without dropping ot
   expect(requests).toHaveLength(2);
 });
 
-for (const width of [320, 390, 667, 1024, 1440]) {
-  test(`Custom docs topic layouts reflow at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    for (const topic of guideTopics) {
-      await page.goto(`/docs/${topic.slug}/`);
+test('custom docs topic layouts reflow from 320px to 1440px', async ({ page }) => {
+  // Load each topic once and resize through the widths; layout is CSS-driven.
+  for (const topic of guideTopics) {
+    await page.goto(`/docs/${topic.slug}/`);
+    for (const width of [320, 390, 667, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
       const layout = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth, content: document.querySelector('.markdown-doc')?.getBoundingClientRect().width ?? 0 }));
       expect(layout.document, `${topic.slug} at ${width}px`).toBeLessThanOrEqual(layout.viewport);
       expect(layout.content).toBeGreaterThan(0);
       expect(layout.content).toBeLessThanOrEqual(800);
     }
-  });
-}
+  }
+});
 
 test('guide navigation has its final responsive state with JavaScript disabled', async ({ browser, baseURL }) => {
   for (const width of [390, 1440]) {

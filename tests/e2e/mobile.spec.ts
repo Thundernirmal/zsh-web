@@ -11,10 +11,11 @@ const phoneViewports = [
 ];
 
 test('site routes fit required mobile viewports', async ({ page }) => {
-	for (const viewport of phoneViewports) {
-		await page.setViewportSize(viewport);
-		for (const route of siteRoutes) {
-			await page.goto(route);
+	// Load each route once and resize through the viewports; layout is CSS-driven.
+	for (const route of siteRoutes) {
+		await page.goto(route);
+		for (const viewport of phoneViewports) {
+			await page.setViewportSize(viewport);
 			const dimensions = await page.evaluate(() => ({
 				documentWidth: document.documentElement.scrollWidth,
 				viewportWidth: document.documentElement.clientWidth,
