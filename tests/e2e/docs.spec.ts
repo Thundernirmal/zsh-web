@@ -1,19 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { guideTopics } from '../../src/lib/guide-topics.mjs';
-import legacyLinks from '../../src/data/docs-links.json' with { type: 'json' };
-
-test('every generated legacy target exists in rendered topic HTML', async ({ request }) => {
-  const pages = new Map<string, string>();
-  for (const url of Object.values(legacyLinks)) {
-    const [route, anchor] = url.split('#');
-    if (!pages.has(route)) {
-      const response = await request.get(route);
-      expect(response.status(), route).toBe(200);
-      pages.set(route, await response.text());
-    }
-    expect(pages.get(route), url).toContain(`id="${anchor}"`);
-  }
-});
 
 test('guide sidebar keeps every keyboard-focused topic visible in a short viewport', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -277,20 +263,6 @@ for (const arrival of ['deep link', 'native fragment']) {
   });
 }
 
-test('emitted legacy-link CSS keeps its hiding rule independent of :has support', async ({ page, request }) => {
-  await page.goto('/docs/');
-  const paths = await page.locator('link[rel="stylesheet"]').evaluateAll((links) => links.map((link) => (link as HTMLLinkElement).href));
-  const rules: string[] = [];
-  for (const path of paths) {
-    const response = await request.get(path);
-    expect(response.ok()).toBe(true);
-    rules.push(...Array.from((await response.text()).matchAll(/[^{}]*\[data-legacy-links\][^{}]*\{[^{}]*\}/g), (match) => match[0]));
-  }
-  expect(rules.length).toBeGreaterThan(0);
-  expect(rules.join('')).not.toContain(':has(');
-  expect(rules.join('')).toMatch(/a:not\(:target\)[^{]*\{[^}]*display:none/);
-});
-
 test('displayed typographic quotes and straight quotes find the same guide passage', async ({ page }) => {
   const authored = `Author's "sample phrase"`;
   await page.route('**/docs-search.json?*', (route) => route.fulfill({ json: [{ title: 'Quote fixture', url: '/docs/finders/', text: authored }] }));
@@ -413,29 +385,6 @@ test('legacy anchors offer an actionable destination without JavaScript', async 
     await expect(page.getByRole('heading', { name: 'Setup and scope', exact: true })).toBeVisible();
   } finally { await context.close(); }
 });
-
-test('docs routes use the same external controller chunk', async ({ page, request }) => {
-  const controllers = new Set<string>();
-  const inspectLoadedScripts = async () => {
-    const urls = await page.evaluate(() => performance.getEntriesByType('resource')
-      .map((entry) => entry.name).filter((url) => new URL(url).pathname.endsWith('.js')));
-    for (const url of urls) {
-      const response = await request.get(url);
-      expect(response.ok()).toBe(true);
-      if ((await response.text()).includes('data-docs-search')) controllers.add(new URL(url).pathname);
-    }
-  };
-  await page.goto('/');
-  await inspectLoadedScripts();
-  expect(controllers.size).toBe(0);
-  for (const path of ['/docs/', '/docs/nix/']) {
-    await page.goto(path);
-    await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
-    await inspectLoadedScripts();
-    expect(controllers.size).toBe(1);
-  }
-});
-
 
 test('a changed index version refreshes the cache after topic navigation', async ({ page }) => {
   const requests: string[] = [];

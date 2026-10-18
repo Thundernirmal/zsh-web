@@ -1,9 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { guideTopics } from '../../src/lib/guide-topics.mjs';
 import { waitForDeepLinkedCommand, waitForSearchIsland } from './helpers';
-
-const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', ...guideTopics.map((topic) => `/docs/${topic.slug}/`), '/troubleshooting/'];
 
 test('Nix picker syntax remains a subcommand with its matching example', async ({ page }) => {
   await page.goto('/commands/?command=function%3Anpkg');
@@ -150,18 +147,6 @@ test('docs search reports a load failure and retries without losing the query', 
   await expect(page.getByRole('list', { name: 'Guide search results' }).getByRole('link').first()).toBeFocused();
   expect(requests).toBe(2);
 });
-
-for (const route of siteRoutes) {
-	test(`${route} has no serious accessibility violations`, async ({ page }) => {
-		await page.emulateMedia({ reducedMotion: 'reduce' });
-		await page.goto(route);
-		await expect(page.locator('main')).toBeVisible();
-		const results = await new AxeBuilder({ page })
-			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-			.analyze();
-		expect(results.violations.filter(({ impact }) => impact === 'critical' || impact === 'serious')).toEqual([]);
-	});
-}
 
 test('browser chrome receives the site dark theme metadata and canvas color', async ({ page }) => {
 	await page.goto('/');
@@ -433,7 +418,8 @@ test('copy rejection is visible, retry succeeds, and text stays selectable', asy
 	await copy.press('Enter');
 	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '1');
 	await expect(command.getByRole('status').filter({ hasText: 'Could not copy; select the text manually.' })).toBeVisible();
-	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+	// The page-wide audit lives in a11y.spec.ts; check the failure state in place.
+	expect((await new AxeBuilder({ page }).include('[data-command="upkg"]').analyze()).violations).toEqual([]);
 	await expect(command.getByText('upkg [command] [args] [flags]', { exact: true })).toBeVisible();
 	await copy.press('Enter');
 	await expect(page.locator('html')).toHaveAttribute('data-clipboard-calls', '2');
@@ -651,13 +637,6 @@ test('collapsed command rows keep static reference links inline', async ({ page 
 		(mobileReferenceBox?.y ?? 0) + (mobileReferenceBox?.height ?? 0) / 2
 		- ((mobileCommandNameBox?.y ?? 0) + (mobileCommandNameBox?.height ?? 0) / 2),
 	)).toBeLessThanOrEqual(2);
-});
-
-test('filtered and expanded reference states have no accessibility violations', async ({ page }) => {
-	await page.goto('/commands/?q=upkg&type=function&cat=packages&command=function%3Aupkg');
-	await expect(page.locator('[data-command="upkg"] [data-slot="accordion-content"]')).toBeVisible();
-	const results = await new AxeBuilder({ page }).analyze();
-	expect(results.violations).toEqual([]);
 });
 
 test('reference text reflows at 200% sizing and a 320px viewport', async ({ page }) => {

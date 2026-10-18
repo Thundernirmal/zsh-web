@@ -13,17 +13,20 @@ export default defineConfig({
 		baseURL: `http://127.0.0.1:${port}`,
 		trace: 'on-first-retry',
 	},
+	// Behavior specs run in every engine. Accessibility audits run in both
+	// Chromium projects, and build-output contracts once, because neither
+	// depends on the browser engine.
 	projects: [
-        { name: 'desktop-firefox', testMatch: ['**/core.spec.ts', '**/docs.spec.ts'], use: { ...devices['Desktop Firefox'] } },
-        { name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
+		{ name: 'desktop-firefox', testMatch: ['**/core.spec.ts', '**/docs.spec.ts'], use: { ...devices['Desktop Firefox'] } },
+		{ name: 'mobile-webkit', testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'], use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
 		{
 			name: 'desktop-chrome',
-			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/docs.spec.ts', '**/performance.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/desktop.spec.ts', '**/docs.spec.ts', '**/performance.spec.ts', '**/a11y.spec.ts', '**/build-output.spec.ts'],
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{
 			name: 'mobile-chrome',
-			testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts'],
+			testMatch: ['**/core.spec.ts', '**/mobile.spec.ts', '**/docs.spec.ts', '**/a11y.spec.ts'],
 			use: { ...devices['Pixel 7'], viewport: { width: 320, height: 800 } },
 		},
 	],
