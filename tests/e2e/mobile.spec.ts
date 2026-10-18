@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { waitForSearchIsland } from './helpers';
 
 const siteRoutes = ['/', '/commands/', '/tips/', '/docs/', '/404.html'];
 const phoneViewports = [
@@ -82,11 +83,13 @@ test('mobile search and filter controls are readable and do not scroll horizonta
 	const firstRow = await page.locator('[data-command]').first().boundingBox();
 	expect(firstRow?.y ?? Infinity).toBeLessThan(520);
 
-	await expect.poll(async () => {
-		await type.click();
-		return page.getByRole('option', { name: /^Functions \(/ }).isVisible();
-	}).toBe(true);
-	await page.getByRole('option', { name: /^Functions \(/ }).click();
+	// Open the select exactly once after hydration: a second click on an open
+	// select is blocked by its popup, so retrying the click cannot recover.
+	await waitForSearchIsland(page);
+	await type.click();
+	const functions = page.getByRole('option', { name: /^Functions \(/ });
+	await expect(functions).toBeVisible();
+	await functions.click();
 	await expect(page).toHaveURL(/type=function/);
 	await expect(type).toContainText('Functions');
 	await expect(page.locator('[data-command]').first()).toContainText('Function');

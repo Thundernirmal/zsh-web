@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { waitForDeepLinkedCommand, waitForSearchIsland } from './helpers';
 
 const siteRoutes = ['/', '/commands/', '/tips/', '/docs/', '/404.html'];
 const desktopViewports = [
@@ -109,21 +110,18 @@ test('desktop j/k and arrow keys move through command accordions and tip cards',
 	const focusedIndex = (locator: ReturnType<typeof page.locator>) =>
 		locator.evaluateAll((elements) => elements.indexOf(document.activeElement as HTMLElement));
 
-	// Commands: j/k walk the accordion triggers.
+	// Commands: j/k walk the accordion triggers. Before hydration j is a no-op,
+	// so only the first press is retried; later presses move focus and run once.
 	await page.goto('/commands/');
 	const triggers = page.locator('[data-command] button[data-slot="accordion-trigger"]');
 	await expect.poll(async () => {
 		await page.keyboard.press('j');
 		return focusedIndex(triggers);
 	}).toBe(0);
-	await expect.poll(async () => {
-		await page.keyboard.press('j');
-		return focusedIndex(triggers);
-	}).toBe(1);
-	await expect.poll(async () => {
-		await page.keyboard.press('k');
-		return focusedIndex(triggers);
-	}).toBe(0);
+	await page.keyboard.press('j');
+	await expect.poll(() => focusedIndex(triggers)).toBe(1);
+	await page.keyboard.press('k');
+	await expect.poll(() => focusedIndex(triggers)).toBe(0);
 
 	// Tips: j/k enter the rows (roving tabindex); arrows walk them once a row has focus.
 	await page.goto('/tips/');
@@ -167,7 +165,7 @@ test('arrow keys scroll the page unless a list row has focus', async ({ page }) 
 
 	// Inside expanded details, arrows scroll and j moves to the next row, not the first.
 	await page.goto(`/commands/?command=${encodeURIComponent('function:upkg')}`);
-	const upkg = page.locator('[data-command="upkg"]');
+	const upkg = await waitForDeepLinkedCommand(page, 'upkg');
 	const copyExample = upkg.getByRole('button', { name: /^Copy example/ }).first();
 	await expect(copyExample).toBeVisible();
 	const upkgIndex = await triggers.evaluateAll((elements) =>
@@ -184,12 +182,8 @@ test('arrow keys scroll the page unless a list row has focus', async ({ page }) 
 test('desktop command and tip explorers support keyboard and extended-result workflows', async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 800 });
 	await page.goto('/commands/');
-	const commandSearch = page.getByRole('searchbox');
-	await expect.poll(async () => {
-		await page.keyboard.press('ControlOrMeta+k');
-		return commandSearch.evaluate((element) => element === document.activeElement);
-	}).toBe(true);
-	await commandSearch.fill('upkg');
+	await waitForSearchIsland(page);
+	await page.getByRole('searchbox').fill('upkg');
 	await expect(page.locator('[data-command]')).toHaveCount(2);
 	await expect(page.locator('[data-command="upkg-plan"]')).toBeVisible();
 	await page.locator('[data-command="upkg"] [data-slot="accordion-trigger"]').click();
@@ -198,14 +192,11 @@ test('desktop command and tip explorers support keyboard and extended-result wor
 	await expect(command.locator('[data-slot="table"]')).toBeVisible();
 
 	await page.goto('/tips/');
+	await waitForSearchIsland(page);
 	await expect(page.getByRole('listitem')).toHaveCount(24);
 	await page.getByRole('button', { name: /Show 24 More Tips/ }).click();
 	await expect(page.getByRole('listitem')).toHaveCount(48);
 	const tipSearch = page.getByRole('searchbox');
-	await expect.poll(async () => {
-		await page.keyboard.press('ControlOrMeta+k');
-		return tipSearch.evaluate((element) => element === document.activeElement);
-	}).toBe(true);
 	await tipSearch.fill('definitely-no-matching-tip');
 	await expect(page.getByRole('heading', { name: 'No Tips Found' })).toBeVisible();
 	await page.getByRole('button', { name: 'Clear Search' }).click();
