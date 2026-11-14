@@ -276,7 +276,7 @@ export default function SearchCommands({ commands }: SearchCommandsProps) {
             <span className="hidden text-sm tabular-nums sm:inline" aria-live="polite" aria-atomic="true">
               {filteredCommands.length} result{filteredCommands.length === 1 ? '' : 's'}
             </span>
-            <Kbd className="hidden sm:inline-flex" aria-hidden="true">
+            <Kbd className="keyboard-hint hidden sm:inline-flex" aria-hidden="true">
               /
             </Kbd>
           </InputGroupAddon>

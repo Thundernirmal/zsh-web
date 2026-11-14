@@ -1,7 +1,7 @@
 @layer properties, theme, base, components, utilities;
 
-@import "@fontsource-variable/outfit/wght.css";
-@import "@fontsource-variable/plus-jakarta-sans/wght.css";
+/* standard.css carries the width axis as well as weight: display type is set slightly condensed. */
+@import "@fontsource-variable/instrument-sans/standard.css";
 @import "@fontsource-variable/jetbrains-mono/wght.css";
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -15,8 +15,10 @@
 
   html {
     @apply scroll-smooth bg-background font-sans;
-    color-scheme: dark;
     scrollbar-gutter: stable;
+    /* Inherited by every scroller (page, docs sidebar, code blocks, tables), so scrollbars use
+       the theme's own surfaces instead of the browser's default grays in either flavour. */
+    scrollbar-color: var(--ctp-surface2) transparent;
     scroll-padding-top: calc(var(--site-header-height, 5rem) + 1rem);
     -webkit-tap-highlight-color: color-mix(in srgb, var(--primary) 24%, transparent);
   }
@@ -27,6 +29,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
+    text-wrap: balance;
   }
 
   code, kbd, samp, pre {
@@ -55,7 +58,7 @@
 
 @layer components {
   .skip-link {
-    @apply fixed top-2 left-2 -translate-y-20 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-md transition-transform focus-visible:translate-y-0;
+    @apply fixed top-2 left-2 -translate-y-20 bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform focus-visible:translate-y-0;
     z-index: 60;
   }
 
@@ -86,18 +89,205 @@
     @apply rounded-sm font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-[color,text-decoration-color] hover:text-foreground hover:decoration-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
   }
 
+  /* Footer links stay quiet like the portfolio's, but keep an underline so they read as links. */
+  .footer-theme-name::after {
+    content: "Latte";
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="latte"]) .footer-theme-name::after {
+      content: "Mocha";
+    }
+  }
+
+  :root[data-theme="mocha"] .footer-theme-name::after {
+    content: "Mocha";
+  }
+
   .footer-link {
-    @apply inline-flex min-h-11 items-center sm:min-h-6;
+    @apply inline-flex min-h-11 items-center text-muted-foreground decoration-current/40 hover:text-foreground hover:decoration-current sm:min-h-6;
   }
 
-  /* Header links repeat on every route, so the ghost/secondary small-button
-     treatment lives in one class instead of ~1 KB of utilities per link. */
+  /* Typography roles shared with nirmalkatariya.com. */
+  .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .display {
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    font-stretch: 92%;
+  }
+
+  .site-brand {
+    @apply min-h-11 shrink-0 items-center gap-2 text-[0.9375rem] font-semibold tracking-[-0.01em] whitespace-nowrap text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+
+  .brand-prompt {
+    @apply -mr-1 size-[1.125rem] shrink-0 text-primary;
+  }
+
+  /* On the home page the brand waits until the page title scrolls away, as the portfolio's does. */
+  /* Timings follow nirmalkatariya.com: a quick 0.2s exit and a softer 0.35s entrance. */
+  .site-brand-scroll {
+    transition:
+      opacity 0.35s ease,
+      translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s;
+  }
+
+  .site-brand-scroll[data-visible="false"] {
+    @apply pointer-events-none invisible translate-y-1.5 opacity-0;
+    transition:
+      opacity 0.2s ease,
+      translate 0.2s ease,
+      visibility 0s 0.2s;
+  }
+
+  .site-nav-links {
+    /* One row on phones; it wraps rather than scrolling sideways when text is enlarged. */
+    @apply flex w-full min-w-0 flex-wrap items-center justify-between gap-x-1 sm:ml-auto sm:w-auto sm:flex-nowrap sm:gap-6;
+  }
+
+  /* Header links repeat on every route, so their treatment lives in one class. */
   .site-nav-link {
-    @apply inline-flex h-7 min-h-11 w-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-[min(var(--radius-md),12px)] border border-transparent bg-clip-padding px-1 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] outline-none select-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px sm:min-h-7 sm:w-auto sm:px-2.5 sm:text-[0.8rem] sm:has-data-[icon=inline-start]:pl-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5;
+    @apply relative inline-flex min-h-11 min-w-11 items-center justify-center gap-1 text-[0.6875rem] font-semibold tracking-[0.1em] whitespace-nowrap text-muted-foreground uppercase transition-colors outline-none select-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-w-0 sm:text-xs sm:tracking-[0.14em];
   }
 
-  .site-nav-link[aria-current='page'] {
-    @apply bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)];
+  .site-nav-link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.5rem;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site-nav-link[aria-current="page"] {
+    @apply text-foreground;
+  }
+
+  .site-nav-link[aria-current="page"]:not(.site-nav-home)::after {
+    transform: scaleX(1);
+  }
+
+  @media (hover: hover) {
+    .site-nav-link:not(.site-nav-home):hover::after {
+      transform: scaleX(1);
+    }
+  }
+
+  .site-nav-home {
+    @apply justify-start;
+  }
+
+  .site-nav-arrow {
+    @apply text-[0.875em] tracking-normal;
+  }
+
+  /* Theme toggle, after nirmalkatariya.com: only shown once a script can act on it. */
+  .theme-toggle {
+    @apply hidden size-11 items-center justify-center text-muted-foreground transition-[color,transform] outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-90 sm:-mr-2.5 sm:size-9;
+  }
+
+  :root[data-theme] .theme-toggle {
+    @apply inline-flex;
+  }
+
+  .theme-icons {
+    @apply size-[18px];
+  }
+
+  .theme-icons path {
+    transform-origin: center;
+    transform-box: view-box;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+  }
+
+  :root[data-theme="latte"] .theme-icon-moon,
+  :root[data-theme="mocha"] .theme-icon-sun {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+
+  /* Home page band, after the portfolio's playground: cells split by hairline rules. */
+  .home-band {
+    @apply grid border-y lg:grid-cols-2;
+  }
+
+  .home-cell {
+    @apply flex min-w-0 flex-col gap-5 py-8 lg:py-10 lg:pr-10;
+  }
+
+  .home-cell + .home-cell {
+    @apply border-t lg:border-t-0 lg:border-l lg:pr-0 lg:pl-10;
+  }
+
+  .home-cta {
+    @apply -mb-2 flex min-h-11 items-center justify-between gap-3 text-foreground outline-none hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+
+  .home-cta-arrow {
+    @apply text-base tracking-normal transition-transform duration-300 ease-out;
+  }
+
+  .home-cta:hover .home-cta-arrow,
+  .home-cta:focus-visible .home-cta-arrow {
+    transform: translateX(3px);
+  }
+
+  /* Terminal window shared by the home hero and the 404 page. */
+  .terminal-window {
+    @apply grid min-w-0 overflow-hidden border bg-terminal-background font-mono;
+  }
+
+  .terminal-titlebar {
+    @apply grid h-9 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b bg-terminal-toolbar px-3.5;
+  }
+
+  .terminal-lights {
+    @apply flex gap-1.5;
+  }
+
+  .terminal-lights > span {
+    @apply size-2.5 rounded-full;
+    background: var(--light);
+  }
+
+  .terminal-lights > span:nth-child(1) { --light: var(--ctp-red); }
+  .terminal-lights > span:nth-child(2) { --light: var(--ctp-yellow); }
+  .terminal-lights > span:nth-child(3) { --light: var(--ctp-green); }
+
+  .terminal-title {
+    @apply truncate text-xs text-muted-foreground;
+  }
+
+  .terminal-tag {
+    @apply justify-self-end text-[0.6875rem] font-semibold tracking-[0.14em] text-muted-foreground uppercase;
+  }
+
+  .terminal-body {
+    @apply overflow-x-auto p-4 text-sm leading-6 break-words whitespace-pre-wrap sm:px-6 sm:py-5;
+  }
+
+  .terminal-status {
+    @apply flex h-7 min-w-0 items-center gap-3 border-t bg-terminal-toolbar pr-3.5 text-[0.6875rem] text-muted-foreground;
+  }
+
+  .terminal-status-session {
+    @apply flex h-full items-center bg-primary px-2.5 font-semibold text-primary-foreground;
+  }
+
+  .terminal-status-end {
+    @apply ml-auto truncate;
   }
 
   .command-reference-link {
@@ -113,15 +303,15 @@
   }
 
   .markdown-doc h1 {
-    @apply text-pretty text-4xl leading-tight font-semibold tracking-tight sm:text-5xl;
+    @apply text-pretty text-[2.75rem] leading-[0.95] font-medium tracking-[-0.035em] sm:text-6xl;
   }
 
   .markdown-doc h2 {
-    @apply mt-8 border-b pb-3 text-pretty text-2xl leading-tight font-semibold tracking-tight sm:text-3xl;
+    @apply mt-8 border-b pb-3 text-pretty text-2xl leading-tight font-medium tracking-[-0.025em] sm:text-3xl;
   }
 
   .markdown-doc h3 {
-    @apply mt-5 text-pretty text-xl leading-snug font-semibold;
+    @apply mt-5 text-pretty text-xl leading-snug font-medium tracking-[-0.015em];
   }
 
   .markdown-doc h4 {
@@ -219,7 +409,7 @@
   }
 
   .markdown-doc th {
-    @apply border-y bg-card px-3 py-2 font-heading font-semibold whitespace-nowrap;
+    @apply border-y bg-card px-3 py-2 text-xs font-semibold tracking-[0.14em] whitespace-nowrap uppercase;
   }
 
   .markdown-doc th:first-child {
@@ -277,6 +467,28 @@
 @media (min-width: 640px) {
   .site-header[data-scroll-state="hidden"] {
     transform: none;
+  }
+}
+
+/* While the theme swaps, colour transitions hold off so the circular reveal doesn't repaint
+   every frame, and named router regions join the root snapshot instead of cross-fading. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition-property: transform, translate, scale, rotate, opacity !important;
+  view-transition-name: none !important;
+}
+
+html.theme-switching::view-transition-old(root),
+html.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* The "/" search shortcut needs a hardware keyboard; hide its hint on touch-first devices. */
+@media not ((hover: hover) and (pointer: fine)) {
+  .keyboard-hint {
+    display: none !important;
   }
 }
 

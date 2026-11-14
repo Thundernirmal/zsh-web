@@ -6,16 +6,19 @@ import { guideTopics } from '../../src/lib/guide-topics.mjs';
 // these run in the desktop and mobile Chromium projects only.
 const siteRoutes = ['/', '/commands/', '/tips/', '/404.html', '/commands/upkg/', '/get-started/', '/docs/', ...guideTopics.map((topic) => `/docs/${topic.slug}/`), '/troubleshooting/'];
 
-for (const route of siteRoutes) {
-	test(`${route} has no serious accessibility violations`, async ({ page }) => {
-		await page.emulateMedia({ reducedMotion: 'reduce' });
-		await page.goto(route);
-		await expect(page.locator('main')).toBeVisible();
-		const results = await new AxeBuilder({ page })
-			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-			.analyze();
-		expect(results.violations.filter(({ impact }) => impact === 'critical' || impact === 'serious')).toEqual([]);
-	});
+// Both Catppuccin themes are audited: Latte accents are darkened for contrast, Mocha's are not.
+for (const colorScheme of ['light', 'dark'] as const) {
+	for (const route of siteRoutes) {
+		test(`${route} has no serious accessibility violations in ${colorScheme} mode`, async ({ page }) => {
+			await page.emulateMedia({ reducedMotion: 'reduce', colorScheme });
+			await page.goto(route);
+			await expect(page.locator('main')).toBeVisible();
+			const results = await new AxeBuilder({ page })
+				.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+				.analyze();
+			expect(results.violations.filter(({ impact }) => impact === 'critical' || impact === 'serious')).toEqual([]);
+		});
+	}
 }
 
 test('filtered and expanded reference states have no accessibility violations', async ({ page }) => {

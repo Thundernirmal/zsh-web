@@ -7,17 +7,20 @@ import { fileURLToPath } from 'node:url';
 
 // Explicit payload and DOM ceilings for the static build. Measurements vary
 // slightly across supported zlib versions; retain headroom when changing routes.
+// Light/dark theming costs about 1 KB gzip on every route: the pre-paint theme
+// script (so a stored or system theme applies without a flash) plus the theme
+// module and toggle, which ride inside the header's inlined script.
 const BUDGETS = {
   'commands/index.html': { rawBytes: 350_000, gzipBytes: 23_000, elements: 1_200 },
-  'tips/index.html': { rawBytes: 140_000, gzipBytes: 16_500, elements: 500 },
-  'index.html': { rawBytes: 62_000, gzipBytes: 10_500, elements: 350 },
+  'tips/index.html': { rawBytes: 140_000, gzipBytes: 17_500, elements: 500 },
+  'index.html': { rawBytes: 62_000, gzipBytes: 11_000, elements: 350 },
   'get-started/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
   // The overview reached its element ceiling once primary navigation gained Docs;
   // keep room for site-wide chrome (one element per route at a time).
   'docs/index.html': { rawBytes: 35_000, gzipBytes: 8_000, elements: 335 },
-  'docs/maintenance/index.html': { rawBytes: 38_000, gzipBytes: 9_800, elements: 500 },
+  'docs/maintenance/index.html': { rawBytes: 39_000, gzipBytes: 11_000, elements: 500 },
   'troubleshooting/index.html': { rawBytes: 65_000, gzipBytes: 12_000, elements: 400 },
-  '404.html': { rawBytes: 30_000, gzipBytes: 6_800, elements: 150 },
+  '404.html': { rawBytes: 30_000, gzipBytes: 7_300, elements: 150 },
 };
 
 const DIST_DIR = path.resolve(process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist'));
@@ -34,7 +37,7 @@ const ASSET_BUDGETS = {
 // keyboard navigation. Reserve compression headroom across Node versions;
 // the on-demand index remains separately budgeted below.
 const docsAssets = { jsGzip: 10_000, cssGzip: 23_000, fontBytes: 220_000 };
-const docsBudget = { rawBytes: 55_000, gzipBytes: 14_000, elements: 800 };
+const docsBudget = { rawBytes: 55_000, gzipBytes: 15_000, elements: 800 };
 for (const topic of guidePages) {
   const file = `${guideUrl(topic.slug).slice(1)}index.html`;
   BUDGETS[file] ??= docsBudget;

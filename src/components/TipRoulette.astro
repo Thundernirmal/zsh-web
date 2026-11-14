@@ -1,11 +1,35 @@
 ---
 import { RefreshCwIcon } from 'lucide-react';
+import { getCollection } from 'astro:content';
 import { CategoryIcon } from '@/components/CategoryBadge';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { categoryLabels, categoryOrder, categoryTokens } from '@/lib/categories';
+import { formatLabel, tipSourceLabel } from '@/lib/shell-docs';
 
 const rouletteCategories = categoryOrder;
+const tips = (await getCollection('tips')).map(({ data }) => data);
+// The card opens on a real tip (the catalogue's first, so builds stay deterministic)
+// instead of placeholder badges that a click would swap out.
+const initialTip = tips[0];
+const initialLabel = initialTip ? (categoryLabels[initialTip.category] ?? formatLabel(initialTip.category)) : '';
+const initialToken = initialTip ? (categoryTokens[initialTip.category] ?? initialTip.category) : '';
+const initialSource = initialTip ? tipSourceLabel(initialTip, initialLabel) : undefined;
+// Badge is a React component, so its style is an object; the custom property sets the category colour.
+const categoryStyle = initialTip ? ({ '--roulette-category': `var(--category-${initialToken})` } as Record<string, string>) : undefined;
+const iconCategory = initialTip && rouletteCategories.includes(initialTip.category as (typeof rouletteCategories)[number]) ? initialTip.category : 'fallback';
+// Invisible copies of the longest tip and availability note share the grid cell with the
+// live text, so the card is always as tall as its tallest content and never shifts.
+// Height depends on width and on long unbreakable tokens, so a few likely-tallest candidates
+// (longest overall and longest single word) are stacked; the script trims them to the tallest.
+const candidates = (values: string[]) => {
+  const longestWord = (value: string) => Math.max(...value.split(/\s+/).map((word) => word.length));
+  const byLength = [...values].sort((a, b) => b.length - a.length).slice(0, 3);
+  const byWord = [...values].sort((a, b) => longestWord(b) - longestWord(a)).slice(0, 3);
+  return [...new Set([...byLength, ...byWord])];
+};
+const textCandidates = candidates(tips.map((tip) => tip.text));
+const availabilityCandidates = candidates(tips.flatMap((tip) => (tip.availability ? [tip.availability] : [])));
 ---
 
 <div
@@ -17,36 +41,35 @@ const rouletteCategories = categoryOrder;
 	<div class="sr-only" aria-live="polite" aria-atomic="true" data-tip-announcement></div>
 
 	<div class="grid gap-3">
-		<div class="flex min-h-[5.5rem] items-center border-l-2 border-primary py-2 pl-3">
-			<p class="text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
-				Choose Show Random Tip to explore shell shortcuts, functions, and keybindings.
+		<div class="grid items-center border-l-2 border-primary py-2 pl-3">
+			{textCandidates.map((candidate, index) => (
+				<p class="invisible col-start-1 row-start-1 text-pretty text-base leading-7" aria-hidden="true" data-tip-sizer={index === 0 ? '' : undefined} data-tip-sizer-extra={index === 0 ? undefined : ''}>{candidate}</p>
+			))}
+			<p class="col-start-1 row-start-1 text-pretty text-base leading-7 text-foreground transition-[opacity,transform] duration-150 motion-reduce:transition-none" data-tip-text>
+				{initialTip?.text ?? 'Choose Show Random Tip to explore shell shortcuts, functions, and keybindings.'}
 			</p>
 		</div>
 
 		<div class="grid gap-1.5" data-tip-metadata>
 			<div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
-				<span class="contents" data-tip-placeholders aria-hidden="true">
-					<Badge variant="placeholder" data-tip-placeholder-category>Category</Badge>
-					<Badge variant="placeholder" data-tip-placeholder-source>Source</Badge>
-				</span>
-				<span class="inline-flex" data-tip-category-wrapper hidden>
-					<Badge variant="outline" className="roulette-category" data-tip-category>
+				<span class="inline-flex" data-tip-category-wrapper hidden={!initialTip}>
+					<Badge variant="outline" className="roulette-category" data-tip-category data-category={initialTip?.category} style={categoryStyle}>
 						{rouletteCategories.map((category) => (
-							<CategoryIcon category={category} className="hidden" data-icon="inline-start" data-tip-category-icon={category} />
+							<CategoryIcon category={category} className={category === iconCategory ? undefined : 'hidden'} data-icon="inline-start" data-tip-category-icon={category} />
 						))}
-						<CategoryIcon category="all" className="hidden" data-icon="inline-start" data-tip-category-icon="fallback" />
-						<span data-tip-category-label></span>
+						<CategoryIcon category="all" className={iconCategory === 'fallback' ? undefined : 'hidden'} data-icon="inline-start" data-tip-category-icon="fallback" />
+						<span data-tip-category-label>{initialLabel}</span>
 					</Badge>
 				</span>
-				<span class="inline-flex" data-tip-source-wrapper hidden>
-					<Badge variant="metadata" data-tip-source></Badge>
+				<span class="inline-flex" data-tip-source-wrapper hidden={!initialSource}>
+					<Badge variant="metadata" data-tip-source>{initialSource}</Badge>
 				</span>
 			</div>
-			<div class="min-h-10" data-tip-availability-wrapper>
-				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-placeholder-hint>
-					Extracted from <code class="font-mono text-xs text-foreground/80">~/.config/zsh</code> with dependency and availability notes.
-				</span>
-				<span class="block text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden></span>
+			<div class="grid">
+				{availabilityCandidates.map((candidate, index) => (
+					<span class="invisible col-start-1 row-start-1 text-pretty text-sm leading-5" aria-hidden="true" data-tip-availability-sizer={index === 0 ? '' : undefined} data-tip-sizer-extra={index === 0 ? undefined : ''}>{candidate}</span>
+				))}
+				<span class="col-start-1 row-start-1 text-pretty text-sm leading-5 text-muted-foreground" data-tip-availability hidden={!initialTip?.availability}>{initialTip?.availability}</span>
 			</div>
 		</div>
 	</div>
@@ -95,8 +118,6 @@ const rouletteCategories = categoryOrder;
 		const root = document.querySelector<HTMLElement>('[data-tip-roulette]');
 		const text = root?.querySelector<HTMLElement>('[data-tip-text]');
 		const announcement = root?.querySelector<HTMLElement>('[data-tip-announcement]');
-		const placeholders = root?.querySelector<HTMLElement>('[data-tip-placeholders]');
-		const placeholderHint = root?.querySelector<HTMLElement>('[data-tip-placeholder-hint]');
 		const category = root?.querySelector<HTMLElement>('[data-tip-category]');
 		const categoryWrapper = root?.querySelector<HTMLElement>('[data-tip-category-wrapper]');
 		const categoryLabel = root?.querySelector<HTMLElement>('[data-tip-category-label]');
@@ -105,9 +126,11 @@ const rouletteCategories = categoryOrder;
 		const sourceWrapper = root?.querySelector<HTMLElement>('[data-tip-source-wrapper]');
 		const availability = root?.querySelector<HTMLElement>('[data-tip-availability]');
 		const action = root?.querySelector<HTMLButtonElement>('[data-tip-action]');
+		const textSizer = root?.querySelector<HTMLElement>('[data-tip-sizer]');
+		const availabilitySizer = root?.querySelector<HTMLElement>('[data-tip-availability-sizer]');
 		const actionLabel = root?.querySelector<HTMLElement>('[data-tip-action-label]');
 
-		if (!root || !text || !announcement || !placeholders || !category || !categoryWrapper || !categoryLabel || !source || !sourceWrapper || !availability || !action || !actionLabel) return;
+		if (!root || !text || !announcement || !category || !categoryWrapper || !categoryLabel || !source || !sourceWrapper || !availability || !action || !actionLabel) return;
 
 		const categoryLabels: Record<string, string> = JSON.parse(root.dataset.categoryLabels ?? '{}');
 		const categoryTokens: Record<string, string> = JSON.parse(root.dataset.categoryTokens ?? '{}');
@@ -117,6 +140,43 @@ const rouletteCategories = categoryOrder;
 		let interval = 0;
 		let finalTip: ShellTip | undefined;
 		let spinning = false;
+
+		// The build-time sizers hold the longest strings, but wrapping depends on width and on
+		// unbreakable tokens. Once the catalogue is loaded, keep whichever entry renders tallest at
+		// the current width so no tip can grow the card, and re-measure when the width changes.
+		let loadedTips: ShellTip[] | undefined;
+		const fitTallest = (sizer: HTMLElement | null | undefined, values: string[]) => {
+			if (!sizer || values.length === 0) return;
+			let tallest = sizer.textContent ?? '';
+			let height = 0;
+			for (const value of values) {
+				sizer.textContent = value;
+				if (sizer.offsetHeight > height) {
+					height = sizer.offsetHeight;
+					tallest = value;
+				}
+			}
+			sizer.textContent = tallest;
+		};
+		// Build-time candidates stay in the measured set, so the reserve only ever grows.
+		const sizerTexts = (selector: string) =>
+			Array.from(root.querySelectorAll<HTMLElement>(selector), (sizer) => sizer.textContent ?? '');
+		const textCandidates = sizerTexts('[data-tip-sizer], p[data-tip-sizer-extra]');
+		const availabilityCandidates = sizerTexts('[data-tip-availability-sizer], span[data-tip-sizer-extra]');
+		const reserveSpace = () => {
+			if (!loadedTips) return;
+			// Measuring needs one sizer per slot; the extra build-time sizers can go.
+			root.querySelectorAll('[data-tip-sizer-extra]').forEach((extra) => extra.remove());
+			fitTallest(textSizer, [...textCandidates, ...loadedTips.map((tip) => tip.text)]);
+			fitTallest(availabilitySizer, [...availabilityCandidates, ...loadedTips.flatMap((tip) => (tip.availability ? [tip.availability] : []))]);
+		};
+		let measuredWidth = root.clientWidth;
+		const resizeObserver = new ResizeObserver(() => {
+			if (root.clientWidth === measuredWidth) return;
+			measuredWidth = root.clientWidth;
+			reserveSpace();
+		});
+		resizeObserver.observe(root);
 
 		const showTip = (tip: ShellTip, announce = false) => {
 			text.textContent = tip.text;
@@ -128,8 +188,6 @@ const rouletteCategories = categoryOrder;
 			const selectedIcon = categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === tip.category)
 				?? categoryIcons.find((icon) => icon.dataset.tipCategoryIcon === 'fallback');
 			categoryIcons.forEach((icon) => icon.classList.toggle('hidden', icon !== selectedIcon));
-			placeholders.hidden = true;
-			if (placeholderHint) placeholderHint.hidden = true;
 			categoryWrapper.hidden = false;
 
 			const sourceLabel = tipSourceLabel(tip, label);
@@ -163,6 +221,10 @@ const rouletteCategories = categoryOrder;
 				const tips = await loadTips();
 				if (controller.signal.aborted) return;
 				if (tips.length === 0) throw new Error('No tips available');
+				if (!loadedTips) {
+					loadedTips = tips;
+					reserveSpace();
+				}
 
 				finalTip = tips[Math.floor(Math.random() * tips.length)];
 				if (reducedMotion.matches) {
@@ -192,6 +254,7 @@ const rouletteCategories = categoryOrder;
 
 		cleanUpRoulette = () => {
 			controller.abort();
+			resizeObserver.disconnect();
 			if (interval) window.clearInterval(interval);
 		};
 	};

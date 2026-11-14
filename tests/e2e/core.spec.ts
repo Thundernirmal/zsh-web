@@ -43,11 +43,11 @@ test('maintenance instructions have their own accessible guide page', async ({ p
 test('custom docs share site chrome and support mobile topic navigation', async ({ page }) => {
   await page.goto('/docs/');
   await expect(page.locator('[data-site-header]')).toHaveCount(1);
-  await expect(page.locator('html')).toHaveClass(/dark/);
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
+  // Playwright's default light color scheme selects Catppuccin Latte.
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'latte');
   const styles = await page.locator('body').evaluate((node) => ({ color: getComputedStyle(node).backgroundColor, font: getComputedStyle(node).fontFamily }));
-  expect(styles.color).toBe('rgb(30, 30, 46)');
-  expect(styles.font).toContain('Plus Jakarta Sans');
+  expect(styles.color).toBe('rgb(239, 241, 245)');
+  expect(styles.font).toContain('Instrument Sans');
   const menu = page.locator('[data-docs-menu]');
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   if ((page.viewportSize()?.width ?? 0) < 1024) {
@@ -148,15 +148,80 @@ test('docs search reports a load failure and retries without losing the query', 
   expect(requests).toBe(2);
 });
 
-test('browser chrome receives the site dark theme metadata and canvas color', async ({ page }) => {
+for (const [scheme, theme, hex, rgb] of [
+	['light', 'latte', '#eff1f5', 'rgb(239, 241, 245)'],
+	['dark', 'mocha', '#1e1e2e', 'rgb(30, 30, 46)'],
+] as const) {
+	test(`browser chrome follows a ${scheme} system scheme with Catppuccin ${theme}`, async ({ page }) => {
+		await page.emulateMedia({ colorScheme: scheme });
+		await page.goto('/');
+		await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+		await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'light dark');
+		for (const meta of await page.locator('meta[name="theme-color"]').all()) await expect(meta).toHaveAttribute('content', hex);
+		const colors = await page.evaluate(() => ({
+			html: getComputedStyle(document.documentElement).backgroundColor,
+			body: getComputedStyle(document.body).backgroundColor,
+			scheme: getComputedStyle(document.documentElement).colorScheme,
+		}));
+		expect(colors).toEqual({ html: rgb, body: rgb, scheme: scheme });
+	});
+}
+
+test('a stored theme overrides the system scheme and survives client-side navigation', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.addInitScript(() => localStorage.setItem('theme', 'mocha'));
 	await page.goto('/');
-	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
-	await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'dark');
-	const colors = await page.evaluate(() => ({
-		html: getComputedStyle(document.documentElement).backgroundColor,
-		body: getComputedStyle(document.body).backgroundColor,
-	}));
-	expect(colors).toEqual({ html: 'rgb(30, 30, 46)', body: 'rgb(30, 30, 46)' });
+	const html = page.locator('html');
+	await expect(html).toHaveAttribute('data-theme', 'mocha');
+	await page.locator('[data-site-header]').getByRole('link', { name: 'Tips', exact: true }).click();
+	await expect(page).toHaveURL(/\/tips\/?$/);
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+	await expect(html).toHaveAttribute('data-theme', 'mocha');
+	for (const meta of await page.locator('meta[name="theme-color"]').all()) await expect(meta).toHaveAttribute('content', '#1e1e2e');
+	expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(30, 30, 46)');
+});
+
+test('the header toggle switches, persists, and carries the theme across navigation', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('/');
+	const html = page.locator('html');
+	const toggle = page.locator('[data-site-header]').getByRole('button', { name: 'Dark theme', exact: true });
+	await expect(html).toHaveAttribute('data-theme', 'latte');
+	await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+	await toggle.click();
+	await expect(html).toHaveAttribute('data-theme', 'mocha');
+	await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+	await expect(html).not.toHaveClass(/theme-switching/);
+	expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('mocha');
+	await page.locator('[data-site-header]').getByRole('link', { name: 'Docs', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Shell Guide', level: 1 })).toBeVisible();
+	await expect(html).toHaveAttribute('data-theme', 'mocha');
+	const swappedToggle = page.locator('[data-site-header]').getByRole('button', { name: 'Dark theme', exact: true });
+	await expect(swappedToggle).toHaveAttribute('aria-pressed', 'true');
+	await swappedToggle.focus();
+	await page.keyboard.press('Enter');
+	await expect(html).toHaveAttribute('data-theme', 'latte');
+	await page.reload();
+	await expect(html).toHaveAttribute('data-theme', 'latte');
+	expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('latte');
+});
+
+test('without JavaScript the system scheme applies and the inert toggle stays hidden', async ({ browser }) => {
+	const context = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });
+	const page = await context.newPage();
+	await page.goto('/');
+	await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+	await expect(page.locator('[data-theme-toggle]')).toBeHidden();
+	expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(30, 30, 46)');
+	await context.close();
+});
+
+test('without a stored theme, a live system scheme change switches the theme', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('/');
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'latte');
+	await page.emulateMedia({ colorScheme: 'dark' });
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'mocha');
 });
 
 test('command search, filters, expanded state, and history remain URL synchronized', async ({ page }) => {
@@ -246,16 +311,14 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await page.goto('/');
 	expect(requests).toEqual([]);
 	const category = page.locator('[data-tip-category]');
-	const placeholders = page.locator('[data-tip-placeholders]');
-	const placeholderCategory = page.locator('[data-tip-placeholder-category]');
-	const placeholderSource = page.locator('[data-tip-placeholder-source]');
-	await expect(category).toBeHidden();
-	await expect(page.locator('[data-tip-source]')).toBeHidden();
-	await expect(page.locator('[data-tip-availability]')).toBeHidden();
-	await expect(placeholderCategory).toHaveText('Category');
-	await expect(placeholderSource).toHaveText('Source');
-	await expect(placeholderCategory).toBeVisible();
-	await expect(placeholderSource).toBeVisible();
+	// The card opens on a real catalogue tip with its real badges, not placeholders.
+	await expect(page.locator('[data-tip-text]')).not.toHaveText(/Choose Show Random Tip/);
+	await expect(category).toBeVisible();
+	await expect(category).toHaveAttribute('data-category', /\S/);
+	await expect(category.locator('[data-tip-category-label]')).not.toBeEmpty();
+	await expect(category.locator('[data-tip-category-icon]:visible')).toHaveCount(1);
+	const card = page.locator('[data-tip-roulette]');
+	const initialHeight = (await card.boundingBox())?.height;
 	const initialText = await page.locator('[data-tip-text]').textContent();
 	await page.getByRole('button', { name: 'Show Random Tip' }).click();
 	await expect.poll(() => requests.length).toBe(1);
@@ -263,7 +326,8 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await expect(page.locator('[data-tip-reference]')).toHaveCount(0);
 	await expect(category).toBeVisible();
 	await expect(category).toHaveAttribute('data-category', 'navigation');
-	await expect(placeholders).toBeHidden();
+	// Space for the longest tip and availability note is reserved, so the swap causes no layout shift.
+	expect((await card.boundingBox())?.height).toBe(initialHeight);
 	await expect(category.locator('[data-tip-category-label]')).toHaveText('Navigation');
 	await expect(category.locator('[data-tip-category-icon="navigation"]')).toBeVisible();
 	await expect(category.locator('[data-tip-category-icon]:visible')).toHaveCount(1);
@@ -706,6 +770,23 @@ test('featured examples go beyond the bare command name', async ({ page }) => {
 	await expect(page.getByRole('region', { name: 'Runnable example' })).toHaveCount(0);
 	await expect(page.getByRole('heading', { name: 'Syntax', exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Copy example: zdoctor' })).toBeVisible();
+});
+
+test('command pages show the featured example once, the type badge, and copy beside the code', async ({ page }) => {
+	await page.goto('/commands/bcat/');
+	const featured = page.getByRole('region', { name: 'Runnable example' });
+	await expect(featured.locator('pre')).toHaveText('bcat README.md');
+	// The featured example is not repeated in the example list below it.
+	await expect(page.locator('main pre').filter({ hasText: /^bcat README\.md$/ })).toHaveCount(1);
+	await expect(page.locator('[data-command-badges]').getByText('Alias', { exact: true })).toBeVisible();
+	await expect(page.locator('[data-command-badges]').getByRole('link', { name: 'Browse all Files commands' })).toBeVisible();
+	// Usage's copy button shares a row with the usage code, not with its heading.
+	const usageCode = page.locator('main pre').filter({ hasText: /^bcat <file>$/ });
+	const usageCopy = page.getByRole('button', { name: 'Copy usage', exact: true });
+	const [codeBox, copyBox] = [await usageCode.boundingBox(), await usageCopy.boundingBox()];
+	const codeMiddle = (codeBox?.y ?? 0) + (codeBox?.height ?? 0) / 2;
+	expect(codeMiddle).toBeGreaterThanOrEqual(copyBox?.y ?? Infinity);
+	expect(codeMiddle).toBeLessThanOrEqual((copyBox?.y ?? 0) + (copyBox?.height ?? 0));
 });
 
 test('registry flag notes render as an options list', async ({ page }) => {

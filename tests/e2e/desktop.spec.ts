@@ -218,3 +218,11 @@ test('tips search follows the page introduction without a stats row', async ({ p
 	expect((search?.y ?? Infinity) - ((intro?.y ?? 0) + (intro?.height ?? 0))).toBeLessThan(48);
 	await expect(page.getByText('tip records')).toHaveCount(0);
 });
+
+test('desktop search fields advertise the "/" keyboard shortcut', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	for (const route of ['/commands/', '/tips/', '/docs/']) {
+		await page.goto(route);
+		await expect(page.locator('main .keyboard-hint')).toBeVisible();
+	}
+});

@@ -1,19 +1,18 @@
 ---
-import { BookOpenIcon, ExternalLinkIcon, LightbulbIcon, SquareTerminalIcon, TerminalIcon } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === '/';
 const links = [
-	{ href: '/docs/', label: 'Docs', active: currentPath.startsWith('/docs'), icon: BookOpenIcon },
-	{ href: '/commands', label: 'Commands', active: currentPath.startsWith('/commands'), icon: SquareTerminalIcon },
-	{ href: '/tips', label: 'Tips', active: currentPath.startsWith('/tips'), icon: LightbulbIcon },
+	{ href: '/docs/', label: 'Docs', active: currentPath.startsWith('/docs') },
+	{ href: '/commands', label: 'Commands', active: currentPath.startsWith('/commands') },
+	{ href: '/tips', label: 'Tips', active: currentPath.startsWith('/tips') },
 ];
 ---
 
+{/* Modelled on nirmalkatariya.com's header: a mauve prompt chevron with the wordmark, uppercase tracked links with an
+    underline for the current section, and an icon-only theme toggle. */}
 <header
 	class:list={[
-		'site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-md transition-transform duration-200 ease-out motion-reduce:transition-none',
+		'site-header sticky top-0 z-20 border-b bg-background transition-transform duration-200 ease-out motion-reduce:transition-none',
 		isHome && 'sm:transition-[border-color] sm:duration-300 sm:has-data-[brand-visible=false]:border-transparent',
 	]}
 	data-site-header
@@ -21,69 +20,47 @@ const links = [
 	transition:name="site-header"
 	transition:animate="none"
 >
-	<nav
-		class:list={[
-			'content-shell flex flex-wrap items-center gap-2.5 py-3',
-			isHome && 'sm:transition-[gap] sm:duration-300 sm:ease-out sm:data-[brand-visible=false]:gap-0 motion-reduce:transition-none',
-		]}
-		aria-label="Main navigation"
-		data-brand-visible={isHome ? 'false' : undefined}
-	>
+	<nav class="content-shell flex min-h-14 items-center gap-4" aria-label="Main navigation" data-brand-visible={isHome ? 'false' : undefined}>
 		<a
 			href="/"
 			data-astro-prefetch="hover"
-			class:list={[
-				'hidden min-w-0 items-center gap-2 rounded-md font-heading text-base font-semibold tracking-tight text-foreground outline-none transition-[color,background-color,box-shadow] hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex',
-				isHome
-					? 'max-h-10 max-w-56 shrink-0 overflow-hidden whitespace-nowrap opacity-100 transition-[color,background-color,box-shadow,max-width,max-height,opacity,transform] duration-300 ease-out motion-reduce:transition-none data-[visible=false]:pointer-events-none data-[visible=false]:max-h-0 data-[visible=false]:max-w-0 data-[visible=false]:-translate-y-1 data-[visible=false]:opacity-0'
-					: 'w-auto',
-			]}
+			class:list={['site-brand hidden sm:inline-flex', isHome && 'site-brand-scroll']}
 			data-scroll-brand={isHome ? '' : undefined}
 			data-visible={isHome ? 'false' : undefined}
 			aria-hidden={isHome ? 'true' : undefined}
 			tabindex={isHome ? -1 : undefined}
 		>
-			<TerminalIcon className="size-5 text-primary" aria-hidden="true" />
+			{/* The prompt chevron from the terminal, in the portfolio's mauve accent. */}
+			<svg class="brand-prompt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 18 6-6-6-6" /></svg>
 			<span>Nirmal's Shell</span>
 		</a>
 
-		<div class="grid w-full min-w-0 grid-cols-[2.75rem_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-lg border bg-card/60 p-1 shadow-sm sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
-			{/* The brand link is hidden on phones, so an icon-sized Home link keeps room for three labelled sections. */}
-			<a
-				href="/"
-				aria-current={isHome ? 'page' : undefined}
-				aria-label="Home"
-				class="site-nav-link px-0 sm:hidden"
-				data-astro-prefetch="hover"
-			>
-				<TerminalIcon className="size-4 text-primary" aria-hidden="true" />
-			</a>
-			{links.map(({ href, label, active, icon: Icon }) => (
-				<a
-					href={href}
-					aria-current={active ? 'page' : undefined}
-					class="site-nav-link"
-					data-astro-prefetch="hover"
-				>
-					<Icon data-icon="inline-start" className="hidden sm:block" aria-hidden="true" />
-					{label}
-				</a>
+		<div class="site-nav-links">
+			{/* The brand is hidden on phones, so the chevron alone links Home and leaves room for three labelled sections. */}
+			<a href="/" aria-current={isHome ? 'page' : undefined} aria-label="Home" class="site-nav-link site-nav-home sm:hidden" data-astro-prefetch="hover"><svg class="brand-prompt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 18 6-6-6-6" /></svg></a>
+			{links.map(({ href, label, active }) => (
+				<a href={href} aria-current={active ? 'page' : undefined} class="site-nav-link" data-astro-prefetch="hover">{label}</a>
 			))}
-			<Separator orientation="vertical" className="mx-0.5 my-1 hidden sm:block" />
-			<a
-				href="https://github.com/Thundernirmal/zsh"
-				target="_blank"
-				rel="noopener noreferrer"
-				class="site-nav-link hidden sm:inline-flex"
-			>
-				<ExternalLinkIcon data-icon="inline-start" aria-hidden="true" />
-				GitHub <span class="sr-only">(opens in a new tab)</span>
+			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="site-nav-link hidden sm:inline-flex">
+				GitHub<span class="site-nav-arrow" aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span>
 			</a>
+			{/* src/lib/theme.ts keeps aria-pressed in sync; hidden until the pre-paint script has run. */}
+			<button type="button" class="theme-toggle" data-theme-toggle aria-label="Dark theme" aria-pressed="false">
+				{/* Lucide's sun and moon, each flattened to one path to keep the header's DOM small. */}
+				<svg class="theme-icons" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path class="theme-icon-sun" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+					<path class="theme-icon-moon" d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+				</svg>
+			</button>
 		</div>
 	</nav>
 </header>
 
 <script>
+	import { initTheme } from '@/lib/theme';
+
+	initTheme();
+
 	let brandObserver: IntersectionObserver | undefined;
 	let cleanUpSmartHeader: (() => void) | undefined;
 
