@@ -357,9 +357,9 @@ test('rewritten shell actions expose their own syntax and parent source', async 
 	await expect(action.getByRole('button', { name: 'Copy example: upkg plan', exact: true })).toBeVisible();
 });
 
-for (const name of ['cat', 'ztheme']) {
+for (const name of ['bcat', 'ztheme']) {
 	test(`direct links land on ${name} and focus its trigger`, async ({ page }) => {
-		const kind = name === 'cat' ? 'alias' : 'function';
+		const kind = name === 'bcat' ? 'alias' : 'function';
 		await page.goto(`/commands/?command=${kind}%3A${name}`);
 		const trigger = page.locator(`[data-command="${name}"] [data-slot="accordion-trigger"]`);
 		await expect(trigger).toBeFocused();
@@ -711,7 +711,7 @@ test('featured examples go beyond the bare command name', async ({ page }) => {
 test('registry flag notes render as an options list', async ({ page }) => {
 	await page.goto('/commands/upkg/');
 	const options = page.locator('[data-command-options]');
-	await expect(options.locator('dt')).toHaveText(['--only <list>', '--skip <list>', '--sudo', '--dry-run']);
+	await expect(options.locator('dt')).toHaveText(['--only <list>', '--skip <list>', '--sudo', '--dry-run', '--parallel']);
 	await expect(options.locator('dd').first()).toHaveText('Comma-separated manager IDs to include');
 	await expect(page.getByRole('heading', { name: 'Options', exact: true })).toBeVisible();
 	await expect(page.getByText(/^Flag:/)).toHaveCount(0);
@@ -764,9 +764,9 @@ test('tip source badges never repeat the category or the linked command', async 
 
 test('tip search matches separate words in any order, like command search', async ({ page }) => {
 	await page.goto(`/tips/?q=${encodeURIComponent('branch git')}`);
-	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
+	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to pick a branch' })).toBeVisible();
 	await page.goto(`/tips/?q=${encodeURIComponent('git branch')}`);
-	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to select exact branches' })).toBeVisible();
+	await expect(page.getByRole('listitem').filter({ hasText: 'Run fbr to pick a branch' })).toBeVisible();
 });
 
 test('showing more tips moves focus to the first newly revealed tip', async ({ page }) => {
@@ -802,7 +802,7 @@ test('tips show runnable commands as code and copy only concrete invocations', a
 	await expect(bigfiles.getByRole('button', { name: /^Copy/ })).toHaveCount(0);
 
 	// Incomplete invocations (missing a required pattern, or a capitalised placeholder) are not copyable.
-	for (const [query, example] of [['broaden a search', 'ff --no-ignore'], ['retain a compressed link target', 'extract --destination DIR link.gz']]) {
+	for (const [query, example] of [['broaden a search', 'ff --no-ignore'], ['unpack somewhere else', 'extract --destination DIR archive.tar.gz']]) {
 		await page.goto(`/tips/?q=${encodeURIComponent(query)}`);
 		const tip = page.getByRole('listitem').filter({ hasText: query });
 		await expect(tip.locator('code')).toHaveText(example);
