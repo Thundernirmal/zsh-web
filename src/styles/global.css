@@ -16,6 +16,9 @@
   html {
     @apply scroll-smooth bg-background font-sans;
     scrollbar-gutter: stable;
+    /* Inherited by every scroller (page, docs sidebar, code blocks, tables), so scrollbars use
+       the theme's own surfaces instead of the browser's default grays in either flavour. */
+    scrollbar-color: var(--ctp-surface2) transparent;
     scroll-padding-top: calc(var(--site-header-height, 5rem) + 1rem);
     -webkit-tap-highlight-color: color-mix(in srgb, var(--primary) 24%, transparent);
   }
@@ -126,8 +129,20 @@
   }
 
   /* On the home page the brand waits until the page title scrolls away, as the portfolio's does. */
+  /* Timings follow nirmalkatariya.com: a quick 0.2s exit and a softer 0.35s entrance. */
   .site-brand-scroll {
-    @apply transition-[opacity,translate,visibility] duration-300 ease-out motion-reduce:transition-none data-[visible=false]:pointer-events-none data-[visible=false]:invisible data-[visible=false]:translate-y-1.5 data-[visible=false]:opacity-0;
+    transition:
+      opacity 0.35s ease,
+      translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s;
+  }
+
+  .site-brand-scroll[data-visible="false"] {
+    @apply pointer-events-none invisible translate-y-1.5 opacity-0;
+    transition:
+      opacity 0.2s ease,
+      translate 0.2s ease,
+      visibility 0s 0.2s;
   }
 
   .site-nav-links {
