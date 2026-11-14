@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="0" y="0" width="64" height="64" rx="10" fill="#181825" />
-  <path d="M0 10C0 4.477 4.477 0 10 0H54C59.523 0 64 4.477 64 10V18H0V10Z" fill="#11111b" />
-  <circle cx="10" cy="9" r="3" fill="#f38ba8" />
-  <circle cx="20" cy="9" r="3" fill="#f9e2af" />
-  <circle cx="30" cy="9" r="3" fill="#a6e3a1" />
-  <text x="32" y="54" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="40" text-anchor="middle" fill="#a6e3a1">NK</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1e1e2e"/><path d="M13 48V16.5M13 34a12 12 0 0 1 24 0v14" fill="none" stroke="#f9e2af" stroke-width="11"/><circle cx="50.5" cy="42" r="6" fill="#cba6f7"/></svg>
