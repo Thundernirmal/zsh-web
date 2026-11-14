@@ -79,7 +79,7 @@ If the distribution package is older than 0.68.0, upgrade through a current pack
 
 | Command | Effect when present | Fallback or absence behavior |
 |---|---|---|
-| `bat` | Highlighted `cat` alias, `peek`, and file previews | `peek` uses `cat`; fzf previews use `sed` |
+| `bat` / `batcat` | Highlighted `bcat` alias, `peek`, and file previews | `bcat` is undefined; `peek` and fzf previews use `sed` |
 | `tree` | `lt` and directory previews when `lsd` is absent | Preview uses `ls`; `lt` is unavailable without `lsd` or `tree` |
 | `fd` / `fdfind` | Faster `ff` search | GNU `find` |
 | `rg` | Faster `ft` content search | Recursive `grep` |
@@ -96,4 +96,4 @@ If the distribution package is older than 0.68.0, upgrade through a current pack
 
 Package managers are detected at runtime; they are not setup dependencies. The checker reports the primary optional integrations, while format-specific unpackers and ordinary GNU userland tools are checked only by the workflows that need them.
 
-On Debian and Ubuntu, the distribution may expose `bat` as `batcat`. This repository looks specifically for `bat`, so install a package that provides that command or add a deliberate local wrapper.
+On Debian and Ubuntu, the `bat` package installs the command as `batcat`, and `fd-find` installs `fdfind`. Both names are detected, so no wrapper is needed.

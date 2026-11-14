@@ -27,6 +27,7 @@ Names must match `[A-Z_][A-Z0-9_]*`. For credential assignment/export, CGM accep
 
 - Values are sent to `secret-tool` through its hidden input path, never as command arguments.
 - No plaintext fallback exists.
+- A name is recorded only after `secret-tool` stores its value, so a failed or interrupted `cgm set` adds nothing to `cgm list`.
 - Sourcing the module does not contact Secret Service, unlock a keyring, or read the catalogue.
 - `cgm list`, completion, status output, and help never retrieve or display values.
 - The name-only catalogue lives under `${XDG_DATA_HOME:-$HOME/.local/share}/cgm/entries/`; directories are created under `umask 077`, remain mode `0700`, and empty markers are `0600`. `XDG_DATA_HOME` is used only when absolute; a relative value falls back to an absolute `$HOME/.local/share`, and the operation fails when neither base is safe.

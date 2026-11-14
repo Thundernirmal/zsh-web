@@ -60,6 +60,22 @@
     "mutation": "session"
   },
   {
+    "id": "command-bcat",
+    "name": "bcat",
+    "command": "_zsh_bcat",
+    "usage": "bcat <file>",
+    "description": "Print files with bat highlighting",
+    "type": "alias",
+    "category": "files",
+    "source": "20-aliases.zsh",
+    "dependencies": "bat or batcat",
+    "examples": [
+      "bcat README.md"
+    ],
+    "canonical": "bcat",
+    "mutation": "read"
+  },
+  {
     "id": "command-bigfiles",
     "name": "bigfiles",
     "command": "bigfiles [path] [count]",
@@ -75,22 +91,6 @@
     ],
     "terminalAdaptive": true,
     "canonical": "bigfiles",
-    "mutation": "read"
-  },
-  {
-    "id": "command-cat",
-    "name": "cat",
-    "command": "bat --style=numbers --paging=never",
-    "usage": "cat <file>",
-    "description": "Print files with bat highlighting",
-    "type": "alias",
-    "category": "files",
-    "source": "20-aliases.zsh",
-    "dependencies": "bat",
-    "examples": [
-      "cat README.md"
-    ],
-    "canonical": "cat",
     "mutation": "read"
   },
   {
@@ -281,8 +281,8 @@
   {
     "id": "command-fbr",
     "name": "fbr",
-    "command": "fbr",
-    "usage": "fbr",
+    "command": "fbr [query]",
+    "usage": "fbr [query]",
     "description": "Pick a branch; enter its worktree or check it out",
     "type": "function",
     "category": "git",
@@ -290,12 +290,11 @@
     "availability": "Available when git is installed and fzf 0.68.0+ is ready",
     "dependencies": "git and fzf 0.68.0+",
     "examples": [
-      "fbr"
+      "fbr feat"
     ],
     "requires": [
       "fzf"
     ],
-    "interactive": true,
     "terminalAdaptive": true,
     "canonical": "fbr",
     "mutation": "session"
@@ -303,14 +302,14 @@
   {
     "id": "command-ff",
     "name": "ff",
-    "command": "ff [options] <pattern> [path]",
-    "usage": "ff [options] <pattern> [path]",
-    "description": "Find files by name",
+    "command": "ff [--pick] [options] <pattern> [path]",
+    "usage": "ff [--pick] [options] <pattern> [path]",
+    "description": "Find files by name; --pick opens a match",
     "type": "function",
     "category": "search",
     "source": "lib/functions-files.zsh",
     "availability": "Available when fd, fdfind, or GNU find is installed",
-    "dependencies": "fd, fdfind, or find",
+    "dependencies": "fd, fdfind, or find; fzf 0.68.0+ for --pick",
     "examples": [
       "ff config ."
     ],
@@ -338,21 +337,20 @@
     "requires": [
       "fzf"
     ],
-    "interactive": true,
     "canonical": "fkill",
     "mutation": "write"
   },
   {
     "id": "command-ft",
     "name": "ft",
-    "command": "ft [options] <pattern> [path]",
-    "usage": "ft [options] <pattern> [path]",
-    "description": "Search file contents",
+    "command": "ft [--pick] [options] <pattern> [path]",
+    "usage": "ft [--pick] [options] <pattern> [path]",
+    "description": "Search file contents; --pick opens a match",
     "type": "function",
     "category": "search",
     "source": "lib/functions-files.zsh",
     "availability": "Available when ripgrep or grep is installed",
-    "dependencies": "rg or grep",
+    "dependencies": "rg or grep; fzf 0.68.0+ for --pick",
     "examples": [
       "ft TODO ."
     ],
@@ -671,7 +669,7 @@
       "install [pkg ...]    Alias for add",
       "find [--] [query ...] Fuzzy-pick nixpkgs attributes and add selections",
       "search <query>       Run a plain nixpkgs search with descriptions",
-      "list                 List packages in the current profile",
+      "list                 List packages in the current profile (name, version, attribute)",
       "remove [pkg ...]     Remove package(s); with no args opens an fzf picker",
       "outdated             Compare installed and evaluated Nix output identities",
       "refresh              Rebuild the cached nixpkgs attribute index",
@@ -685,6 +683,7 @@
       "Interactive add/find/remove needs jq and fzf 0.68.0+",
       "refresh/outdated/check/diff accept no operands; -h/--help shows usage",
       "find/pick/fzf recognizes -h/--help before --; after -- they are query text",
+      "list prints one compact line per package when jq is available; with any argument, or without jq, it is nix profile list",
       "Native add/remove/list/search/upgrade arguments pass through as documented",
       "Advanced nix flags can be passed through by calling nix directly"
     ],
@@ -744,17 +743,18 @@
     "name": "peek",
     "command": "peek <file>",
     "usage": "peek <file>",
-    "description": "Preview a file with bat or cat",
+    "description": "Preview the first 200 lines of a file",
     "type": "function",
     "category": "files",
     "source": "lib/functions-files.zsh",
     "availability": "Available when bat or cat is installed",
-    "dependencies": "bat or cat",
+    "dependencies": "bat, batcat, or sed",
     "examples": [
       "peek README.md"
     ],
     "optional": [
-      "bat"
+      "bat",
+      "batcat"
     ],
     "canonical": "peek",
     "mutation": "read"
@@ -762,8 +762,8 @@
   {
     "id": "command-ports",
     "name": "ports",
-    "command": "ports",
-    "usage": "ports",
+    "command": "ports [port|process]",
+    "usage": "ports [port|process]",
     "description": "Show listening sockets and processes",
     "type": "function",
     "category": "system",
@@ -771,7 +771,7 @@
     "availability": "Available when ss is installed",
     "dependencies": "ss",
     "examples": [
-      "ports"
+      "ports 8080"
     ],
     "terminalAdaptive": true,
     "canonical": "ports",
@@ -797,14 +797,14 @@
   {
     "id": "command-tips",
     "name": "tips",
-    "command": "tips",
-    "usage": "tips",
-    "description": "Print one short usage tip",
+    "command": "tips [--all | <query>]",
+    "usage": "tips [--all | <query>]",
+    "description": "Print a random tip, list them all, or search them",
     "type": "function",
     "category": "meta",
     "source": "lib/tips-catalogue.zsh",
     "examples": [
-      "tips"
+      "tips git"
     ],
     "terminalAdaptive": true,
     "canonical": "tips",
@@ -851,6 +851,7 @@
       "Flag: --skip <list>       Comma-separated manager IDs to exclude",
       "Flag: --sudo              Authorize privileged upgrade and cleanup backends",
       "Flag: --dry-run           Inventory updates or preview cleanup without changing packages",
+      "Flag: --parallel          Run outdated, plan, and search queries at the same time",
       "Manager: apt, dnf, pacman, paru, brew, flatpak, nix, npm",
       "upkg with no command defaults to outdated",
       "search prints one compact table with a manager column",
@@ -951,6 +952,7 @@
       "secret-tool",
       "gdbus",
       "fzf",
+      "bat",
       "fd",
       "zoxide",
       "nix"

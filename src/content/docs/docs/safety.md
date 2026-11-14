@@ -9,7 +9,7 @@ These are the cross-cutting rules most likely to surprise a new user:
 
 1. **The install path is fixed.** `init.zsh` loads `$HOME/.config/zsh/*.zsh`. A clone elsewhere needs a symlink or a deliberate code change. Run `zdoctor` to confirm the location and catch silently skipped modules.
 2. **Source order matters.** Source this layer after frameworks when its aliases should win. `~/.zshrc` itself is not versioned here.
-3. **File operations keep native semantics.** `mkdir`, `cp`, `mv`, and `rm` are not redefined. Add flags deliberately and keep real backups; shell prompts are not a backup strategy.
+3. **File operations keep native semantics.** `cat`, `mkdir`, `cp`, `mv`, and `rm` are not redefined, so scripts and AI agents that read files with `cat` get plain output; use `bcat` for highlighted viewing. Add flags deliberately and keep real backups; shell prompts are not a backup strategy.
 4. **Interactive flags are situational.** If you opt into `-i`, remember that later flags such as `-f` can override it. Review the final command line before destructive operations.
 5. **Ordinary globs exclude dotfiles.** Use `*(D)` only when hidden entries are intentional. In contrast, `ff` and `dusage` explicitly include hidden entries by design.
 6. **Leading-space history is convenience, not secret storage.** `HIST_IGNORE_SPACE` reduces accidental persistence but does not protect process arguments, logs, terminal capture, or already-shared history.
@@ -27,7 +27,7 @@ These are the cross-cutting rules most likely to surprise a new user:
 18. **Inventories have limits.** APT and Paru repository queries use cached metadata; Pacman refreshes a separate database when `checkupdates` is available, and DNF may refresh expired metadata. Native upgrades resolve transactions. `npkg` reports output identity rather than version ordering.
 19. **Partial package results fail.** `upkg` continues other managers but returns nonzero for partial, failed, or blocked selected backends. `npkg` returns nonzero when any row is unknown.
 20. **Rich output is presentation.** Use a pipe, redirect, `NO_COLOR`, or an explicit plain option for stable machine-readable text.
-21. **The target platform is GNU/Linux.** `ss`, GNU flags, sysfs profile paths, and several `find`/`du` flows are Linux-oriented.
+21. **The target platform is GNU/Linux.** `ss`, GNU flags, sysfs profile paths, and several `find`/`du` flows require it. macOS and BSD are not supported.
 22. **Network helpers contact external services.** `weather` requests `wttr.in`, `myip` requests `ifconfig.me`, and `headers` contacts the URL supplied by the user.
 23. **Automation must load the layer explicitly.** Aliases and functions are interactive shell features; scripts should call real binaries or source `init.zsh` inside Zsh.
 24. **Helper failures stay on stderr.** Successful data remains pipeable on stdout; usage errors, missing dependencies, and invalid paths do not contaminate command substitutions.
