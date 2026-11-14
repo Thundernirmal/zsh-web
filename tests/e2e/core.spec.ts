@@ -311,16 +311,14 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await page.goto('/');
 	expect(requests).toEqual([]);
 	const category = page.locator('[data-tip-category]');
-	const placeholders = page.locator('[data-tip-placeholders]');
-	const placeholderCategory = page.locator('[data-tip-placeholder-category]');
-	const placeholderSource = page.locator('[data-tip-placeholder-source]');
-	await expect(category).toBeHidden();
-	await expect(page.locator('[data-tip-source]')).toBeHidden();
-	await expect(page.locator('[data-tip-availability]')).toBeHidden();
-	await expect(placeholderCategory).toHaveText('Category');
-	await expect(placeholderSource).toHaveText('Source');
-	await expect(placeholderCategory).toBeVisible();
-	await expect(placeholderSource).toBeVisible();
+	// The card opens on a real catalogue tip with its real badges, not placeholders.
+	await expect(page.locator('[data-tip-text]')).not.toHaveText(/Choose Show Random Tip/);
+	await expect(category).toBeVisible();
+	await expect(category).toHaveAttribute('data-category', /\S/);
+	await expect(category.locator('[data-tip-category-label]')).not.toBeEmpty();
+	await expect(category.locator('[data-tip-category-icon]:visible')).toHaveCount(1);
+	const card = page.locator('[data-tip-roulette]');
+	const initialHeight = (await card.boundingBox())?.height;
 	const initialText = await page.locator('[data-tip-text]').textContent();
 	await page.getByRole('button', { name: 'Show Random Tip' }).click();
 	await expect.poll(() => requests.length).toBe(1);
@@ -328,7 +326,8 @@ test('tip roulette loads its catalogue on demand and honors reduced motion', asy
 	await expect(page.locator('[data-tip-reference]')).toHaveCount(0);
 	await expect(category).toBeVisible();
 	await expect(category).toHaveAttribute('data-category', 'navigation');
-	await expect(placeholders).toBeHidden();
+	// Space for the longest tip and availability note is reserved, so the swap causes no layout shift.
+	expect((await card.boundingBox())?.height).toBe(initialHeight);
 	await expect(category.locator('[data-tip-category-label]')).toHaveText('Navigation');
 	await expect(category.locator('[data-tip-category-icon="navigation"]')).toBeVisible();
 	await expect(category.locator('[data-tip-category-icon]:visible')).toHaveCount(1);
