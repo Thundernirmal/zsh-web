@@ -1,6 +1,8 @@
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Same theme switch as nirmalkatariya.com: data-theme="latte" | "mocha" on <html>,
+   set before first paint by the inline script in Layout.astro. */
+@custom-variant dark (&:where([data-theme="mocha"], [data-theme="mocha"] *));
 
 @theme inline {
   --font-heading: var(--font-display);
@@ -67,8 +69,130 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+:root,
+:root[data-theme="latte"] {
+  /* Catppuccin Latte */
+  color-scheme: light;
+  --ctp-rosewater: #dc8a78;
+  --ctp-flamingo: #dd7878;
+  --ctp-pink: #ea76cb;
+  --ctp-mauve: #8839ef;
+  --ctp-red: #d20f39;
+  --ctp-maroon: #e64553;
+  --ctp-peach: #fe640b;
+  --ctp-yellow: #df8e1d;
+  --ctp-green: #40a02b;
+  --ctp-teal: #179299;
+  --ctp-sky: #04a5e5;
+  --ctp-sapphire: #209fb5;
+  --ctp-blue: #1e66f5;
+  --ctp-lavender: #7287fd;
+  --ctp-text: #4c4f69;
+  --ctp-subtext1: #5c5f77;
+  --ctp-subtext0: #6c6f85;
+  --ctp-overlay2: #7c7f93;
+  --ctp-overlay1: #8c8fa1;
+  --ctp-overlay0: #9ca0b0;
+  --ctp-surface2: #acb0be;
+  --ctp-surface1: #bcc0cc;
+  --ctp-surface0: #ccd0da;
+  --ctp-base: #eff1f5;
+  --ctp-mantle: #e6e9ef;
+  --ctp-crust: #dce0e8;
+
+  /* Most Latte accents fall below 4.5:1 as text on Latte surfaces (yellow is 2.3:1).
+     Each is darkened toward black just enough to clear 4.5:1 on crust and on its own
+     10% badge tint, keeping its hue so categories still read as the same colours. */
+  --tone-rosewater: color-mix(in oklab, var(--ctp-rosewater) 64%, #000);
+  --tone-flamingo: color-mix(in oklab, var(--ctp-flamingo) 68%, #000);
+  --tone-pink: color-mix(in oklab, var(--ctp-pink) 64%, #000);
+  --tone-mauve: color-mix(in oklab, var(--ctp-mauve) 88%, #000);
+  --tone-red: color-mix(in oklab, var(--ctp-red) 86%, #000);
+  --tone-maroon: color-mix(in oklab, var(--ctp-maroon) 76%, #000);
+  --tone-peach: color-mix(in oklab, var(--ctp-peach) 66%, #000);
+  --tone-yellow: color-mix(in oklab, var(--ctp-yellow) 64%, #000);
+  --tone-green: color-mix(in oklab, var(--ctp-green) 70%, #000);
+  --tone-teal: color-mix(in oklab, var(--ctp-teal) 74%, #000);
+  --tone-sky: color-mix(in oklab, var(--ctp-sky) 66%, #000);
+  --tone-sapphire: color-mix(in oklab, var(--ctp-sapphire) 68%, #000);
+  --tone-blue: color-mix(in oklab, var(--ctp-blue) 84%, #000);
+  --tone-lavender: color-mix(in oklab, var(--ctp-lavender) 70%, #000);
+
+  /* Ink and rules follow nirmalkatariya.com's Latte values. */
+  --ink: color-mix(in oklab, var(--ctp-text) 82%, #000);
+  --ink-muted: color-mix(in oklab, var(--ctp-subtext1) 90%, #000);
+  --on-accent: var(--ctp-base);
+  --surface-muted: var(--ctp-crust);
+  --surface-accent: var(--ctp-surface0);
+  --rule: color-mix(in oklab, var(--ctp-text) 20%, transparent);
+  --rule-strong: color-mix(in oklab, var(--ctp-text) 38%, transparent);
+  --terminal-background: color-mix(in srgb, var(--ctp-crust) 55%, var(--ctp-mantle));
+  --terminal-toolbar: var(--ctp-crust);
+}
+
+/* Without a stored choice (or without JavaScript) the system preference decides. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="latte"]) {
+    /* Catppuccin Mocha */
+    color-scheme: dark;
+    --ctp-rosewater: #f5e0dc;
+    --ctp-flamingo: #f2cdcd;
+    --ctp-pink: #f5c2e7;
+    --ctp-mauve: #cba6f7;
+    --ctp-red: #f38ba8;
+    --ctp-maroon: #eba0ac;
+    --ctp-peach: #fab387;
+    --ctp-yellow: #f9e2af;
+    --ctp-green: #a6e3a1;
+    --ctp-teal: #94e2d5;
+    --ctp-sky: #89dceb;
+    --ctp-sapphire: #74c7ec;
+    --ctp-blue: #89b4fa;
+    --ctp-lavender: #b4befe;
+    --ctp-text: #cdd6f4;
+    --ctp-subtext1: #bac2de;
+    --ctp-subtext0: #a6adc8;
+    --ctp-overlay2: #9399b2;
+    --ctp-overlay1: #7f849c;
+    --ctp-overlay0: #6c7086;
+    --ctp-surface2: #585b70;
+    --ctp-surface1: #45475a;
+    --ctp-surface0: #313244;
+    --ctp-base: #1e1e2e;
+    --ctp-mantle: #181825;
+    --ctp-crust: #11111b;
+
+    /* Mocha accents are light enough to read as text on every surface as-is. */
+    --tone-rosewater: var(--ctp-rosewater);
+    --tone-flamingo: var(--ctp-flamingo);
+    --tone-pink: var(--ctp-pink);
+    --tone-mauve: var(--ctp-mauve);
+    --tone-red: var(--ctp-red);
+    --tone-maroon: var(--ctp-maroon);
+    --tone-peach: var(--ctp-peach);
+    --tone-yellow: var(--ctp-yellow);
+    --tone-green: var(--ctp-green);
+    --tone-teal: var(--ctp-teal);
+    --tone-sky: var(--ctp-sky);
+    --tone-sapphire: var(--ctp-sapphire);
+    --tone-blue: var(--ctp-blue);
+    --tone-lavender: var(--ctp-lavender);
+
+    --ink: var(--ctp-text);
+    --ink-muted: var(--ctp-subtext0);
+    --on-accent: var(--ctp-crust);
+    --surface-muted: var(--ctp-surface0);
+    --surface-accent: var(--ctp-surface1);
+    --rule: var(--ctp-surface1);
+    --rule-strong: var(--ctp-surface1);
+    --terminal-background: color-mix(in srgb, var(--ctp-crust) 78%, var(--ctp-mantle));
+    --terminal-toolbar: var(--ctp-mantle);
+  }
+}
+
+:root[data-theme="mocha"] {
   /* Catppuccin Mocha */
+  color-scheme: dark;
   --ctp-rosewater: #f5e0dc;
   --ctp-flamingo: #f2cdcd;
   --ctp-pink: #f5c2e7;
@@ -96,67 +220,91 @@
   --ctp-mantle: #181825;
   --ctp-crust: #11111b;
 
+  /* Mocha accents are light enough to read as text on every surface as-is. */
+  --tone-rosewater: var(--ctp-rosewater);
+  --tone-flamingo: var(--ctp-flamingo);
+  --tone-pink: var(--ctp-pink);
+  --tone-mauve: var(--ctp-mauve);
+  --tone-red: var(--ctp-red);
+  --tone-maroon: var(--ctp-maroon);
+  --tone-peach: var(--ctp-peach);
+  --tone-yellow: var(--ctp-yellow);
+  --tone-green: var(--ctp-green);
+  --tone-teal: var(--ctp-teal);
+  --tone-sky: var(--ctp-sky);
+  --tone-sapphire: var(--ctp-sapphire);
+  --tone-blue: var(--ctp-blue);
+  --tone-lavender: var(--ctp-lavender);
+
+  --ink: var(--ctp-text);
+  --ink-muted: var(--ctp-subtext0);
+  --on-accent: var(--ctp-crust);
+  --surface-muted: var(--ctp-surface0);
+  --surface-accent: var(--ctp-surface1);
+  --rule: var(--ctp-surface1);
+  --rule-strong: var(--ctp-surface1);
+  --terminal-background: color-mix(in srgb, var(--ctp-crust) 78%, var(--ctp-mantle));
+  --terminal-toolbar: var(--ctp-mantle);
+}
+
+:root {
   /* Same families as nirmalkatariya.com: one sans for display and body, plus the mono. */
   --font-display: "Instrument Sans Variable", "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-body: var(--font-display);
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* shadcn semantic tokens */
+  /* shadcn semantic tokens, shared by both themes */
   --background: var(--ctp-base);
-  --foreground: var(--ctp-text);
+  --foreground: var(--ink);
   --card: var(--ctp-mantle);
-  --card-foreground: var(--ctp-text);
+  --card-foreground: var(--ink);
   --popover: var(--ctp-mantle);
-  --popover-foreground: var(--ctp-text);
-  --primary: var(--ctp-mauve);
-  --primary-foreground: var(--ctp-crust);
-  --secondary: var(--ctp-surface0);
-  --secondary-foreground: var(--ctp-text);
-  --muted: var(--ctp-surface0);
-  --muted-foreground: var(--ctp-subtext0);
-  --accent: var(--ctp-surface1);
-  --accent-foreground: var(--ctp-text);
-  --destructive: var(--ctp-red);
-  --destructive-foreground: var(--ctp-crust);
-  --border: var(--ctp-surface1);
-  --input: var(--ctp-surface1);
-  --ring: var(--ctp-mauve);
-  --chart-1: var(--ctp-blue);
-  --chart-2: var(--ctp-peach);
-  --chart-3: var(--ctp-green);
-  --chart-4: var(--ctp-pink);
-  --chart-5: var(--ctp-mauve);
+  --popover-foreground: var(--ink);
+  --primary: var(--tone-mauve);
+  --primary-foreground: var(--on-accent);
+  --secondary: var(--surface-muted);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-muted);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--surface-accent);
+  --accent-foreground: var(--ink);
+  --destructive: var(--tone-red);
+  --destructive-foreground: var(--on-accent);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--tone-mauve);
+  --chart-1: var(--tone-blue);
+  --chart-2: var(--tone-peach);
+  --chart-3: var(--tone-green);
+  --chart-4: var(--tone-pink);
+  --chart-5: var(--tone-mauve);
   --radius: 0.5rem;
   --sidebar: var(--ctp-mantle);
-  --sidebar-foreground: var(--ctp-text);
-  --sidebar-primary: var(--ctp-mauve);
-  --sidebar-primary-foreground: var(--ctp-crust);
-  --sidebar-accent: var(--ctp-surface0);
-  --sidebar-accent-foreground: var(--ctp-text);
-  --sidebar-border: var(--ctp-surface1);
-  --sidebar-ring: var(--ctp-mauve);
-
-  /* Terminal window surfaces */
-  --terminal-background: color-mix(in srgb, var(--ctp-crust) 78%, var(--ctp-mantle));
-  --terminal-toolbar: var(--ctp-mantle);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--tone-mauve);
+  --sidebar-primary-foreground: var(--on-accent);
+  --sidebar-accent: var(--surface-muted);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--tone-mauve);
 
   /* Named domain accents */
-  --category-navigation: var(--ctp-blue);
-  --category-git: var(--ctp-peach);
-  --category-search: var(--ctp-green);
-  --category-utility: var(--ctp-teal);
-  --category-packages: var(--ctp-flamingo);
-  --category-pipe: var(--ctp-pink);
-  --category-globbing: var(--ctp-yellow);
-  --category-history: var(--ctp-lavender);
-  --category-fzf: var(--ctp-sky);
-  --category-nix: var(--ctp-mauve);
-  --category-shell: var(--ctp-red);
-  --category-network: var(--ctp-sapphire);
-  --category-process: var(--ctp-maroon);
-  --category-safety: var(--ctp-red);
-  --category-viewing: var(--ctp-lavender);
-  --command-alias: var(--ctp-blue);
-  --command-global: var(--ctp-peach);
-  --command-function: var(--ctp-mauve);
+  --category-navigation: var(--tone-blue);
+  --category-git: var(--tone-peach);
+  --category-search: var(--tone-green);
+  --category-utility: var(--tone-teal);
+  --category-packages: var(--tone-flamingo);
+  --category-pipe: var(--tone-pink);
+  --category-globbing: var(--tone-yellow);
+  --category-history: var(--tone-lavender);
+  --category-fzf: var(--tone-sky);
+  --category-nix: var(--tone-mauve);
+  --category-shell: var(--tone-red);
+  --category-network: var(--tone-sapphire);
+  --category-process: var(--tone-maroon);
+  --category-safety: var(--tone-red);
+  --category-viewing: var(--tone-lavender);
+  --command-alias: var(--tone-blue);
+  --command-global: var(--tone-peach);
+  --command-function: var(--tone-mauve);
 }

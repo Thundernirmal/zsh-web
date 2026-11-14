@@ -21,7 +21,7 @@ const ogImageUrl = new URL('/og-image.png', Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content={description} />
@@ -35,8 +35,13 @@ const ogImageUrl = new URL('/og-image.png', Astro.site ?? Astro.url);
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/favicon.png" />
 		<meta name="generator" content={Astro.generator} />
-		<meta name="color-scheme" content="dark" />
-		<meta name="theme-color" content="#1e1e2e" />
+		<meta name="color-scheme" content="light dark" />
+		<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)" />
+		{/* Before first paint, as on nirmalkatariya.com: a stored "latte"/"mocha" choice wins, otherwise
+		    the system scheme. It follows the theme-color metas so it can retint them. Navigation and live
+		    system changes are handled in src/lib/theme.ts; without scripts the CSS media query applies. */}
+		<script is:inline>(()=>{let t;try{t=localStorage.getItem('theme')}catch{}if(t!='latte'&&t!='mocha')t=matchMedia('(prefers-color-scheme: dark)').matches?'mocha':'latte';document.documentElement.dataset.theme=t;for(const m of document.querySelectorAll('meta[name=theme-color]'))m.content=t=='latte'?'#eff1f5':'#1e1e2e'})()</script>
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />

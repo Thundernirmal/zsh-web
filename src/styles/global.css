@@ -15,7 +15,6 @@
 
   html {
     @apply scroll-smooth bg-background font-sans;
-    color-scheme: dark;
     scrollbar-gutter: stable;
     scroll-padding-top: calc(var(--site-header-height, 5rem) + 1rem);
     -webkit-tap-highlight-color: color-mix(in srgb, var(--primary) 24%, transparent);

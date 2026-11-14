@@ -43,10 +43,10 @@ test('maintenance instructions have their own accessible guide page', async ({ p
 test('custom docs share site chrome and support mobile topic navigation', async ({ page }) => {
   await page.goto('/docs/');
   await expect(page.locator('[data-site-header]')).toHaveCount(1);
-  await expect(page.locator('html')).toHaveClass(/dark/);
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
+  // Playwright's default light color scheme selects Catppuccin Latte.
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'latte');
   const styles = await page.locator('body').evaluate((node) => ({ color: getComputedStyle(node).backgroundColor, font: getComputedStyle(node).fontFamily }));
-  expect(styles.color).toBe('rgb(30, 30, 46)');
+  expect(styles.color).toBe('rgb(239, 241, 245)');
   expect(styles.font).toContain('Instrument Sans');
   const menu = page.locator('[data-docs-menu]');
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
@@ -148,15 +148,45 @@ test('docs search reports a load failure and retries without losing the query', 
   expect(requests).toBe(2);
 });
 
-test('browser chrome receives the site dark theme metadata and canvas color', async ({ page }) => {
+for (const [scheme, theme, hex, rgb] of [
+	['light', 'latte', '#eff1f5', 'rgb(239, 241, 245)'],
+	['dark', 'mocha', '#1e1e2e', 'rgb(30, 30, 46)'],
+] as const) {
+	test(`browser chrome follows a ${scheme} system scheme with Catppuccin ${theme}`, async ({ page }) => {
+		await page.emulateMedia({ colorScheme: scheme });
+		await page.goto('/');
+		await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+		await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'light dark');
+		for (const meta of await page.locator('meta[name="theme-color"]').all()) await expect(meta).toHaveAttribute('content', hex);
+		const colors = await page.evaluate(() => ({
+			html: getComputedStyle(document.documentElement).backgroundColor,
+			body: getComputedStyle(document.body).backgroundColor,
+			scheme: getComputedStyle(document.documentElement).colorScheme,
+		}));
+		expect(colors).toEqual({ html: rgb, body: rgb, scheme: scheme });
+	});
+}
+
+test('a stored theme overrides the system scheme and survives client-side navigation', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.addInitScript(() => localStorage.setItem('theme', 'mocha'));
 	await page.goto('/');
-	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
-	await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'dark');
-	const colors = await page.evaluate(() => ({
-		html: getComputedStyle(document.documentElement).backgroundColor,
-		body: getComputedStyle(document.body).backgroundColor,
-	}));
-	expect(colors).toEqual({ html: 'rgb(30, 30, 46)', body: 'rgb(30, 30, 46)' });
+	const html = page.locator('html');
+	await expect(html).toHaveAttribute('data-theme', 'mocha');
+	await page.locator('[data-site-header]').getByRole('link', { name: 'Tips', exact: true }).click();
+	await expect(page).toHaveURL(/\/tips\/?$/);
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+	await expect(html).toHaveAttribute('data-theme', 'mocha');
+	for (const meta of await page.locator('meta[name="theme-color"]').all()) await expect(meta).toHaveAttribute('content', '#1e1e2e');
+	expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(30, 30, 46)');
+});
+
+test('without a stored theme, a live system scheme change switches the theme', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('/');
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'latte');
+	await page.emulateMedia({ colorScheme: 'dark' });
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'mocha');
 });
 
 test('command search, filters, expanded state, and history remain URL synchronized', async ({ page }) => {

@@ -84,6 +84,10 @@ const links = [
 </header>
 
 <script>
+	import { initTheme } from '@/lib/theme';
+
+	initTheme();
+
 	let brandObserver: IntersectionObserver | undefined;
 	let cleanUpSmartHeader: (() => void) | undefined;
 
