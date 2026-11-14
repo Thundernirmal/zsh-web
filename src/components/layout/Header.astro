@@ -8,7 +8,7 @@ const links = [
 ];
 ---
 
-{/* Modelled on nirmalkatariya.com's header: a mono "~/" brand, uppercase tracked links with an
+{/* Modelled on nirmalkatariya.com's header: a mauve prompt chevron with the wordmark, uppercase tracked links with an
     underline for the current section, and an icon-only theme toggle. */}
 <header
 	class:list={[
@@ -30,12 +30,14 @@ const links = [
 			aria-hidden={isHome ? 'true' : undefined}
 			tabindex={isHome ? -1 : undefined}
 		>
-			<span class="text-primary" aria-hidden="true">~/</span>Nirmal's Shell
+			{/* The prompt chevron from the terminal, in the portfolio's mauve accent. */}
+			<svg class="brand-prompt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 18 6-6-6-6" /></svg>
+			<span>Nirmal's Shell</span>
 		</a>
 
 		<div class="site-nav-links">
-			{/* The brand is hidden on phones, so a "~/" Home link keeps room for three labelled sections. */}
-			<a href="/" aria-current={isHome ? 'page' : undefined} aria-label="Home" class="site-nav-link site-nav-home sm:hidden" data-astro-prefetch="hover">~/</a>
+			{/* The brand is hidden on phones, so the chevron alone links Home and leaves room for three labelled sections. */}
+			<a href="/" aria-current={isHome ? 'page' : undefined} aria-label="Home" class="site-nav-link site-nav-home sm:hidden" data-astro-prefetch="hover"><svg class="brand-prompt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 18 6-6-6-6" /></svg></a>
 			{links.map(({ href, label, active }) => (
 				<a href={href} aria-current={active ? 'page' : undefined} class="site-nav-link" data-astro-prefetch="hover">{label}</a>
 			))}

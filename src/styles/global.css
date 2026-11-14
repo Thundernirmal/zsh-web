@@ -125,7 +125,11 @@
   }
 
   .site-brand {
-    @apply min-h-11 shrink-0 items-center font-mono text-[0.8125rem] font-medium whitespace-nowrap text-foreground outline-none hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50;
+    @apply min-h-11 shrink-0 items-center gap-2 text-[0.9375rem] font-semibold tracking-[-0.01em] whitespace-nowrap text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+
+  .brand-prompt {
+    @apply -mr-1 size-[1.125rem] shrink-0 text-primary;
   }
 
   /* On the home page the brand waits until the page title scrolls away, as the portfolio's does. */
@@ -182,7 +186,7 @@
   }
 
   .site-nav-home {
-    @apply font-mono text-[0.8125rem] tracking-normal text-primary normal-case;
+    @apply justify-start;
   }
 
   .site-nav-arrow {
