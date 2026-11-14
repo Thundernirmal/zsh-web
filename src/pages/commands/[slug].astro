@@ -4,6 +4,8 @@ import Layout from '@/layouts/Layout.astro';
 import PageHeader from '@/components/PageHeader.astro';
 import CommandDetails from '@/components/CommandDetails';
 import { CategoryBadge } from '@/components/CategoryBadge';
+import { Badge } from '@/components/ui/badge';
+import { typeVariant } from '@/lib/command-search';
 import { guideMentions } from '@/lib/guide-mentions';
 import { categoryLabels } from '@/lib/categories';
 import { commandHref, formatLabel } from '@/lib/shell-docs';
@@ -30,15 +32,19 @@ const related = sameCategory.slice(0, RELATED_LIMIT);
 <Layout title={command.name} description={command.description}>
   <a class="footer-link w-fit" href="/commands/">← All commands</a>
   <PageHeader title={command.name} translate="no"><p>{command.description}</p></PageHeader>
-  {command.category && (
-    <a
-      href={categoryHref}
-      class="w-fit rounded-4xl outline-none transition-opacity hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50"
-      aria-label={`Browse all ${categoryLabel} commands`}
-    >
-      <CategoryBadge category={command.category} />
-    </a>
-  )}
+  {/* The same type and category badges as the command's row in the reference. */}
+  <div class="flex flex-wrap items-center gap-1.5" data-command-badges>
+    <Badge variant={typeVariant(command.type)}>{formatLabel(command.type)}</Badge>
+    {command.category && (
+      <a
+        href={categoryHref}
+        class="w-fit rounded-4xl outline-none transition-opacity hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50"
+        aria-label={`Browse all ${categoryLabel} commands`}
+      >
+        <CategoryBadge category={command.category} />
+      </a>
+    )}
+  </div>
   <h2 class="sr-only">Usage reference</h2>
   <CommandDetails client:visible command={command} />
   <noscript><p>All reference text is available here. Select text manually to copy it.</p></noscript>

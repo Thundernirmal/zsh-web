@@ -256,10 +256,6 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
             const detailId = commandId(command).replace(/[^A-Za-z0-9_-]/g, '-');
             const { features, unmatchedExamples } = buildFeatureDetails(command);
             const hasFeatures = features.length > 0;
-            const displayExamples = unmatchedExamples;
-            const { options, remaining: notes } = splitOptionNotes(command.notes ?? []);
-            const hasReferenceDetails =
-              hasFeatures || displayExamples.length > 0 || notes.length > 0 || options.length > 0;
             // Function syntax is a placeholder template, not a runnable command:
             // the prominent copy action must hand over a concrete example
             // instead, and only fall back to an explicitly labeled template copy.
@@ -267,7 +263,13 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
             const firstRunnableExample = runnableExamples[0];
             // The highlighted example should teach something beyond the name
             // itself; bare invocations stay in the full example list.
-            const featuredExample = runnableExamples.find((example) => example.trim() !== command.name);
+            // It keeps any "# note" so moving it out of the example list loses nothing.
+            const featuredExample = (command.examples ?? []).find((example) => splitExample(example).command.trim() !== command.name);
+            // "Try an example" already shows the featured example; don't list it again below.
+            const displayExamples = unmatchedExamples.filter((example) => example !== featuredExample);
+            const { options, remaining: notes } = splitOptionNotes(command.notes ?? []);
+            const hasReferenceDetails =
+              hasFeatures || displayExamples.length > 0 || notes.length > 0 || options.length > 0;
             const syntaxDetails: Array<{
               label: string;
               value: string;
@@ -317,19 +319,20 @@ export default function CommandDetails({ command, query = "" }: { command: Shell
                       <Fragment key={detail.label}>
                         {index > 0 && <Separator />}
                         <div className="grid min-w-0 gap-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="detail-section-heading" data-detail-section-heading>
-                              {detail.label}
-                            </h3>
+                          <h3 className="detail-section-heading" data-detail-section-heading>
+                            {detail.label}
+                          </h3>
+                          {/* Copy sits beside the code it copies, as in the example rows. */}
+                          <div className="flex min-w-0 items-center justify-between gap-2">
+                            <pre className="detail-code flex-1 font-semibold" data-detail-code>
+                              <SyntaxCode code={detail.value} query={query} />
+                            </pre>
                             <CopyButton
                               text={detail.copyText}
                               label={detail.copyLabel}
                               className="size-7 shrink-0"
                             />
                           </div>
-                          <pre className="detail-code font-semibold" data-detail-code>
-                            <SyntaxCode code={detail.value} query={query} />
-                          </pre>
                         </div>
                       </Fragment>
                     ))}

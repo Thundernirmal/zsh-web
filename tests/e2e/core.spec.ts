@@ -773,6 +773,23 @@ test('featured examples go beyond the bare command name', async ({ page }) => {
 	await expect(page.getByRole('button', { name: 'Copy example: zdoctor' })).toBeVisible();
 });
 
+test('command pages show the featured example once, the type badge, and copy beside the code', async ({ page }) => {
+	await page.goto('/commands/bcat/');
+	const featured = page.getByRole('region', { name: 'Runnable example' });
+	await expect(featured.locator('pre')).toHaveText('bcat README.md');
+	// The featured example is not repeated in the example list below it.
+	await expect(page.locator('main pre').filter({ hasText: /^bcat README\.md$/ })).toHaveCount(1);
+	await expect(page.locator('[data-command-badges]').getByText('Alias', { exact: true })).toBeVisible();
+	await expect(page.locator('[data-command-badges]').getByRole('link', { name: 'Browse all Files commands' })).toBeVisible();
+	// Usage's copy button shares a row with the usage code, not with its heading.
+	const usageCode = page.locator('main pre').filter({ hasText: /^bcat <file>$/ });
+	const usageCopy = page.getByRole('button', { name: 'Copy usage', exact: true });
+	const [codeBox, copyBox] = [await usageCode.boundingBox(), await usageCopy.boundingBox()];
+	const codeMiddle = (codeBox?.y ?? 0) + (codeBox?.height ?? 0) / 2;
+	expect(codeMiddle).toBeGreaterThanOrEqual(copyBox?.y ?? Infinity);
+	expect(codeMiddle).toBeLessThanOrEqual((copyBox?.y ?? 0) + (copyBox?.height ?? 0));
+});
+
 test('registry flag notes render as an options list', async ({ page }) => {
 	await page.goto('/commands/upkg/');
 	const options = page.locator('[data-command-options]');
