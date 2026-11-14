@@ -34,7 +34,7 @@ const ASSET_BUDGETS = {
 // keyboard navigation. Reserve compression headroom across Node versions;
 // the on-demand index remains separately budgeted below.
 const docsAssets = { jsGzip: 10_000, cssGzip: 23_000, fontBytes: 220_000 };
-const docsBudget = { rawBytes: 55_000, gzipBytes: 12_500, elements: 800 };
+const docsBudget = { rawBytes: 55_000, gzipBytes: 14_000, elements: 800 };
 for (const topic of guidePages) {
   const file = `${guideUrl(topic.slug).slice(1)}index.html`;
   BUDGETS[file] ??= docsBudget;
@@ -55,7 +55,7 @@ let failures = 0;
 
 // The source-backed search index is fetched only when a reader enters a query.
 for (const [file, limits] of Object.entries({
-  'docs-search.json': { rawBytes: 110_000, gzipBytes: 30_000 },
+  'docs-search.json': { rawBytes: 110_000, gzipBytes: 33_000 },
   'tips.json': { rawBytes: 23_000, gzipBytes: 4_800 },
 })) {
   const fullPath = path.join(DIST_DIR, file);

@@ -1,12 +1,5 @@
 [
   {
-    "id": "tip-fa2dd961",
-    "text": "On short terminals hide previews with Ctrl+P or enlarge the window; Ctrl+/ wraps",
-    "category": "utility",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
-  },
-  {
     "id": "tip-db881a81",
     "text": "Press Alt+C to select and enter a directory",
     "category": "fzf",
@@ -14,15 +7,22 @@
     "availability": "Available when fzf is ready in an interactive shell"
   },
   {
-    "id": "tip-5b3f9e88",
-    "text": "Press Ctrl+P in zi to preview a directory; typing keeps zoxide's ranking",
+    "id": "tip-ac558738",
+    "text": "Press Ctrl+P in a picker to hide its preview; Ctrl+/ toggles wrapping",
+    "category": "utility",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell"
+  },
+  {
+    "id": "tip-b5e52513",
+    "text": "Press Ctrl+P in zi to preview a directory",
     "category": "fzf",
     "source": "zoxide",
     "availability": "Available when zoxide is installed and fzf is ready"
   },
   {
-    "id": "tip-ab70dc06",
-    "text": "Press Ctrl+R to insert history; Ctrl+P toggles its preview and ? stays searchable",
+    "id": "tip-3280515d",
+    "text": "Press Ctrl+R to search history and insert a command",
     "category": "history",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell"
@@ -40,6 +40,16 @@
     "category": "shell",
     "source": "core",
     "availability": "Always available"
+  },
+  {
+    "id": "tip-db960379",
+    "text": "Run bcat <file> to print it with bat highlighting; cat stays plain",
+    "category": "utility",
+    "source": "core",
+    "availability": "Available when bat or batcat is installed",
+    "commandId": "command-bcat",
+    "commandName": "bcat",
+    "example": "bcat <file>"
   },
   {
     "id": "tip-bed222ea",
@@ -142,6 +152,16 @@
     "example": "dusage [path] [count]"
   },
   {
+    "id": "tip-c776369b",
+    "text": "Run extract --destination DIR archive.tar.gz to unpack somewhere else",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available",
+    "commandId": "command-extract",
+    "commandName": "extract",
+    "example": "extract --destination DIR archive.tar.gz"
+  },
+  {
     "id": "tip-917f81b8",
     "text": "Run extract --keep file.gz to preserve the compressed input",
     "category": "utility",
@@ -164,8 +184,18 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-7e6d0c2b",
-    "text": "Run fbr to select exact branches even when branch and tag names collide",
+    "id": "tip-0c1d8473",
+    "text": "Run fbr <query> to start the branch picker with that filter",
+    "category": "git",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell",
+    "commandId": "command-fbr",
+    "commandName": "fbr",
+    "example": "fbr <query>"
+  },
+  {
+    "id": "tip-b37cd4c1",
+    "text": "Run fbr to pick a branch and check it out or enter its worktree",
     "category": "git",
     "source": "fzf",
     "availability": "Available when fzf is ready in an interactive shell",
@@ -173,6 +203,16 @@
     "commandName": "fbr",
     "example": "fbr",
     "exampleCopyable": true
+  },
+  {
+    "id": "tip-2c58011c",
+    "text": "Run ff --pick <pattern> to choose a match and open it in your editor",
+    "category": "search",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell",
+    "commandId": "command-ff",
+    "commandName": "ff",
+    "example": "ff --pick <pattern>"
   },
   {
     "id": "tip-d79a08e8",
@@ -205,6 +245,16 @@
     "commandName": "fkill",
     "example": "fkill TERM",
     "exampleCopyable": true
+  },
+  {
+    "id": "tip-d3abb204",
+    "text": "Run ft --pick <pattern> to open a matching line at its line number",
+    "category": "search",
+    "source": "fzf",
+    "availability": "Available when fzf is ready in an interactive shell",
+    "commandId": "command-ft",
+    "commandName": "ft",
+    "example": "ft --pick <pattern>"
   },
   {
     "id": "tip-254e4bca",
@@ -336,17 +386,6 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-608d534c",
-    "text": "Run npkg outdated to check every active profile entry for output changes",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready",
-    "commandId": "command-npkg",
-    "commandName": "npkg",
-    "example": "npkg outdated",
-    "exampleCopyable": true
-  },
-  {
     "id": "tip-9b7840d9",
     "text": "Run npkg outdated to check for Nix output changes",
     "category": "nix",
@@ -358,14 +397,14 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-b5b77e02",
-    "text": "Run npkg refresh --help for usage without rebuilding the attribute cache",
+    "id": "tip-fb9edd64",
+    "text": "Run npkg refresh to rebuild the cached nixpkgs attribute list",
     "category": "nix",
     "source": "npkg",
     "availability": "Available when nix and jq are installed",
     "commandId": "command-npkg",
     "commandName": "npkg",
-    "example": "npkg refresh --help",
+    "example": "npkg refresh",
     "exampleCopyable": true
   },
   {
@@ -402,14 +441,25 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-4a7b4fee",
-    "text": "Run peek <file> for a quick file preview",
+    "id": "tip-89d61955",
+    "text": "Run peek <file> to preview its first 200 lines",
     "category": "viewing",
     "source": "core",
     "availability": "Available when bat or cat is installed",
     "commandId": "command-peek",
     "commandName": "peek",
     "example": "peek <file>"
+  },
+  {
+    "id": "tip-2e7d460b",
+    "text": "Run ports 8080 or ports nginx to narrow the listening sockets",
+    "category": "network",
+    "source": "core",
+    "availability": "Available when ss is installed",
+    "commandId": "command-ports",
+    "commandName": "ports",
+    "example": "ports 8080",
+    "exampleCopyable": true
   },
   {
     "id": "tip-67773123",
@@ -423,8 +473,18 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-78b2552c",
-    "text": "Run upkg clean --dry-run --only dnf to preview cache removal; check failures",
+    "id": "tip-772cb9e2",
+    "text": "Run tips <query> to list every tip about a command; tips --all lists them all",
+    "category": "utility",
+    "source": "core",
+    "availability": "Always available",
+    "commandId": "command-tips",
+    "commandName": "tips",
+    "example": "tips <query>"
+  },
+  {
+    "id": "tip-7b6ddda0",
+    "text": "Run upkg clean --dry-run --only dnf to preview cache removal",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when dnf is installed",
@@ -467,28 +527,6 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-2fa1847f",
-    "text": "Run upkg outdated --only flatpak to include hidden extension update refs",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when flatpak is installed",
-    "commandId": "command-upkg",
-    "commandName": "upkg",
-    "example": "upkg outdated --only flatpak",
-    "exampleCopyable": true
-  },
-  {
-    "id": "tip-85829f20",
-    "text": "Run upkg outdated --only npm for a stable table and visible native warnings",
-    "category": "packages",
-    "source": "upkg",
-    "availability": "Available when npm is installed",
-    "commandId": "command-upkg",
-    "commandName": "upkg",
-    "example": "upkg outdated --only npm",
-    "exampleCopyable": true
-  },
-  {
     "id": "tip-8ab2c9b7",
     "text": "Run upkg plan and compare per-manager elapsed times in the summary",
     "category": "packages",
@@ -500,8 +538,8 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-dbdab84a",
-    "text": "Run upkg plan to inventory updates; review the native upgrade transaction",
+    "id": "tip-143d5a54",
+    "text": "Run upkg plan to list updates without installing anything",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
@@ -522,8 +560,8 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-c51c27c3",
-    "text": "Run upkg search ripgrep; native warnings stay separate from package results",
+    "id": "tip-7ca05935",
+    "text": "Run upkg search ripgrep to search every detected manager",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
@@ -533,9 +571,9 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-1a56ff27",
-    "text": "Run upkg to check detected package managers; review warnings on stderr",
-    "category": "pipe",
+    "id": "tip-b8cc6403",
+    "text": "Run upkg to check every detected package manager for updates",
+    "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
     "commandId": "command-upkg",
@@ -544,8 +582,8 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-8b265b82",
-    "text": "Run upkg upgrade --sudo --only=apt after resolving APT refresh errors",
+    "id": "tip-cc374079",
+    "text": "Run upkg upgrade --sudo --only=apt to upgrade APT packages",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when apt is installed",
@@ -588,9 +626,9 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-2ecce445",
-    "text": "Run zdoctor in an interactive shell; repair blocked fzf and restart",
-    "category": "shell",
+    "id": "tip-68c70c7b",
+    "text": "Run zdoctor to check the setup and see why output looks plain",
+    "category": "utility",
     "source": "core",
     "availability": "Always available",
     "commandId": "command-zdoctor",
@@ -628,13 +666,6 @@
     "availability": "Always available"
   },
   {
-    "id": "tip-e82e3b5e",
-    "text": "Type in the unfilled fzf input row to filter; use the footer for keys",
-    "category": "utility",
-    "source": "fzf",
-    "availability": "Available when fzf is ready in an interactive shell"
-  },
-  {
     "id": "tip-8b3547a2",
     "text": "Use - to return to the previous directory",
     "category": "navigation",
@@ -646,8 +677,8 @@
     "exampleCopyable": true
   },
   {
-    "id": "tip-567991ae",
-    "text": "Use --help with a general helper to see usage before doing any work",
+    "id": "tip-74821806",
+    "text": "Use --help with any helper to see its usage",
     "category": "utility",
     "source": "core",
     "availability": "Always available"
@@ -674,42 +705,11 @@
     "availability": "Always available"
   },
   {
-    "id": "tip-f6de397f",
-    "text": "Use a nonempty existing directory with extract --destination DIR archive.tar.gz",
-    "category": "navigation",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
-    "id": "tip-a0dd13a3",
-    "text": "Use command substitutions safely; helper errors stay on stderr",
-    "category": "pipe",
-    "source": "core",
-    "availability": "Always available"
-  },
-  {
     "id": "tip-38fb8d53",
     "text": "Use Ctrl+C during upkg to stop remaining managers and cleanup phases",
     "category": "packages",
     "source": "upkg",
     "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed"
-  },
-  {
-    "id": "tip-4ffcd4be",
-    "text": "Use Devel in paru.conf to enable development-package commit update checks",
-    "category": "utility",
-    "source": "core",
-    "availability": "Available when paru is installed"
-  },
-  {
-    "id": "tip-b5b75082",
-    "text": "Use extract --destination DIR link.gz to retain a compressed link target",
-    "category": "utility",
-    "source": "core",
-    "availability": "Always available",
-    "commandId": "command-extract",
-    "commandName": "extract",
-    "example": "extract --destination DIR link.gz"
   },
   {
     "id": "tip-26969a72",
@@ -722,24 +722,14 @@
     "example": "ff --no-ignore"
   },
   {
-    "id": "tip-efe8f93f",
-    "text": "Use ff or ft stderr to diagnose failed searches on fallback backends",
-    "category": "pipe",
-    "source": "core",
-    "availability": "Available when fd, fdfind, or GNU find is installed",
-    "commandId": "command-ff",
-    "commandName": "ff",
-    "example": "ff"
-  },
-  {
-    "id": "tip-4ab6efb8",
-    "text": "Use ft --fixed-strings to search literal text",
+    "id": "tip-e89bb01c",
+    "text": "Use ft -i to ignore case or ft -F to search literal text",
     "category": "search",
     "source": "core",
     "availability": "Available when ripgrep or grep is installed",
     "commandId": "command-ft",
     "commandName": "ft",
-    "example": "ft --fixed-strings"
+    "example": "ft -i"
   },
   {
     "id": "tip-6335df34",
@@ -766,24 +756,6 @@
     "availability": "Available when nix is installed"
   },
   {
-    "id": "tip-16ba4ce9",
-    "text": "Use npkg find -- --help to search for the literal --help query",
-    "category": "nix",
-    "source": "npkg",
-    "availability": "Available when nix and jq are installed and fzf is ready",
-    "commandId": "command-npkg",
-    "commandName": "npkg",
-    "example": "npkg find -- --help",
-    "exampleCopyable": true
-  },
-  {
-    "id": "tip-93de5642",
-    "text": "Use plain scalars with cgm env; padding and case conversion are rejected",
-    "category": "security",
-    "source": "cgm",
-    "availability": "Available when cgm is loaded through secret-tool"
-  },
-  {
     "id": "tip-c4aecacd",
     "text": "Use quotes around 'H' to keep a global alias literal",
     "category": "globbing",
@@ -799,6 +771,17 @@
     "commandId": "command-upkg",
     "commandName": "upkg",
     "example": "upkg --only dnf",
+    "exampleCopyable": true
+  },
+  {
+    "id": "tip-d9b9358d",
+    "text": "Use upkg plan --parallel to check every manager at the same time",
+    "category": "packages",
+    "source": "upkg",
+    "availability": "Available when paru, pacman, apt, dnf, brew, flatpak, nix, or npm is installed",
+    "commandId": "command-upkg",
+    "commandName": "upkg",
+    "example": "upkg plan --parallel",
     "exampleCopyable": true
   },
   {
