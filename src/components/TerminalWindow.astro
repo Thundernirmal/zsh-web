@@ -1,0 +1,28 @@
+---
+/**
+ * The site's terminal window: Catppuccin window dots, a centred title, and a
+ * tmux-style status line. Shared by the home hero and the 404 page.
+ */
+interface Props {
+	title: string;
+	/** Right-hand status line text, such as the working directory or an exit code. */
+	status?: string;
+	statusTone?: 'muted' | 'error';
+}
+
+const { title, status = '~/.config/zsh', statusTone = 'muted' } = Astro.props;
+---
+
+<div class="terminal-window">
+	<div class="terminal-titlebar">
+		<span class="terminal-lights" aria-hidden="true"><span></span><span></span><span></span></span>
+		<span class="terminal-title" translate="no">{title}</span>
+		<span class="terminal-tag" aria-hidden="true">zsh</span>
+	</div>
+	<slot />
+	<div class="terminal-status" aria-hidden="true" translate="no">
+		<span class="terminal-status-session">zsh</span>
+		<span>1:shell*</span>
+		<span class:list={['terminal-status-end', statusTone === 'error' && 'text-category-shell']}>{status}</span>
+	</div>
+</div>
