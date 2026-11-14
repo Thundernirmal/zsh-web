@@ -3,9 +3,8 @@ import Layout from '../layouts/Layout.astro';
 import TerminalHero from '../components/TerminalHero.astro';
 import TipRoulette from '../components/TipRoulette.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { ArrowRightIcon, BookOpenIcon, LightbulbIcon, SquareTerminalIcon } from 'lucide-react';
+import { BookOpenIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCollection } from 'astro:content';
 
 const commands = (await getCollection('commands')).map(({ data }) => data);
@@ -18,7 +17,7 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 ---
 
 <Layout title="Home">
-	<PageHeader id="home-page-header" title="Nirmal's Shell" accent="Nirmal's" hero>
+	<PageHeader id="home-page-header" title="Nirmal's Shell" hero>
 		<p>
 			A living guide to aliases, functions, tips, and workflows, extracted directly from the{' '}
 			<a href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer" class="text-link" translate="no">Thundernirmal/zsh<span class="sr-only"> (opens in a new tab)</span></a>{' '}
@@ -34,40 +33,35 @@ const npkgExample = commands.find((command) => command.name === 'npkg')?.example
 		<TerminalHero featuredTip={featuredTip} upkgExample={upkgExample} npkgExample={npkgExample} />
 	</div>
 
-	<div class="grid gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 lg:grid-cols-2">
-		<Card size="sm" className="flex flex-col">
-				<CardHeader className="gap-2">
-					<CardTitle><h2 class="flex items-center gap-2 text-xl"><SquareTerminalIcon className="size-5 text-primary" aria-hidden="true" />Command Library</h2></CardTitle>
-					<CardDescription>
-						Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the committed shell snapshot.
-					</CardDescription>
-			</CardHeader>
-			<CardContent className="grid flex-1 content-start gap-3 leading-6 text-muted-foreground">
+	{/* The portfolio's playground band: numbered cells divided by hairline rules, each ending in a label link. */}
+	<div class="home-band motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+		<section class="home-cell" aria-labelledby="home-commands">
+			<p class="label" aria-hidden="true"><span class="text-category-search">01</span> / Commands</p>
+			<h2 id="home-commands" class="display text-4xl sm:text-5xl">Command Library</h2>
+			<div class="grid flex-1 content-start gap-3 leading-7 text-muted-foreground">
+				<p>
+					Search {commands.length} commands across {categoryCount} categories, including extracted usage, examples, requirements, and feature notes from the committed shell snapshot.
+				</p>
 				<p>
 					From <code translate="no">upkg search ripgrep</code> to <code translate="no">npkg add bat</code>, quick aliases like <code translate="no">ll</code> and <code translate="no">lt</code>, and more — all documented with usage, options, and availability notes.
 				</p>
 				<p>
 					Filter by type — aliases, global aliases, or functions — and search instantly with results synced to the URL for easy sharing.
 				</p>
-			</CardContent>
-			<CardFooter>
-				<a href="/commands" class={buttonVariants({ size: 'lg' })}>Explore the Reference <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
-			</CardFooter>
-		</Card>
+			</div>
+			<a href="/commands" class="home-cta label">Explore the Reference <span class="home-cta-arrow" aria-hidden="true">→</span></a>
+		</section>
 
-		<Card size="sm" className="flex flex-col">
-				<CardHeader className="gap-2">
-					<CardTitle><h2 class="flex items-center gap-2 text-xl"><LightbulbIcon className="size-5 text-primary" aria-hidden="true" />Shell Tips</h2></CardTitle>
-					<CardDescription>
-						Review always-on shortcuts and conditional features side by side, with availability notes carried through from the zsh config.
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="flex flex-1 flex-col">
+		<section class="home-cell" aria-labelledby="home-tips">
+			<p class="label" aria-hidden="true"><span class="text-category-git">02</span> / Tips</p>
+			<h2 id="home-tips" class="display text-4xl sm:text-5xl">Shell Tips</h2>
+			<p class="leading-7 text-muted-foreground">
+				Review always-on shortcuts and conditional features side by side, with availability notes carried through from the zsh config.
+			</p>
+			<div class="flex flex-1 flex-col">
 				<TipRoulette />
-			</CardContent>
-			<CardFooter>
-				<a href="/tips" class={buttonVariants({ size: 'lg' })}>View All {tips.length} Tips <ArrowRightIcon data-icon="inline-end" aria-hidden="true" /></a>
-			</CardFooter>
-		</Card>
+			</div>
+			<a href="/tips" class="home-cta label">View All {tips.length} Tips <span class="home-cta-arrow" aria-hidden="true">→</span></a>
+		</section>
 	</div>
 </Layout>
