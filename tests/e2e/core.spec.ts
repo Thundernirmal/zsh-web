@@ -47,7 +47,7 @@ test('custom docs share site chrome and support mobile topic navigation', async 
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#1e1e2e');
   const styles = await page.locator('body').evaluate((node) => ({ color: getComputedStyle(node).backgroundColor, font: getComputedStyle(node).fontFamily }));
   expect(styles.color).toBe('rgb(30, 30, 46)');
-  expect(styles.font).toContain('Plus Jakarta Sans');
+  expect(styles.font).toContain('Instrument Sans');
   const menu = page.locator('[data-docs-menu]');
   await expect(page.locator('[data-docs-search]')).toHaveAttribute('data-ready', 'true');
   if ((page.viewportSize()?.width ?? 0) < 1024) {

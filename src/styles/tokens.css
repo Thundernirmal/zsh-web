@@ -96,9 +96,10 @@
   --ctp-mantle: #181825;
   --ctp-crust: #11111b;
 
-  --font-display: "Outfit Variable", "Outfit", sans-serif;
-  --font-body: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", sans-serif;
-  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+  /* Same families as nirmalkatariya.com: one sans for display and body, plus the mono. */
+  --font-display: "Instrument Sans Variable", "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: var(--font-display);
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* shadcn semantic tokens */
   --background: var(--ctp-base);

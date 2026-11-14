@@ -1,7 +1,7 @@
 @layer properties, theme, base, components, utilities;
 
-@import "@fontsource-variable/outfit/wght.css";
-@import "@fontsource-variable/plus-jakarta-sans/wght.css";
+/* standard.css carries the width axis as well as weight: display type is set slightly condensed. */
+@import "@fontsource-variable/instrument-sans/standard.css";
 @import "@fontsource-variable/jetbrains-mono/wght.css";
 @import "tailwindcss";
 @import "tw-animate-css";
