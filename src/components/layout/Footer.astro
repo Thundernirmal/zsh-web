@@ -10,18 +10,22 @@ const sourceDateLabel = new Intl.DateTimeFormat('en', { dateStyle: 'medium', tim
 
 <footer class="w-full" transition:name="site-footer" transition:animate="none">
 	<Separator />
-	<div class="content-shell py-5 text-sm leading-6 text-muted-foreground">
+	<div class="content-shell grid gap-2 py-6 text-sm leading-6 text-muted-foreground">
 		<p class="flex flex-wrap items-center gap-x-2 gap-y-1">
 			Built by <a class="footer-link" href="https://nirmalkatariya.com">Nirmal Katariya</a>
 			<span aria-hidden="true">·</span>
 			<a class="footer-link" href="https://github.com/Thundernirmal/zsh" target="_blank" rel="noopener noreferrer">Source Config<span class="sr-only"> (opens in a new tab)</span></a>
 			<span aria-hidden="true">·</span>
 			<a class="footer-link" href="/get-started/">Get Started</a>
-            <span aria-hidden="true">·</span>
-            <a class="footer-link" href="/docs/">Docs</a>
-            <span aria-hidden="true">·</span>
-            <a class="footer-link" href="/troubleshooting/">Troubleshooting</a>
+			<span aria-hidden="true">·</span>
+			<a class="footer-link" href="/docs/">Docs</a>
+			<span aria-hidden="true">·</span>
+			<a class="footer-link" href="/troubleshooting/">Troubleshooting</a>
 		</p>
-    <p>Generated from shell commit <a class="footer-link" href={`${source.repository}/tree/${source.commit}`}>{source.commit.slice(0, 8)}</a> · Source updated <time datetime={sourceDay}>{sourceDateLabel}</time></p>
+		<p class="flex flex-wrap gap-x-2 sm:justify-between">
+			<span>Generated from shell commit <a class="footer-link font-mono text-[0.8125rem]" href={`${source.repository}/tree/${source.commit}`}>{source.commit.slice(0, 8)}</a> · Source updated <time datetime={sourceDay}>{sourceDateLabel}</time></span>
+			{/* Like nirmalkatariya.com's footer, name the Catppuccin flavour in view. */}
+			<span>In Catppuccin <span class="footer-theme-name"></span></span>
+		</p>
 	</div>
 </footer>

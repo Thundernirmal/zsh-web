@@ -183,7 +183,7 @@
     --on-accent: var(--ctp-crust);
     --surface-muted: var(--ctp-surface0);
     --surface-accent: var(--ctp-surface1);
-    --rule: var(--ctp-surface1);
+    --rule: var(--ctp-surface0);
     --rule-strong: var(--ctp-surface1);
     --terminal-background: color-mix(in srgb, var(--ctp-crust) 78%, var(--ctp-mantle));
     --terminal-toolbar: var(--ctp-mantle);
@@ -241,7 +241,7 @@
   --on-accent: var(--ctp-crust);
   --surface-muted: var(--ctp-surface0);
   --surface-accent: var(--ctp-surface1);
-  --rule: var(--ctp-surface1);
+  --rule: var(--ctp-surface0);
   --rule-strong: var(--ctp-surface1);
   --terminal-background: color-mix(in srgb, var(--ctp-crust) 78%, var(--ctp-mantle));
   --terminal-toolbar: var(--ctp-mantle);
@@ -278,7 +278,8 @@
   --chart-3: var(--tone-green);
   --chart-4: var(--tone-pink);
   --chart-5: var(--tone-mauve);
-  --radius: 0.5rem;
+  /* nirmalkatariya.com is built from square edges and hairline rules. */
+  --radius: 0rem;
   --sidebar: var(--ctp-mantle);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--tone-mauve);

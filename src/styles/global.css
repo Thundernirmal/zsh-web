@@ -26,6 +26,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
+    text-wrap: balance;
   }
 
   code, kbd, samp, pre {
@@ -54,7 +55,7 @@
 
 @layer components {
   .skip-link {
-    @apply fixed top-2 left-2 -translate-y-20 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-md transition-transform focus-visible:translate-y-0;
+    @apply fixed top-2 left-2 -translate-y-20 bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform focus-visible:translate-y-0;
     z-index: 60;
   }
 
@@ -85,23 +86,97 @@
     @apply rounded-sm font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-[color,text-decoration-color] hover:text-foreground hover:decoration-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none;
   }
 
+  /* Footer links stay quiet like the portfolio's, but keep an underline so they read as links. */
+  .footer-theme-name::after {
+    content: "Latte";
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="latte"]) .footer-theme-name::after {
+      content: "Mocha";
+    }
+  }
+
+  :root[data-theme="mocha"] .footer-theme-name::after {
+    content: "Mocha";
+  }
+
   .footer-link {
-    @apply inline-flex min-h-11 items-center sm:min-h-6;
+    @apply inline-flex min-h-11 items-center text-muted-foreground decoration-current/40 hover:text-foreground hover:decoration-current sm:min-h-6;
   }
 
-  /* Header links repeat on every route, so the ghost/secondary small-button
-     treatment lives in one class instead of ~1 KB of utilities per link. */
+  /* Typography roles shared with nirmalkatariya.com. */
+  .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .display {
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    font-stretch: 92%;
+  }
+
+  .site-brand {
+    @apply min-h-11 shrink-0 items-center font-mono text-[0.8125rem] font-medium whitespace-nowrap text-foreground outline-none hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+
+  /* On the home page the brand waits until the page title scrolls away, as the portfolio's does. */
+  .site-brand-scroll {
+    @apply transition-[opacity,translate,visibility] duration-300 ease-out motion-reduce:transition-none data-[visible=false]:pointer-events-none data-[visible=false]:invisible data-[visible=false]:translate-y-1.5 data-[visible=false]:opacity-0;
+  }
+
+  .site-nav-links {
+    /* One row on phones; it wraps rather than scrolling sideways when text is enlarged. */
+    @apply flex w-full min-w-0 flex-wrap items-center justify-between gap-x-1 sm:ml-auto sm:w-auto sm:flex-nowrap sm:gap-6;
+  }
+
+  /* Header links repeat on every route, so their treatment lives in one class. */
   .site-nav-link {
-    @apply inline-flex h-7 min-h-11 w-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-[min(var(--radius-md),12px)] border border-transparent bg-clip-padding px-1 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] outline-none select-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px sm:min-h-7 sm:w-auto sm:px-2.5 sm:text-[0.8rem] sm:has-data-[icon=inline-start]:pl-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5;
+    @apply relative inline-flex min-h-11 min-w-11 items-center justify-center gap-1 text-[0.6875rem] font-semibold tracking-[0.1em] whitespace-nowrap text-muted-foreground uppercase transition-colors outline-none select-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-w-0 sm:text-xs sm:tracking-[0.14em];
   }
 
-  .site-nav-link[aria-current='page'] {
-    @apply bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)];
+  .site-nav-link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.5rem;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site-nav-link[aria-current="page"] {
+    @apply text-foreground;
+  }
+
+  .site-nav-link[aria-current="page"]:not(.site-nav-home)::after {
+    transform: scaleX(1);
+  }
+
+  @media (hover: hover) {
+    .site-nav-link:not(.site-nav-home):hover::after {
+      transform: scaleX(1);
+    }
+  }
+
+  .site-nav-home {
+    @apply font-mono text-[0.8125rem] tracking-normal text-primary normal-case;
+  }
+
+  .site-nav-arrow {
+    @apply text-[0.875em] tracking-normal;
   }
 
   /* Theme toggle, after nirmalkatariya.com: only shown once a script can act on it. */
   .theme-toggle {
-    @apply hidden px-0 sm:w-7 sm:px-0;
+    @apply hidden size-11 items-center justify-center text-muted-foreground transition-[color,transform] outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-90 sm:-mr-2.5 sm:size-9;
   }
 
   :root[data-theme] .theme-toggle {
@@ -109,7 +184,7 @@
   }
 
   .theme-icons {
-    @apply size-4 sm:size-3.5;
+    @apply size-[18px];
   }
 
   .theme-icons path {
@@ -137,15 +212,15 @@
   }
 
   .markdown-doc h1 {
-    @apply text-pretty text-4xl leading-tight font-semibold tracking-tight sm:text-5xl;
+    @apply text-pretty text-[2.75rem] leading-[0.95] font-medium tracking-[-0.035em] sm:text-6xl;
   }
 
   .markdown-doc h2 {
-    @apply mt-8 border-b pb-3 text-pretty text-2xl leading-tight font-semibold tracking-tight sm:text-3xl;
+    @apply mt-8 border-b pb-3 text-pretty text-2xl leading-tight font-medium tracking-[-0.025em] sm:text-3xl;
   }
 
   .markdown-doc h3 {
-    @apply mt-5 text-pretty text-xl leading-snug font-semibold;
+    @apply mt-5 text-pretty text-xl leading-snug font-medium tracking-[-0.015em];
   }
 
   .markdown-doc h4 {
@@ -243,7 +318,7 @@
   }
 
   .markdown-doc th {
-    @apply border-y bg-card px-3 py-2 font-heading font-semibold whitespace-nowrap;
+    @apply border-y bg-card px-3 py-2 text-xs font-semibold tracking-[0.14em] whitespace-nowrap uppercase;
   }
 
   .markdown-doc th:first-child {
