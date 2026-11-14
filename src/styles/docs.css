@@ -1,5 +1,6 @@
 .docs-heading { display: grid; gap: 1rem; }
-.docs-breadcrumb { display: flex; align-items: center; gap: 0.75rem; color: var(--muted-foreground); font-size: 0.875rem; }
+/* Breadcrumb, menu titles and topic numbers use nirmalkatariya.com's uppercase label and "01 /" numbering. */
+.docs-breadcrumb { display: flex; align-items: center; gap: 0.75rem; color: var(--muted-foreground); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
 .docs-breadcrumb a { color: var(--primary); text-decoration: none; }
 .docs-breadcrumb a:hover { text-decoration: underline; }
 .docs-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: start; }
@@ -7,7 +8,7 @@
 /* Search results restored after traversal must not shift the router's scroll. */
 .docs-reading { display: grid; gap: 1.5rem; overflow-anchor: none; }
 .docs-menu { border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); padding: 0.5rem; }
-.docs-menu summary, .docs-menu-title { display: flex; align-items: center; gap: 0.625rem; min-height: 44px; padding: 0.5rem 0.625rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; list-style: none; }
+.docs-menu summary, .docs-menu-title { display: flex; align-items: center; gap: 0.625rem; min-height: 44px; padding: 0.5rem 0.625rem; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; list-style: none; }
 .docs-menu summary::-webkit-details-marker, .docs-outline summary::-webkit-details-marker { display: none; }
 .docs-menu-chevron { margin-left: auto; transition: transform 0.15s; }
 .docs-menu[open] .docs-menu-chevron { transform: rotate(180deg); }
@@ -44,13 +45,14 @@
 .docs-search [role='alert'] { color: var(--destructive); font-size: 0.875rem; }
 .docs-topics { display: grid; gap: 1rem; }
 .docs-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
-.docs-section-heading h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+.docs-section-heading h2 { font-size: 1.75rem; font-weight: 500; letter-spacing: -0.03em; }
 .docs-section-heading > span { color: var(--muted-foreground); font-size: 0.75rem; white-space: nowrap; }
 .docs-card-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
-.docs-topic-card { display: grid; align-content: start; gap: 0.75rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); text-decoration: none; transition: border-color 0.15s, background-color 0.15s; }
-.docs-topic-card:hover { border-color: var(--ring); background: color-mix(in srgb, var(--card) 85%, var(--muted)); }
-.docs-card-number { justify-self: start; border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent); border-radius: var(--radius-md); padding: 0.125rem 0.375rem; background: color-mix(in srgb, var(--primary) 10%, transparent); color: var(--primary); font-family: var(--font-mono); font-size: 0.75rem; }
-.docs-topic-card h3 { color: var(--foreground); font-size: 1rem; font-weight: 600; line-height: 1.4; }
+.docs-topic-card { display: grid; align-content: start; gap: 0.75rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--background); text-decoration: none; transition: border-color 0.15s, background-color 0.15s; }
+.docs-topic-card:hover { border-color: var(--ring); background: var(--card); }
+.docs-card-number { justify-self: start; color: var(--primary); font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; }
+.docs-card-number::after { content: " /"; color: var(--muted-foreground); }
+.docs-topic-card h3 { color: var(--foreground); font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1.25; }
 .docs-topic-card p { color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.6; }
 .docs-reference-links, .docs-snapshot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; font-size: 0.875rem; }
 .docs-reference-links { padding-block: 0.75rem; }
