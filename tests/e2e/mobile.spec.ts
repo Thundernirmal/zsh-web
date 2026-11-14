@@ -140,3 +140,11 @@ test('copy controls meet touch target dimensions in expanded references', async 
 		expect(box?.width).toBeGreaterThanOrEqual(44);
 	}
 });
+
+test('touch devices do not advertise the "/" keyboard shortcut in search fields', async ({ page }) => {
+	for (const route of ['/commands/', '/tips/', '/docs/']) {
+		await page.goto(route);
+		await expect(page.locator('main .keyboard-hint')).toHaveCount(1);
+		await expect(page.locator('main .keyboard-hint')).toBeHidden();
+	}
+});

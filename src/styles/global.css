@@ -435,6 +435,13 @@ html.theme-switching::view-transition-new(root) {
   mix-blend-mode: normal;
 }
 
+/* The "/" search shortcut needs a hardware keyboard; hide its hint on touch-first devices. */
+@media not ((hover: hover) and (pointer: fine)) {
+  .keyboard-hint {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

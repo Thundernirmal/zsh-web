@@ -208,7 +208,7 @@ export default function TipsExplorer({ tips }: { tips: ShellTip[] }) {
               <span className="hidden text-sm tabular-nums sm:inline" aria-live="polite" aria-atomic="true">
                 {filteredTips.length} tip{filteredTips.length === 1 ? '' : 's'}
               </span>
-              <Kbd className="hidden sm:inline-flex" aria-hidden="true">
+              <Kbd className="keyboard-hint hidden sm:inline-flex" aria-hidden="true">
                 /
               </Kbd>
             </InputGroupAddon>
